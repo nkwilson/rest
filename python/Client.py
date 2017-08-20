@@ -19,6 +19,9 @@ okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
 #期货API
 okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
+#print (u'K线信息')
+print (okcoinSpot.kline('btc_cny'))
+
 #print (u' 现货行情 ')
 #print (okcoinSpot.ticker('btc_usd'))
 
@@ -47,7 +50,7 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (okcoinSpot.ordersinfo('ltc_usd','18243800,18243801,18243644','0'))
 
 #print (u' 现货历史订单信息查询 ')
-print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
+#print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
 
 #print (u' 期货行情信息')
 #print (okcoinFuture.future_ticker('ltc_usd','this_week'))
@@ -90,7 +93,4 @@ print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
 
 #print (u'期货逐仓持仓信息')
 #print (okcoinFuture.future_position_4fix('ltc_usd','this_week',1))
-
-
-
    

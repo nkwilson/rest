@@ -117,18 +117,18 @@ class OKCoinSpot:
            params['sign'] = buildMySign(params,self.__secretkey)
            return httpPost(self.__url,ORDER_HISTORY_RESOURCE,params)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+    def kline(self,symbol,tradeType='1day',size='',since=''):
+        KLINE_RESOURCE = "/api/v1/kline.do"
+        params = {
+            'symbol':symbol,
+            'type':tradeType
+        }
+        if size:
+            params['size'] = size
+        if since:
+            params['since'] = since
+            
+        #params['sign'] = buildMySign(params,self.__secretkey)
+        print (params)
+        return httpGet(self.__url,KLINE_RESOURCE,params)
+            
