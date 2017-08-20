@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # encoding: utf-8
 #客户端调用，用于查看API返回结果
@@ -7,9 +6,12 @@ from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 
 #初始化apikey，secretkey,url
-apikey = 'XXXX'
-secretkey = 'XXXXX'
-okcoinRESTURL = 'www.okcoin.com'   #请求注意：国内账号需要 修改为 www.okcoin.cn  
+#apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
+#secretkey = '4752BE55655A6233A7254628FB7E9F50'
+#okcoinRESTURL = 'www.okcoin.com'   #请求注意：国内账号需要 修改为 www.okcoin.cn
+apikey = 'fd07e7f8-519a-4ba3-8289-af9881181a96'
+secretkey = 'E0EACE4FB14A8CBDFE271E87D6FA2B6C'
+okcoinRESTURL = 'www.okcoin.cn'
 
 #现货API
 okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
@@ -17,11 +19,11 @@ okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
 #期货API
 okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
-print (u' 现货行情 ')
-print (okcoinSpot.ticker('btc_usd'))
+#print (u' 现货行情 ')
+#print (okcoinSpot.ticker('btc_usd'))
 
-print (u' 现货深度 ')
-print (okcoinSpot.depth('btc_usd'))
+#print (u' 现货深度 ')
+#print (okcoinSpot.depth('btc_usd'))
 
 #print (u' 现货历史交易信息 ')
 #print (okcoinSpot.trades())
@@ -45,7 +47,7 @@ print (okcoinSpot.depth('btc_usd'))
 #print (okcoinSpot.ordersinfo('ltc_usd','18243800,18243801,18243644','0'))
 
 #print (u' 现货历史订单信息查询 ')
-#print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
+print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
 
 #print (u' 期货行情信息')
 #print (okcoinFuture.future_ticker('ltc_usd','this_week'))
