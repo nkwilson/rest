@@ -127,8 +127,10 @@ class OKCoinSpot:
             params['size'] = size
         if since:
             params['since'] = since
-            
-        #params['sign'] = buildMySign(params,self.__secretkey)
-        print (params)
-        return httpGet(self.__url,KLINE_RESOURCE,params)
+
+        data = ''
+        for key in sorted(params.keys()):
+            data += key + '=' + str(params[key]) + '&'
+
+        return httpGet(self.__url,KLINE_RESOURCE,data)
             
