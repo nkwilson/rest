@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # encoding: utf-8
 #客户端调用，用于查看API返回结果
