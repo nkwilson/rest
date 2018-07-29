@@ -10,10 +10,13 @@ from OkcoinFutureAPI import OKCoinFuture
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
 #secretkey = '4752BE55655A6233A7254628FB7E9F50'
 #okcoinRESTURL = 'www.okcoin.com'   #请求注意：国内账号需要 修改为 www.okcoin.cn
-apikey = 'fd07e7f8-519a-4ba3-8289-af9881181a96'
-secretkey = 'E0EACE4FB14A8CBDFE271E87D6FA2B6C'
-okcoinRESTURL = 'www.okcoin.cn'
-
+#apikey = 'fd07e7f8-519a-4ba3-8289-af9881181a96'
+#secretkey = 'E0EACE4FB14A8CBDFE271E87D6FA2B6C'
+#okcoinRESTURL = 'www.okcoin.cn'
+apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
+secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
+okcoinRESTURL = 'www.okex.com'
+    
 #现货API
 okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
 
@@ -21,7 +24,7 @@ okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
 okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
 #print (u'K线信息')
-print (okcoinSpot.kline('btc_cny'))
+# print (okcoinSpot.kline('btc_cny'))
 
 #print (u' 现货行情 ')
 #print (okcoinSpot.ticker('btc_usd'))
@@ -54,7 +57,7 @@ print (okcoinSpot.kline('btc_cny'))
 #print (okcoinSpot.orderHistory('ltc_usd','0','1','2'))
 
 #print (u' 期货行情信息')
-#print (okcoinFuture.future_ticker('ltc_usd','this_week'))
+#print (okcoinFuture.future_ticker('btc_usd','quarter'))
 
 #print (u' 期货市场深度信息')
 #print (okcoinFuture.future_depth('btc_usd','this_week','6'))
@@ -71,11 +74,11 @@ print (okcoinSpot.kline('btc_cny'))
 #print (u'获取预估交割价') 
 #print (okcoinFuture.future_estimated_price('ltc_usd'))
 
-#print (u'获取全仓账户信息')
-#print (okcoinFuture.future_userinfo())
+print (u'获取全仓账户信息')
+print (okcoinFuture.future_userinfo())
 
 #print (u'获取全仓持仓信息')
-#print (okcoinFuture.future_position('ltc_usd','this_week'))
+#print (okcoinFuture.future_position('btc_usd','quarter'))  # works
 
 #print (u'期货下单')
 #print (okcoinFuture.future_trade('ltc_usd','this_week','0.1','1','1','0','20'))

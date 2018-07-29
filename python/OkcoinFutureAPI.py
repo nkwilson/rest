@@ -65,7 +65,7 @@ class OKCoinFuture:
 
     #期货全仓账户信息
     def future_userinfo(self):
-        FUTURE_USERINFO = "/api/v1/future_userinfo.do?"
+        FUTURE_USERINFO = "/api/v1/future_userinfo_4fix" # rewrite according to return info
         params ={}
         params['api_key'] = self.__apikey
         params['sign'] = buildMySign(params,self.__secretkey)
@@ -73,7 +73,8 @@ class OKCoinFuture:
 
     #期货全仓持仓信息
     def future_position(self,symbol,contractType):
-        FUTURE_POSITION = "/api/v1/future_position.do?"
+#        FUTURE_POSITION = "/api/v1/future_position.do?"
+        FUTURE_POSITION = "/api/v1/future_position_4fix?" # rewrite according to return info
         params = {
             'api_key':self.__apikey,
             'symbol':symbol,
