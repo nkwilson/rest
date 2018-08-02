@@ -80,8 +80,9 @@ print (okcoinFuture.future_userinfo())
 #print (u'获取全仓持仓信息')
 #print (okcoinFuture.future_position('btc_usd','quarter'))  # works
 
-#print (u'期货下单')
-#print (okcoinFuture.future_trade('ltc_usd','this_week','0.1','1','1','0','20'))
+#future_trade(self,symbol,contractType,price='',amount='',tradeType='',matchPrice='',leverRate='') type=2 best match price
+print (u'期货下单')
+print (okcoinFuture.future_trade('btc_usd','quarter','','1','2','1','10')) # works
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
