@@ -3,6 +3,8 @@
 # encoding: utf-8
 #客户端调用，用于查看API返回结果
 
+import sys
+
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 
@@ -80,9 +82,32 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u'获取全仓持仓信息')
 #print (okcoinFuture.future_position('btc_usd','quarter'))  # works
 
-#future_trade(self,symbol,contractType,price='',amount='',tradeType='',matchPrice='',leverRate='') type=2 best match price
+
+# |参数名|	参数类型|	必填|	描述|
+# | :-----    | :-----   | :-----    | :-----   |
+# |symbol|String|是|btc\_usd   ltc\_usd    eth\_usd    etc\_usd    bch\_usd|
+# |contract\_type|String|是|合约类型: this\_week:当周   next\_week:下周   quarter:季度|
+# |api_key|String|是|用户申请的apiKey|
+# |sign|String|是|请求参数的签名|
+# |price|String|是|价格|
+# |amount|String|是|委托数量|
+# |type|String|是|1:开多 2:开空 3:平多 4:平空|
+# |match_price|String|否|是否为对手价 0:不是    1:是   ,当取值为1时,price无效|
+# |lever_rate|String|否|杠杆倍数，下单时无需传送，系统取用户在页面上设置的杠杆倍数。且“开仓”若有10倍多单，就不能再下20倍多单|
+#future_trade(self,symbol,contractType,price='',amount='',tradeType='',matchPrice='',leverRate='') tradeType=2 best match price
 #print (u'期货下单')
-#print (okcoinFuture.future_trade('btc_usd','quarter','','1','2','1','10')) # works
+#print (okcoinFuture.future_trade('btc_usd','quarter','','1','1','1','10')) # works
+def future_trade_open_buy(symbol, contract_type, price, amount, match_price):
+    okcoinFuture.future_trade(symbol, contract_type, price, amount,'1', match_price)
+
+def future_trade_close_buy(symbol, contract_type, price, amount, match_price):
+    okcoinFuture.future_trade(symbol, contract_type, price, amount,'3', match_price)
+
+def future_trade_open_sell(symbol, contract_type, price, amount, match_price):
+    okcoinFuture.future_trade(symbol, contract_type, price, amount,'2', match_price)
+
+def future_trade_close_sell(symbol, contract_type, price, amount, match_price):
+    okcoinFuture.future_trade(symbol, contract_type, price, amount,'4', match_price)
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
@@ -98,4 +123,11 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
 #print (u'期货逐仓持仓信息')
 #print (okcoinFuture.future_position_4fix('ltc_usd','this_week',1))
-   
+
+# read price data from path, and do trade of period, with specified amount
+def do_trade_with_boll(path, period, amount):
+    pass
+
+if __name__ == "__main__":
+    print (sys.argv)
+    #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
