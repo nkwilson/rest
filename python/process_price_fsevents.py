@@ -40,20 +40,31 @@ def Bolinger_Bands(stock_price, window_size, num_of_std):
 def callback_dir(subpath, mask):
     print (subpath, mask)
 
+l_index = ''
+old_l_index = ''
+event_path = ''
+old_event_path = ''
+
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def callback_file(subpath):
+    global l_index, old_l_index, event_path, old_event_path
     #print (subpath, str(subpath), type(subpath))
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
+    # ignore file event of %.boll
+    if tup[2].endswith('.boll') == True:
+        return
+    old_l_index = l_index
+    old_event_path = event_path
     event_type=tup[0]
     event_path=tup[2]
+    l_index = os.path.basename(event_path)
     # print (event_type, event_path)
     if (event_type == 2):
         with open(event_path, 'r') as f:
             close=eval(f.readline())[3]
         # print (close)
-        l_index = os.path.basename(event_path)
         try:
             # Parameters:	
             # to_append : Series or list/tuple of Series
@@ -81,9 +92,12 @@ def callback_file(subpath):
         print (event_type)
         return
     else: # type 256, new file event
-        print (type(close_prices), close_prices.count())
+        print (old_l_index, old_event_path, ',')
+        print (l_index, event_path, ',', close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
-
+        with open('%s.boll' % (old_event_path), 'w') as fb: # write bull result to file with suffix of '.boll'
+            fb.write('%f, %f, %f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+            
 if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
     # with os.scandir(sys.argv[1]) as it:
     #     for entry in it:
