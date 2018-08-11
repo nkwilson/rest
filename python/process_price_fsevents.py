@@ -3,6 +3,7 @@ import sys
 import pandas
 import numpy
 import pprint
+import traceback
 from fsevents import Observer
 
 # print (os.environ)
@@ -13,6 +14,9 @@ observer = Observer()
 observer.start()
 
 close_prices = pandas.Series()
+close_mean = pandas.Series()
+close_upper = pandas.Series()
+close_lower = pandas.Series()
 
 # parameters for bollinger band
 window_size=20 
@@ -44,11 +48,11 @@ def callback_file(subpath):
     #print (type(tup), tup[0])
     event_type=tup[0]
     event_path=tup[2]
+    # print (event_type, event_path)
     if (event_type == 2):
         with open(event_path, 'r') as f:
             close=eval(f.readline())[3]
         # print (close)
-        # print (close_prices)
         l_index = os.path.basename(event_path)
         try:
             # Parameters:	
@@ -78,11 +82,7 @@ def callback_file(subpath):
         return
     else: # type 256, new file event
         print (type(close_prices), close_prices.count())
-        if close_prices.count() >= window_size :
-            pprint.pprint (Bolinger_Bands(close_prices, window_size, num_of_std))
-        pass
-    
-    # print (event_type, event_path)
+        close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
 
 if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
     # with os.scandir(sys.argv[1]) as it:
@@ -91,16 +91,48 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
     #             while open(entry.path, 'r') as f:
     #                 close=eval(f.readline())[3]
     #                 close_prices[entry.name]=close
-    files=os.listdir(sys.argv[1])
-    files.sort()
-    print ('Total %d old files' % (len(files)))
-    for fname in files:
-        with open(os.path.join(sys.argv[1], fname), 'r') as f:
-            close=eval(f.readline())[3]
-            close_prices[fname]=close
-
+    try :
+        read_saved = 0  # read boll data from saved file
+        files=os.listdir(sys.argv[1])
+        files.sort()
+        print ('Total %d old files' % (len(files)))
+        for fname in files:
+            fpath = os.path.join(sys.argv[1], fname)
+            # print (fpath)
+            if fpath.endswith('.boll') == False: # not bolinger band data
+                with open(fpath, 'r') as f:
+                    close=eval(f.readline())[3]
+                    close_prices[fname]=close
+            else:
+                continue # 
+            # first check .boll is exist
+            fpathboll='%s.boll' % (fpath)
+            # print (fpathboll)
+            if os.path.isfile(fpathboll) and os.path.getsize(fpathboll) > 0 :
+                with open(fpathboll, 'r') as fb:
+                    read_saved+=1
+                    l_line = fb.readline().rstrip('\n')
+                    # print (l_line, type(l_line))
+                    boll = l_line.split(',')
+                    # print (boll)
+                    boll = [float(x) for x in boll]
+                    # print (boll)
+                    close_mean[fname]=boll[0]
+                    close_upper[fname]=boll[1]
+                    close_lower[fname]=boll[2]
+            else:
+                close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
+                # print (close_mean[fname])
+                with open('%s.boll' % (fpath), 'w') as fb: # write bull result to file with suffix of '.boll'
+                    fb.write('%f, %f, %f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
+        print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
+    except Exception as ex:
+        #print ('exception occured: %s' % (ex))
+        print (traceback.format_exc())
+        exit ()
 from fsevents import Stream
 stream = Stream(callback_file, sys.argv[1], file_events=True)
+print ('Waiting for process new coming file\n')
 observer.schedule(stream)
 
 
