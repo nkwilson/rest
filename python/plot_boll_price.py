@@ -594,9 +594,37 @@ close_mean = pandas.Series()
 close_upper = pandas.Series()
 close_lower = pandas.Series()
 
-def plot_boll_price(argv):
+window_size = 20
+
+# plot and save to file
+def do_plot_with_window_size(window_size, filename):
+        if close_mean.count() < window_size:
+                window_size = close_mean.count()
+
+        matplotlib.pyplot.ioff()  
+        matplotlib.pyplot.figure()
+
+        # plot in line for boll bands
+        matplotlib.pyplot.plot(range(window_size), close_mean[- window_size:])
+        matplotlib.pyplot.plot(range(window_size), close_upper[ - window_size:])
+        matplotlib.pyplot.plot(range(window_size), close_lower[- window_size :])
+
+        matplotlib.pyplot.savefig(filename)
+        matplotlib.pyplot.close()
+
+def generate_png_filename(dir):
+        png_file = '%s.png' % os.path.basename(dir)
+        #print (png_file)
+        return png_file
+
+# inotify specified dir to plot living price
+def plot_living_price(argv):
+        pass
+
+# process saved prices in specified dir        
+def plot_saved_price(dest_dir):
     try:
-        l_dir=argv[1].rstrip('/')
+        l_dir=dest_dir.rstrip('/')
         files = os.listdir(l_dir)
         files.sort()
         print ('Total %d files to plot\n' % (len(files)))
@@ -616,24 +644,14 @@ def plot_boll_price(argv):
                     close_mean[fname]=boll[0]
                     close_upper[fname]=boll[1]
                     close_lower[fname]=boll[2]
-
-        window_size = 20
-        if close_mean.count() < window_size:
-                window_size = close_mean.count()
         #print (close_mean)
-        matplotlib.pyplot.ioff()  
-        matplotlib.pyplot.figure()
-
-        # plot in line for boll bands
-        matplotlib.pyplot.plot(range(window_size), close_mean[- window_size:])
-        matplotlib.pyplot.plot(range(window_size), close_upper[ - window_size:])
-        matplotlib.pyplot.plot(range(window_size), close_lower[- window_size :])
-        png_file = '%s.png' % os.path.basename(l_dir)
-        #print (argv[1], png_file)
-        matplotlib.pyplot.savefig(png_file)
-        matplotlib.pyplot.close()
+        # only plot when finished processing
+        png_file = generate_png_filename(l_dir)
+        do_plot_with_window_size(window_size, png_file)
     except Exception as ex:
         print (traceback.format_exc())
 
 if __name__ == "__main__":
-        sys.exit(plot_boll_price(sys.argv))
+        l_dir = sys.argv[1]
+        plot_saved_price(l_dir)
+        sys.exit(plot_living_price(l_dir))
