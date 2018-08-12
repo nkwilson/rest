@@ -10,9 +10,6 @@ from fsevents import Observer
 # print (sys.modules.keys())  # too much infor
 print (sys.argv)
 
-observer = Observer()
-observer.start()
-
 close_prices = pandas.Series()
 close_mean = pandas.Series()
 close_upper = pandas.Series()
@@ -144,9 +141,14 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
         #print ('exception occured: %s' % (ex))
         print (traceback.format_exc())
         exit ()
+
 from fsevents import Stream
 stream = Stream(callback_file, sys.argv[1], file_events=True)
 print ('Waiting for process new coming file\n')
+
+observer = Observer()
+observer.start()
+
 observer.schedule(stream)
 
 
