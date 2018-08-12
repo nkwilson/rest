@@ -77,7 +77,7 @@ def callback_file(subpath):
             # print (l_index, close)
             return
         except Exception as ex:
-            print (ex)
+            print (traceback.format_exc())
             # not exist
             # if close_prices.count() > 0:
             #     print (Bolinger_Bands(close_prices, window_size, num_of_std))
