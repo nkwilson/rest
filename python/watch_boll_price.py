@@ -66,10 +66,17 @@ def do_plot_with_window_size(l_index, filename):
     with open(filename, 'w') as f:
         f.write('%s sell\n' % l_index)
 
-def generate_trade_filename(dir):
-        trade_file = '%s-trade-%s.log' % (os.path.basename(dir), datetime.date.today().strftime('%s'))
+# close sell order now
+def close_order_with_buy(l_index, filename):
+    if os.path.isfile(filename) == True: # yes,
+        with open(filename, 'a') as f:
+            f.write('%s buy closed\n' % l_index)
+        print ('%s buy closed\n' % l_index)
+
+def generate_trade_filename(dir, l_index):
+        fname = '%s-trade-%s.log' % (os.path.basename(dir), l_index)
         #print (trade_file)
-        return trade_file
+        return os.path.join(os.path.dirname(dir), fname)
 
 # format: mean, upper, lower
 def read_boll(filename):
@@ -82,6 +89,17 @@ def read_boll(filename):
                         print (filename)
         pass
 
+#  '6179.63', '6183.09', '6178.98', '6180.34', '3148.0', '50.936313653924'
+# format: open, high, low, close, volume, total-value
+def read_close(filename):
+    filename = os.path.splitext(filename)[0]
+    print (filename)
+    if os.path.isfile(filename) == False: # in case not exist
+        return 0
+    with open(filename, 'r') as f:
+        close = eval(f.readline())[3]
+    print (close)
+    return float(close)
 
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -109,15 +127,21 @@ def plot_living_price(subpath):
                 close_mean[l_index]=boll[0]
                 close_upper[l_index]=boll[1]
                 close_lower[l_index]=boll[2]
-                if old_close_mean > boll[0]: # open sell order
+                if boll[0] < old_close_mean: # open sell order
+                    if trade_file == '':
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index)
+                        print (trade_file)
                     do_plot_with_window_size(l_index, trade_file)
                 old_close_mean = boll[0] # update unconditiionally
-        pass
+                
+                close = read_close(event_path)
+                if close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
+                    close_order_with_buy(l_index, trade_file)
+                    trade_file = ''
 
 # process saved prices in specified dir        
-def plot_saved_price(dest_dir):
+def plot_saved_price(l_dir):
     try:
-        l_dir=dest_dir.rstrip('/')
         files = os.listdir(l_dir)
         files.sort()
         print ('Total %d files to plot\n' % (len(files)))
@@ -142,8 +166,8 @@ def plot_saved_price(dest_dir):
         print (traceback.format_exc())
 
 if __name__ == "__main__":
-        l_dir = sys.argv[1]
-        trade_file = generate_trade_filename(l_dir)
+        l_dir = sys.argv[1].rstrip('/')
+        #print (l_dir, os.path.basename(l_dir))
         plot_saved_price(l_dir)
         
         stream = Stream(plot_living_price, l_dir, file_events=True)
