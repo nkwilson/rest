@@ -4,6 +4,21 @@
 #客户端调用，用于查看API返回结果
 
 import sys
+import getopt
+import traceback
+
+import pandas
+import numpy
+import datetime
+
+import os
+import os.path as path
+import time
+import random
+import math
+
+from fsevents import Observer
+from fsevents import Stream
 
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
@@ -109,6 +124,12 @@ def future_trade_open_sell(symbol, contract_type, price, amount, match_price):
 def future_trade_close_sell(symbol, contract_type, price, amount, match_price):
     okcoinFuture.future_trade(symbol, contract_type, price, amount,'4', match_price)
 
+def btc_usd_open_quarter_sell_10x(amount):
+    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '2', '1', '10'))
+
+def btc_usd_close_quarter_sell_10x(amount):
+    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '4', '1', '10'))
+
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
 
@@ -128,6 +149,43 @@ def future_trade_close_sell(symbol, contract_type, price, amount, match_price):
 def do_trade_with_boll(path, period, amount):
     pass
 
+trade_file = ''  # signal storing file
+amount = 1 # default amount
+
+# inotify specified dir to catch trade signals
+# if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
+# if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
+def do_trade(subpath):
+    global amount, trade_file
+    #print (subpath, str(subpath), type(subpath))
+    tup=eval(str(subpath))
+    #print (type(tup), tup[0])
+    # only process file event of .boll.log
+    if tup[2].endswith('.boll.log') == False:
+        return
+    event_type=tup[0]
+    event_path=tup[2]
+    print (event_type, event_path)
+    if (event_type == 2): # must have a balance signal now
+        btc_usd_close_quarter_sell_10x(amount)
+        pass
+    elif (event_type != 256):
+        print (event_type)
+        pass
+    else: # type 256, new order signal
+        btc_usd_open_quarter_sell_10x(amount)
+        pass
+
 if __name__ == "__main__":
     print (sys.argv)
     #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
+    l_dir = sys.argv[1].rstrip('/')
+    #print (l_dir, os.path.basename(l_dir))
+    
+    stream = Stream(do_trade, l_dir, file_events=True)
+    print ('Waiting for sell signal\n')
+    
+    observer = Observer()
+    observer.start()
+    
+    observer.schedule(stream)
