@@ -58,20 +58,22 @@ window_size = 20
 trade_file = ''
 
 # plot and save to file
-def do_plot_with_window_size(l_index, filename):
+def do_plot_with_window_size(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
-        with open(filename, 'r') as f:
-            print (f.readline())
         return
+    line = '%s sell at %f\n' % (l_index, close)
     with open(filename, 'w') as f:
-        f.write('%s sell\n' % l_index)
+        print (line.rstrip('\n'))            
+        f.write(line)
 
 # close sell order now
-def close_order_with_buy(l_index, filename):
-    if os.path.isfile(filename) == True: # yes,
-        with open(filename, 'a') as f:
-            f.write('%s buy closed\n' % l_index)
-        print ('%s buy closed\n' % l_index)
+def close_order_with_buy(l_index, filename, close):
+    if os.path.isfile(filename) == False: # no order opened
+        return
+    line = '%s buy at %f, closed\n' % (l_index, close)
+    with open(filename, 'a') as f:
+        print (line.rstrip('\n'))            
+        f.write(line)
 
 def generate_trade_filename(dir, l_index):
         fname = '%s-trade-%s.log' % (os.path.basename(dir), l_index)
@@ -93,12 +95,12 @@ def read_boll(filename):
 # format: open, high, low, close, volume, total-value
 def read_close(filename):
     filename = os.path.splitext(filename)[0]
-    print (filename)
+    # print (filename)
     if os.path.isfile(filename) == False: # in case not exist
         return 0
     with open(filename, 'r') as f:
         close = eval(f.readline())[3]
-    print (close)
+    # print (close)
     return float(close)
 
 # inotify specified dir to plot living price
@@ -115,13 +117,15 @@ def plot_living_price(subpath):
     event_type=tup[0]
     event_path=tup[2]
     l_index = os.path.basename(event_path)
-    print (event_type, event_path)
+    # print (event_type, event_path)
     if (event_type == 2):
         pass
     elif (event_type != 256):
+        print (event_type)
         pass
     else: # type 256, new file event
         boll = read_boll(event_path)
+        close = read_close(event_path)
         print (boll)
         if math.isnan(boll[0]) == False:
                 close_mean[l_index]=boll[0]
@@ -130,14 +134,12 @@ def plot_living_price(subpath):
                 if boll[0] < old_close_mean: # open sell order
                     if trade_file == '':
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index)
-                        print (trade_file)
-                    do_plot_with_window_size(l_index, trade_file)
+                        # print (trade_file)
+                        do_plot_with_window_size(l_index, trade_file, close)
                 old_close_mean = boll[0] # update unconditiionally
-                
-                close = read_close(event_path)
                 if close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
-                    close_order_with_buy(l_index, trade_file)
-                    trade_file = ''
+                    close_order_with_buy(l_index, trade_file, close)
+                    trade_file = ''  # make trade_file empty to indicate close
 
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
