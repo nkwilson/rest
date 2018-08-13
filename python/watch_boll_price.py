@@ -131,13 +131,17 @@ def plot_living_price(subpath):
                 close_mean[l_index]=boll[0]
                 close_upper[l_index]=boll[1]
                 close_lower[l_index]=boll[2]
+                fresh_trade = False
                 if boll[0] < old_close_mean: # open sell order
                     if trade_file == '':
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index)
                         # print (trade_file)
                         do_plot_with_window_size(l_index, trade_file, close)
+                        fresh_trade = True
                 old_close_mean = boll[0] # update unconditiionally
-                if close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
+                if fresh_trade == True: # ok, fresh trade
+                    pass
+                elif close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
                     close_order_with_buy(l_index, trade_file, close)
                     trade_file = ''  # make trade_file empty to indicate close
 
