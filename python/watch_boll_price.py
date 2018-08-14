@@ -70,7 +70,7 @@ def do_plot_with_window_size(l_index, filename, close):
 def close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s buy at %f, closed\n' % (l_index, close)
+    line = '%s buy at %f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
         print (line.rstrip('\n'))            
         f.write(line)
