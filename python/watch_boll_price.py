@@ -199,6 +199,7 @@ def plot_living_price(subpath):
 
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
+    global old_close_mean
     try:
         files = os.listdir(l_dir)
         files.sort()
