@@ -156,7 +156,7 @@ def do_trade_with_boll(path, period, amount):
     pass
 
 trade_file = ''  # signal storing file
-amount = 20 # default amount
+amount = 10 # default amount
 
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
