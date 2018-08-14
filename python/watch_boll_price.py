@@ -73,8 +73,17 @@ def do_plot_with_window_size(l_index, filename, close):
         print (line.rstrip('\n'))            
         f.write(line)
 
+# open sell order now
+def signal_open_order_with_sell(l_index, filename, close):
+    if os.path.isfile(filename) == True: # already ordered
+        return
+    line = '%s sell at %f\n' % (l_index, close)
+    with open(filename, 'w') as f:
+        print (line.rstrip('\n'))            
+        f.write(line)
+
 # close sell order now
-def close_order_with_buy(l_index, filename, close):
+def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s buy at %f closed\n' % (l_index, close)
@@ -82,8 +91,26 @@ def close_order_with_buy(l_index, filename, close):
         print (line.rstrip('\n'))            
         f.write(line)
 
-def generate_trade_filename(dir, l_index):
-        fname = '%s-trade-%s.log' % (os.path.basename(dir), l_index)
+# open buy order now
+def signal_open_order_with_buy(l_index, filename, close):
+    if os.path.isfile(filename) == True: # already ordered
+        return
+    line = '%s buy at %f\n' % (l_index, close)
+    with open(filename, 'w') as f:
+        print (line.rstrip('\n'))            
+        f.write(line)
+
+# close buy order now
+def signal_close_order_with_sell(l_index, filename, close):
+    if os.path.isfile(filename) == False: # no order opened
+        return
+    line = '%s sell at %f closed\n' % (l_index, close)
+    with open(filename, 'a') as f:
+        print (line.rstrip('\n'))            
+        f.write(line)
+
+def generate_trade_filename(dir, l_index, order_type):
+        fname = '%s-trade-%s.%s' % (os.path.basename(dir), l_index, order_type)
         #print (trade_file)
         return os.path.join(os.path.dirname(dir), fname)
 
@@ -142,18 +169,32 @@ def plot_living_price(subpath):
                 fresh_trade = False
                 if boll[0] < old_close_mean: # open sell order
                     if trade_file == '':
-                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index)
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         # print (trade_file)
-                        do_plot_with_window_size(l_index, trade_file, close)
+                        signal_open_order_with_sell(l_index, trade_file, close)
+                        fresh_trade = True
+                        old_open_price = close
+                elif boll[0] > old_close_mean: # open buy order
+                    if trade_file == '':
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
+                        # print (trade_file)
+                        signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
                 old_close_mean = boll[0] # update unconditiionally
                 if fresh_trade == True: # ok, fresh trade
                     pass
-                elif close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
+                elif trade_file == '':  # no open trade
+                    pass
+                elif close > ((boll[0]+boll[1]) / 2) and trade_file.endswith('.sell') == True : # close is touch half of upper
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
-                        close_order_with_buy(l_index, trade_file, close)
+                        signal_close_order_with_buy(l_index, trade_file, close)
+                        trade_file = ''  # make trade_file empty to indicate close
+                elif close < ((boll[0]+boll[2]) / 2) and trade_file.endswith('.buy') == True : # close is touch half of lower
+                    # check if return bigger than fee
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                        signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
 
 # process saved prices in specified dir        

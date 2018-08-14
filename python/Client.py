@@ -130,6 +130,12 @@ def btc_usd_open_quarter_sell_10x(amount):
 def btc_usd_close_quarter_sell_10x(amount):
     print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '4', '1', '10'))
 
+def btc_usd_open_quarter_buy_10x(amount):
+    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '1', '1', '10'))
+
+def btc_usd_close_quarter_buy_10x(amount):
+    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '3', '1', '10'))
+
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
 
@@ -161,19 +167,31 @@ def do_trade(subpath):
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
     # only process file event of .boll.log
-    if tup[2].endswith('.boll.log') == False:
+    if tup[2].endswith('.sell') == True:
+        sell = True
+        pass
+    elif tup[2].endswith('.buy') == True:
+        buy = True
+        pass
+    else:
         return
     event_type=tup[0]
     event_path=tup[2]
     print (event_type, event_path)
     if (event_type == 2): # must have a balance signal now
-        btc_usd_close_quarter_sell_10x(amount)
+        if sell == True:
+            btc_usd_close_quarter_sell_10x(amount)
+        elif buy == True:
+            btc_usd_close_quarter_buy_10x(amount)
         pass
     elif (event_type != 256):
         print (event_type)
         pass
     else: # type 256, new order signal
-        btc_usd_open_quarter_sell_10x(amount)
+        if sell == True:
+            btc_usd_open_quarter_sell_10x(amount)
+        elif buy == True:
+            btc_usd_open_quarter_buy_10x(amount)
         pass
 
 if __name__ == "__main__":
