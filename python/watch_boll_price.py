@@ -53,9 +53,16 @@ close_mean = pandas.Series()
 close_upper = pandas.Series()
 close_lower = pandas.Series()
 
+old_open_price = 0
 old_close_mean = 0
 window_size = 20
 trade_file = ''
+fee_threshold = 0.0001 / 0.0009 # baesed on one order's fee 
+levage_rate = 10
+
+# if fee is bigger than lost, then delay it to next signal
+def check_close_sell_fee_threshold(open_price, current_price):
+    return abs((current_price - open_price) / open_price) > (fee_threshold / levage_rate)
 
 # plot and save to file
 def do_plot_with_window_size(l_index, filename, close):
@@ -108,6 +115,7 @@ def read_close(filename):
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def plot_living_price(subpath):
     global window_size, trade_file, old_close_mean
+    global old_open_price
     #print (subpath, str(subpath), type(subpath))
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
@@ -138,12 +146,15 @@ def plot_living_price(subpath):
                         # print (trade_file)
                         do_plot_with_window_size(l_index, trade_file, close)
                         fresh_trade = True
+                        old_open_price = close
                 old_close_mean = boll[0] # update unconditiionally
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif close > ((boll[0]+boll[1]) / 2) : # close is touch half of upper
-                    close_order_with_buy(l_index, trade_file, close)
-                    trade_file = ''  # make trade_file empty to indicate close
+                    # check if return bigger than fee
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                        close_order_with_buy(l_index, trade_file, close)
+                        trade_file = ''  # make trade_file empty to indicate close
 
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
