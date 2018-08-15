@@ -128,6 +128,7 @@ def read_boll(filename):
 #  '6179.63', '6183.09', '6178.98', '6180.34', '3148.0', '50.936313653924'
 # format: open, high, low, close, volume, total-value
 def read_close(filename):
+    # drop '.boll' suffix
     filename = os.path.splitext(filename)[0]
     # print (filename)
     if os.path.isfile(filename) == False: # in case not exist
