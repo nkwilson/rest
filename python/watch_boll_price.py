@@ -116,27 +116,33 @@ def generate_trade_filename(dir, l_index, order_type):
 
 # format: mean, upper, lower
 def read_boll(filename):
-        with open(filename, 'r') as f:
-                line = f.readline().rstrip('\n')
-                try: 
-                        boll = [float(x) for x in line.split(',')]
-                        return boll
-                except Exception as ex:
-                        print (filename)
-        pass
+    boll = 0
+    with open(filename, 'r') as f:
+        try: 
+            line = f.readline().rstrip('\n')
+            boll = [float(x) for x in line.split(',')]
+        except Exception as ex:
+            print (filename)
+    return boll
 
 #  '6179.63', '6183.09', '6178.98', '6180.34', '3148.0', '50.936313653924'
 # format: open, high, low, close, volume, total-value
 def read_close(filename):
+    close = 0
     # drop '.boll' suffix
     filename = os.path.splitext(filename)[0]
     # print (filename)
     if os.path.isfile(filename) == False: # in case not exist
-        return 0
+        return close
     with open(filename, 'r') as f:
-        close = eval(f.readline())[3]
+        try: 
+            line = f.readline().rstrip('\n')
+            close = float(line.split(',')[3])
+            # close = eval(f.readline())[3]
+        except Exception as ex:
+            print (filename)
     # print (close)
-    return float(close)
+    return close
 
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -163,6 +169,8 @@ def plot_living_price(subpath):
         boll = read_boll(event_path)
         close = read_close(event_path)
         print (boll)
+        if boll == 0 or close == 0: # in case read failed
+            return
         if math.isnan(boll[0]) == False:
                 close_mean[l_index]=boll[0]
                 close_upper[l_index]=boll[1]
