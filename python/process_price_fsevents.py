@@ -93,7 +93,7 @@ def callback_file(subpath):
         print (l_index, event_path, ',', close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
         with open('%s.boll' % (old_event_path), 'w') as fb: # write bull result to file with suffix of '.boll'
-            fb.write('%0.4f, %0.4f, %04.f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+            fb.write('%0.40f, %0.40f, %0.40f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
             
 if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
     # with os.scandir(sys.argv[1]) as it:
@@ -135,7 +135,7 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
                 close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
                 # print (close_mean[fname])
                 with open('%s.boll' % (fpath), 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
+                    fb.write('%0.40f, %0.40f, %0.40f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
         print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
