@@ -13,6 +13,8 @@ import os.path as path
 import time
 import random
 import math
+import datetime
+from datetime import datetime as dt
 
 from fsevents import Observer
 from fsevents import Stream
@@ -206,11 +208,23 @@ def plot_living_price(subpath):
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
 
+# generate file list
+def with_listdir(l_dir):
+    return os.listdir(l_dir)
+
+# v2, fast than listdir
+def with_scandir(l_dir):
+    files = list()
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            files.append(entry.name)
+    return files
+
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
     global old_close_mean
     try:
-        files = os.listdir(l_dir)
+        files = with_scandir(l_dir)
         files.sort()
         print ('Total %d files to plot\n' % (len(files)))
         for fname in files:
@@ -234,10 +248,12 @@ def plot_saved_price(l_dir):
         print (traceback.format_exc())
 
 if __name__ == "__main__":
+        print ('Begin at %s\n' % (dt.now()))
         l_dir = sys.argv[1].rstrip('/')
         #print (l_dir, os.path.basename(l_dir))
         plot_saved_price(l_dir)
-        
+        print ('Stop at %s\n' % (dt.now()))
+
         stream = Stream(plot_living_price, l_dir, file_events=True)
         print ('Waiting for process new coming file\n')
         
