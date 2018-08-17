@@ -124,7 +124,7 @@ def read_boll(filename):
             line = f.readline().rstrip('\n')
             boll = [float(x) for x in line.split(',')]
         except Exception as ex:
-            print (filename)
+            print ('read_boll: %s\n' % filename)
     return boll
 
 #  '6179.63', '6183.09', '6178.98', '6180.34', '3148.0', '50.936313653924'
@@ -138,11 +138,11 @@ def read_close(filename):
         return close
     with open(filename, 'r') as f:
         try: 
-            line = f.readline().rstrip('\n')
-            close = float(line.split(',')[3])
+            line = eval(f.readline().rstrip('\n'))  # can't just copy from boll 
+            close = float(line[3])
             # close = eval(f.readline())[3]
         except Exception as ex:
-            print (filename)
+            print ('read_close: %s' % filename)
     # print (close)
     return close
 
@@ -217,8 +217,11 @@ def with_scandir(l_dir):
     files = list()
     with os.scandir(l_dir) as it:
         for entry in it:
-            files.append(entry.name)
+            if entry.name.endswith('.boll') == True:
+                files.append(entry.name)
     return files
+
+latest_to_read = 300
 
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
@@ -226,10 +229,8 @@ def plot_saved_price(l_dir):
     try:
         files = with_scandir(l_dir)
         files.sort()
-        print ('Total %d files to plot\n' % (len(files)))
-        for fname in files:
-            if fname.endswith('.boll') == False:
-                continue
+        print ('Total %d files, read latest %d' % (len(files), latest_to_read))
+        for fname in files[-latest_to_read:]:
             fpath = os.path.join(l_dir, fname)
             boll = read_boll(fpath)
             try:
@@ -248,14 +249,14 @@ def plot_saved_price(l_dir):
         print (traceback.format_exc())
 
 if __name__ == "__main__":
-        print ('Begin at %s\n' % (dt.now()))
+        print ('Begin at %s' % (dt.now()))
         l_dir = sys.argv[1].rstrip('/')
         #print (l_dir, os.path.basename(l_dir))
         plot_saved_price(l_dir)
-        print ('Stop at %s\n' % (dt.now()))
+        print ('Stop at %s' % (dt.now()))
 
         stream = Stream(plot_living_price, l_dir, file_events=True)
-        print ('Waiting for process new coming file\n')
+        print ('Waiting for process new coming file')
         
         observer = Observer()
         observer.start()
