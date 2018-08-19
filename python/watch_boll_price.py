@@ -72,8 +72,8 @@ def do_plot_with_window_size(l_index, filename, close):
         return
     line = '%s sell at %f\n' % (l_index, close)
     with open(filename, 'w') as f:
-        print (line.rstrip('\n'))            
         f.write(line)
+    print (line.rstrip('\n'))            
 
 # open sell order now
 def signal_open_order_with_sell(l_index, filename, close):
@@ -81,8 +81,8 @@ def signal_open_order_with_sell(l_index, filename, close):
         return
     line = '%s sell at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
-        print (line.rstrip('\n'))            
         f.write(line)
+    print (line.rstrip('\n'))            
 
 # close sell order now
 def signal_close_order_with_buy(l_index, filename, close):
@@ -90,8 +90,8 @@ def signal_close_order_with_buy(l_index, filename, close):
         return
     line = '%s buy at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
-        print (line.rstrip('\n'))            
         f.write(line)
+    print (line.rstrip('\n'))            
 
 # open buy order now
 def signal_open_order_with_buy(l_index, filename, close):
@@ -99,8 +99,8 @@ def signal_open_order_with_buy(l_index, filename, close):
         return
     line = '%s buy at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
-        print (line.rstrip('\n'))            
         f.write(line)
+    print (line.rstrip('\n'))            
 
 # close buy order now
 def signal_close_order_with_sell(l_index, filename, close):
@@ -108,8 +108,8 @@ def signal_close_order_with_sell(l_index, filename, close):
         return
     line = '%s sell at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
-        print (line.rstrip('\n'))            
         f.write(line)
+    print (line.rstrip('\n'))            
 
 def generate_trade_filename(dir, l_index, order_type):
         fname = '%s-trade-%s.%s' % (os.path.basename(dir), l_index, order_type)
