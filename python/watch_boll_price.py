@@ -79,7 +79,7 @@ def do_plot_with_window_size(l_index, filename, close):
 def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s sell at %f\n' % (l_index, close)
+    line = '%s sell at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
         print (line.rstrip('\n'))            
         f.write(line)
@@ -88,7 +88,7 @@ def signal_open_order_with_sell(l_index, filename, close):
 def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s buy at %f closed\n' % (l_index, close)
+    line = '%s buy at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
         print (line.rstrip('\n'))            
         f.write(line)
@@ -97,7 +97,7 @@ def signal_close_order_with_buy(l_index, filename, close):
 def signal_open_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s buy at %f\n' % (l_index, close)
+    line = '%s buy at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
         print (line.rstrip('\n'))            
         f.write(line)
@@ -106,7 +106,7 @@ def signal_open_order_with_buy(l_index, filename, close):
 def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s sell at %f closed\n' % (l_index, close)
+    line = '%s sell at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
         print (line.rstrip('\n'))            
         f.write(line)
@@ -256,7 +256,7 @@ if __name__ == "__main__":
         print ('Stop at %s' % (dt.now()))
 
         stream = Stream(plot_living_price, l_dir, file_events=True)
-        print ('Waiting for process new coming file')
+        print ('Waiting for process new coming file\n')
         
         observer = Observer()
         observer.start()
