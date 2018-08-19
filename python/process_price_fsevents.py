@@ -92,8 +92,7 @@ def callback_file(subpath):
         print (event_type)
         return
     else: # type 256, new file event
-        print (old_l_index, old_event_path, ',')
-        print (l_index, event_path, ',', close_prices.count())
+        print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
         with open('%s.boll' % (old_event_path), 'w') as fb: # write bull result to file with suffix of '.boll'
             fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
@@ -162,7 +161,7 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
         exit ()
 
 print ('Stop at %s' % (dt.now()))
-        
+
 from fsevents import Stream
 stream = Stream(callback_file, sys.argv[1], file_events=True)
 print ('Waiting for process new coming file\n')
