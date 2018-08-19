@@ -6,6 +6,9 @@ import pprint
 import traceback
 from fsevents import Observer
 
+import datetime
+from datetime import datetime as dt
+
 # print (os.environ)
 # print (sys.modules.keys())  # too much infor
 print (sys.argv)
@@ -93,8 +96,24 @@ def callback_file(subpath):
         print (l_index, event_path, ',', close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
         with open('%s.boll' % (old_event_path), 'w') as fb: # write bull result to file with suffix of '.boll'
-            fb.write('%0.40f, %0.40f, %0.40f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
-            
+            fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+
+# generate file list
+def with_listdir(l_dir):
+    return os.listdir(l_dir)
+
+# v2, fast than listdir
+def with_scandir(l_dir):
+    files = list()
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            files.append(entry.name)
+    return files
+
+latest_to_read = 300
+
+print ('Begin at %s' % (dt.now()))
+
 if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
     # with os.scandir(sys.argv[1]) as it:
     #     for entry in it:
@@ -104,10 +123,10 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
     #                 close_prices[entry.name]=close
     try :
         read_saved = 0  # read boll data from saved file
-        files=os.listdir(sys.argv[1])
+        files=with_scandir(sys.argv[1])
         files.sort()
-        print ('Total %d old files' % (len(files)))
-        for fname in files:
+        print ('Total %d files, read latest %d' % (len(files), latest_to_read))
+        for fname in files[-latest_to_read:]:
             fpath = os.path.join(sys.argv[1], fname)
             # print (fpath)
             if fpath.endswith('.boll') == False: # not bolinger band data
@@ -135,13 +154,15 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
                 close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
                 # print (close_mean[fname])
                 with open('%s.boll' % (fpath), 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.40f, %0.40f, %0.40f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
+                    fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
         print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
         print (traceback.format_exc())
         exit ()
 
+print ('Stop at %s' % (dt.now()))
+        
 from fsevents import Stream
 stream = Stream(callback_file, sys.argv[1], file_events=True)
 print ('Waiting for process new coming file\n')
