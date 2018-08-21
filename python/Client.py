@@ -125,16 +125,16 @@ def future_trade_close_sell(symbol, contract_type, price, amount, match_price):
     okcoinFuture.future_trade(symbol, contract_type, price, amount,'4', match_price)
 
 def btc_usd_open_quarter_sell_10x(amount):
-    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '2', '1', '10'))
+    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '2', '1', '10'))
 
 def btc_usd_close_quarter_sell_10x(amount):
-    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '4', '1', '10'))
+    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '4', '1', '10'))
 
 def btc_usd_open_quarter_buy_10x(amount):
-    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '1', '1', '10'))
+    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '1', '1', '10'))
 
 def btc_usd_close_quarter_buy_10x(amount):
-    print (okcoinFuture.future_trade('btc_usc', 'quarter', '', amount, '3', '1', '10'))
+    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '3', '1', '10'))
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
