@@ -4,6 +4,7 @@ import pandas
 import numpy
 import pprint
 import traceback
+import threading 
 from fsevents import Observer
 
 import datetime
@@ -49,11 +50,16 @@ old_event_path = ''
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def callback_file(subpath):
     global l_index, old_l_index, event_path, old_event_path
+    global price_lock
+    global close_mean, close_upper, close_lower
+    global close_prices
+    price_lock.acquire()
     #print (subpath, str(subpath), type(subpath))
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
-    # ignore file event of %.boll
-    if tup[2].endswith('.boll') == True:
+    # ignore file event of %.boll or .sell or .buy
+    if tup[2].endswith(('.boll', '.sell', '.buy')) == True:
+        price_lock.release()
         return
     old_l_index = l_index
     old_event_path = event_path
@@ -78,7 +84,6 @@ def callback_file(subpath):
             # Concatenate two or more Series.
             close_prices[l_index]=close
             # print (l_index, close)
-            return
         except Exception as ex:
             print (traceback.format_exc())
             # not exist
@@ -87,15 +92,17 @@ def callback_file(subpath):
                 
             # close_prices.append(pandas.Series([close], [l_index]), verify_integrity=True)
             # print (l_index, close)
-            return
     elif (event_type != 256):
         print (event_type)
-        return
     else: # type 256, new file event
         print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
         with open('%s.boll' % (old_event_path), 'w') as fb: # write bull result to file with suffix of '.boll'
             fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+        if close_prices.count() > 10 * latest_to_read:
+            close_prices = close_prices[-latest_to_read:]
+            print ('Reduce data size to %d', close_lower.count())
+    price_lock.release()
 
 # generate file list
 def with_listdir(l_dir):
@@ -128,7 +135,7 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
         for fname in files[-latest_to_read:]:
             fpath = os.path.join(sys.argv[1], fname)
             # print (fpath)
-            if fpath.endswith('.boll') == False: # not bolinger band data
+            if fpath.endswith(('.boll', '.sell', '.buy')) == False: # not bolinger band data
                 with open(fpath, 'r') as f:
                     close=eval(f.readline())[3]
                     close_prices[fname]=close
@@ -161,6 +168,8 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
         exit ()
 
 print ('Stop at %s' % (dt.now()))
+
+price_lock = threading.Lock()
 
 from fsevents import Stream
 stream = Stream(callback_file, sys.argv[1], file_events=True)
