@@ -18,7 +18,7 @@ from datetime import datetime as dt
 
 from fsevents import Observer
 from fsevents import Stream
-
+import threading
 
 def main(argv):
     print (argv)
@@ -111,7 +111,14 @@ def signal_close_order_with_sell(l_index, filename, close):
         f.write(line)
     print (line.rstrip('\n'))            
 
+def generate_trade_filename_new(dir, l_index, order_type):
+    fname = '%s-trade.%s' % (l_index, order_type)
+    return os.path.join(dir, fname)
+
 def generate_trade_filename(dir, l_index, order_type):
+        global new_trade_file
+        if new_trade_file == True:
+            return generate_trade_filename_new(dir, l_index, order_type)
         fname = '%s-trade-%s.%s' % (os.path.basename(dir), l_index, order_type)
         #print (trade_file)
         return os.path.join(os.path.dirname(dir), fname)
@@ -146,17 +153,24 @@ def read_close(filename):
     # print (close)
     return close
 
+latest_to_read = 300
+new_trade_file = True
+
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def plot_living_price(subpath):
     global window_size, trade_file, old_close_mean
     global old_open_price
+    global close_mean, close_upper, close_lower
+    global price_lock
     #print (subpath, str(subpath), type(subpath))
+    price_lock.acquire()
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
     # only process file event of %.boll
     if tup[2].endswith('.boll') == False:
+        price_lock.release()
         return
     event_type=tup[0]
     event_path=tup[2]
@@ -172,6 +186,7 @@ def plot_living_price(subpath):
         close = read_close(event_path)
         print (boll)
         if boll == 0 or close == 0: # in case read failed
+            price_lock.release()
             return
         if math.isnan(boll[0]) == False:
                 close_mean[l_index]=boll[0]
@@ -207,6 +222,14 @@ def plot_living_price(subpath):
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
+                elif close_lower.count() > 10 * latest_to_read:
+                    close_lower = close_lower[-latest_to_read:]
+                    close_mean = close_mean[-latest_to_read:]
+                    close_upper = close_upper[-latest_to_read:]
+                    print ('Reduce data size to %d', close_lower.count())
+    price_lock.release()
+
+
 
 # generate file list
 def with_listdir(l_dir):
@@ -221,7 +244,6 @@ def with_scandir(l_dir):
                 files.append(entry.name)
     return files
 
-latest_to_read = 300
 
 # process saved prices in specified dir        
 def plot_saved_price(l_dir):
@@ -229,8 +251,11 @@ def plot_saved_price(l_dir):
     try:
         files = with_scandir(l_dir)
         files.sort()
-        print ('Total %d files, read latest %d' % (len(files), latest_to_read))
-        for fname in files[-latest_to_read:]:
+        to_read = len(files)
+        if to_read > latest_to_read:
+            to_read = latest_to_read
+        print ('Total %d files, read latest %d' % (len(files), to_read))
+        for fname in files[-to_read:]:
             fpath = os.path.join(l_dir, fname)
             boll = read_boll(fpath)
             try:
@@ -243,12 +268,15 @@ def plot_saved_price(l_dir):
                             old_close_mean = boll[0]
             except Exception as ex:
                     print (fpath)
-                    
+        files = None
         #print (close_mean)
     except Exception as ex:
         print (traceback.format_exc())
 
 if __name__ == "__main__":
+        price_lock = threading.Lock()
+        if len(sys.argv) == 3: # any third argument means old trade_file
+            new_trade_file = False  
         print ('Begin at %s' % (dt.now()))
         l_dir = sys.argv[1].rstrip('/')
         #print (l_dir, os.path.basename(l_dir))
