@@ -140,13 +140,13 @@ def btc_usd_close_quarter_buy_10x(amount):
 def open_quarter_sell_10x(symbol, amount):
     print (okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2', '1', '10'))
 
-def close_quarter_sell_10x(amount):
+def close_quarter_sell_10x(symbol, amount):
     print (okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4', '1', '10'))
 
-def open_quarter_buy_10x(amount):
+def open_quarter_buy_10x(symbol, amount):
     print (okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1', '1', '10'))
 
-def close_quarter_buy_10x(amount):
+def close_quarter_buy_10x(symbol, amount):
     print (okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3', '1', '10'))
     
 #print (u'期货批量下单')
@@ -194,7 +194,7 @@ def do_trade(subpath):
     price_lock.acquire()
     sell = False
     buy = False
-    #print (subpath, str(subpath), type(subpath))
+    #print (subpath)
     tup=eval(str(subpath))
     #print (type(tup), tup[0])
     # only process file event of .boll.log
@@ -213,6 +213,7 @@ def do_trade(subpath):
     print (event_type, event_path)
     if (event_type == 2): # must have a balance signal now
         print (order_infos[symbol], order_infos[direction]['close'])
+        order_infos[direction]['close'](order_infos[symbol], amount)
         if sell == True:
             btc_usd_close_quarter_sell_10x(amount)
         elif buy == True:
@@ -223,6 +224,7 @@ def do_trade(subpath):
         pass
     else: # type 256, new order signal
         print (order_infos[symbol], order_infos[direction]['open'])
+        order_infos[direction]['open'](order_infos[symbol], amount)
         if sell == True:
             btc_usd_open_quarter_sell_10x(amount)
         elif buy == True:
