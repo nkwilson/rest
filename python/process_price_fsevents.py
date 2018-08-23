@@ -67,7 +67,11 @@ def callback_file(subpath):
     event_path=tup[2]
     l_index = os.path.basename(event_path)
     # print (event_type, event_path)
-    if (event_type == 2):
+    # in case old_l_index == l_index
+    if event_type == 256 and old_l_index == l_index:
+        print ('Oops: old_l_index == l_index : %s' % l_index)
+        pass
+    elif (event_type == 2):
         with open(event_path, 'r') as f:
             close=eval(f.readline())[3]
         # print (close)
