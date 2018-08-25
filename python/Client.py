@@ -24,6 +24,9 @@ from fsevents import Stream
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 
+import subprocess
+from subprocess import PIPE, run
+
 #初始化apikey，secretkey,url
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
 #secretkey = '4752BE55655A6233A7254628FB7E9F50'
@@ -232,20 +235,71 @@ def do_trade(subpath):
         pass
     price_lock.release()
 
-if __name__ == "__main__":
-    price_lock = threading.Lock()
-    print (sys.argv)
-    #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
-    l_dir = sys.argv[1].rstrip('/')
-    #print (l_dir, os.path.basename(l_dir))
+def do_trade_new(subpath):
+    global amount, trade_file
+    global price_lock
+    sell = False
+    buy = False
+    #print (subpath)
+    # only process file event of .boll.log
+    symbol = figure_out_symbol_info(subpath)
+    # get '.open' or '.close' action suffix
+    pathext = os.path.splitext(subpath)
+    action = pathext[1]
+    subsubpath = pathext[0]
+    print (pathext, subsubpath, action)
+    # get '.buy' or '.sell' suffix
+    direction = os.path.splitext(subsubpath)[1]
+    print (direction)
+    return
+
+    if (event_type == 2): # must have a balance signal now
+        print (order_infos[symbol], order_infos[direction]['close'])
+        order_infos[direction]['close'](order_infos[symbol], amount)
+        if sell == True:
+            btc_usd_close_quarter_sell_10x(amount)
+        elif buy == True:
+            btc_usd_close_quarter_buy_10x(amount)
+        pass
+    elif (event_type != 256):
+        print (event_type)
+        pass
+    else: # type 256, new order signal
+        print (order_infos[symbol], order_infos[direction]['open'])
+        order_infos[direction]['open'](order_infos[symbol], amount)
+        if sell == True:
+            btc_usd_open_quarter_sell_10x(amount)
+        elif buy == True:
+            btc_usd_open_quarter_buy_10x(amount)
+        pass
     
-    stream = Stream(do_trade, l_dir, file_events=True)
-    print ('Waiting for sell signal\n')
+price_lock = threading.Lock()
+print (sys.argv)
+#print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
+l_dir = sys.argv[1].rstrip('/')
+#print (l_dir, os.path.basename(l_dir))
+
+while True:
+    command = ['notifywait', l_dir]
+    result = subprocess.run(command, stdout=PIPE) # wait file exist 
+    data = result.stdout.decode().split('\n')
+    data = data[2].split(' ')
+    #print (data)
+    if data[0] == 'Change' :
+        subpath = data[3].rstrip(',')
+        # only consider %.buy or %.sell signal file
+        if subpath.endswith(('.open', '.close')) == False:
+            continue
+        print (subpath)
+        # do_trade_new(subpath)
     
-    observer = Observer()
-    observer.start()
-    
-    observer.schedule(stream)
+# stream = Stream(do_trade, l_dir, file_events=True)
+# print ('Waiting for sell signal\n')
+
+# observer = Observer()
+# observer.start()
+
+# observer.schedule(stream)
 
 
 
