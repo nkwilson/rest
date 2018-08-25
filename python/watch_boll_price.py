@@ -346,29 +346,53 @@ l_dir = sys.argv[1].rstrip('/')
 plot_saved_price(l_dir)
 print ('Stop at %s' % (dt.now()))
 
-t = pipes.Template()
-t.prepend('notifyloop %s false' % sys.argv[1] , '.-')
-f = t.open('process_price_fsevents', 'r')
 print ('Waiting for process new coming file\n')
-# only normal price file events, no .bool file event, don't know why
 old_subpath = ''
+old_boll_subpath = ''
+boll_subpath = ''
 while True:
-    data = f.readline().split(' ')
-    if data[0] == 'Change':
-        subpath = data[3].rstrip(',')
-        # print (subpath)
-        # check existence of %s.boll
-        if subpath.endswith(('.sell', '.buy', '.lock')) == True:
-            continue
-        if old_subpath == subpath:
-            continue
-        boll_subpath = '%s.boll' % subpath
-        if os.path.isfile(boll_subpath) == False:
-            command = ['notifywait', boll_subpath]
-            subprocess.run(command, stdout=PIPE) # wait file exist 
-        # print ('ok', os.path.getsize(boll_subpath))
-        plot_living_price_new(boll_subpath)
-        old_subpath = subpath
+    command = ['notifywait', l_dir]
+    try:
+        result = subprocess.run(command, stdout=PIPE) # wait file exist, time out in 10s
+        data = result.stdout.decode().split('\n')
+        if old_subpath == '': # restarted, ok
+            print (data)
+        data = data[2].split(' ')
+        #print (data)
+        # case 1:
+        # ['Change', '56123817', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000,', 'flags', '70912', '-', 'matched', 'directory,', 'notifying']
+        # case 2: triggered by us
+        # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000.boll']
+        if data[0] == 'Change' :
+            subpath = data[3].rstrip(',')
+            if old_subpath == '':
+                old_subpath = subpath
+                # should continue now
+                print (old_subpath)
+                continue
+            elif old_subpath == subpath: # the same file event
+                old_boll_subpath = '%s.boll' % old_subpath
+                print ('.', end='', flush=True) # do counting
+                continue
+            else: # subpath changed
+                # %.boll exist , do next processing
+                if os.path.isfile(old_boll_subpath) == True:
+                    # reset old_subpath to restart again
+                    old_subpath = ''
+                    print ('')
+                    pass
+                else:
+                    continue
+        else:
+            continue;
+    except Exception as ex:
+        print (ex)
+        old_subpath = '' # restart
+        continue
+
+    if True:
+        plot_living_price_new(old_boll_subpath)
+
         # stream = Stream(plot_living_price, l_dir, file_events=True)
         # print ('Waiting for process new coming file\n')
         
