@@ -6,9 +6,13 @@ import pprint
 import traceback
 import threading 
 from fsevents import Observer
+from filelock_git import filelock
+
+import pipes
 
 import datetime
 from datetime import datetime as dt
+import tempfile
 
 # print (os.environ)
 # print (sys.modules.keys())  # too much infor
@@ -108,6 +112,66 @@ def callback_file(subpath):
             print ('Reduce data size to %d', close_lower.count())
     price_lock.release()
 
+def callback_file_new(subpath):
+    global l_index, old_l_index, event_path, old_event_path
+    global close_mean, close_upper, close_lower
+    global close_prices
+    if subpath.endswith(('.boll', '.sell', '.buy', '.lock')) == True:
+        return
+    old_l_index = l_index
+    old_event_path = event_path
+    event_path=subpath
+    l_index = os.path.basename(event_path)
+    # For the very first time , old_event_path is empty
+    if os.path.isfile(old_event_path) == False:
+        return 
+    # if same, price updated
+    if old_l_index == l_index:
+        with open(old_event_path, 'r') as f:
+                close=eval(f.readline())[3]
+                # print (close)
+        try:
+            # Parameters:	
+            # to_append : Series or list/tuple of Series
+            # ignore_index : boolean, default False
+            # If True, do not use the index labels.
+            # New in version 0.19.0.
+            # verify_integrity : boolean, default False
+            # If True, raise Exception on creating index with duplicates
+            
+            # Series.append(to_append, ignore_index=False, verify_integrity=False)[source]
+            # Concatenate two or more Series.
+            close_prices[old_l_index]=close
+            # print (old_l_index, close)
+        except Exception as ex:
+            print (traceback.format_exc())
+            # not exist
+            # if close_prices.count() > 0:
+            #     print (Bolinger_Bands(close_prices, window_size, num_of_std))
+                
+            # close_prices.append(pandas.Series([close], [l_index]), verify_integrity=True)
+            # print (l_index, close)
+    # if different, new file event
+    else: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
+        print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count())
+        close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
+        # first save to tmp file
+        try: 
+            filename = '%s.boll' % (old_event_path)
+            # protect with filelock
+            with filelock.FileLock(filename, timeout=None) as flock:
+                tfd, tfilename = tempfile.mkstemp()
+                content = '%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index])
+                os.write(tfd, content.encode())
+                os.close(tfd)
+                # replace with required .boll name
+                os.replace(tfilename, filename)
+        except Exception as ex:
+            print (tfilename, filename, traceback.format_exc())
+        if close_prices.count() > 10 * latest_to_read:
+            close_prices = close_prices[-latest_to_read:]
+            print ('Reduce data size to %d', close_lower.count())
+    
 # generate file list
 def with_listdir(l_dir):
     return os.listdir(l_dir)
@@ -175,13 +239,24 @@ print ('Stop at %s' % (dt.now()))
 
 price_lock = threading.Lock()
 
-from fsevents import Stream
-stream = Stream(callback_file, sys.argv[1], file_events=True)
+t = pipes.Template()
+t.prepend('notifyloop %s false' % sys.argv[1] , '.-')
+f = t.open('process_price_fsevents', 'r')
 print ('Waiting for process new coming file\n')
+while True:
+    data = f.readline().split(' ')
+    if data[0] == 'Change':
+        subpath = data[3].rstrip(',')
+        # print (subpath)
+        callback_file_new(subpath)
 
-observer = Observer()
-observer.start()
+# from fsevents import Stream
+# stream = Stream(callback_file, sys.argv[1], file_events=True)
+# print ('Waiting for process new coming file\n')
 
-observer.schedule(stream)
+# observer = Observer()
+# observer.start()
+
+# observer.schedule(stream)
 
 
