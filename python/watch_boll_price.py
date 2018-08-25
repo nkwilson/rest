@@ -356,7 +356,8 @@ while True:
         result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
         data = result.stdout.decode().split('\n')
         if old_subpath == '': # restarted, ok
-            print (data)
+            #print (data)
+            pass
         data = data[2].split(' ')
         #print (data)
         # case 1:
@@ -368,18 +369,18 @@ while True:
             if old_subpath == '':
                 old_subpath = subpath
                 # should continue now
-                print (old_subpath)
+                #print (old_subpath)
                 continue
             elif old_subpath == subpath: # the same file event
                 old_boll_subpath = '%s.boll' % old_subpath
-                print ('.', end='', flush=True) # do counting
+                #print ('.', end='', flush=True) # do counting
                 continue
             else: # subpath changed
                 # %.boll exist , do next processing
                 if os.path.isfile(old_boll_subpath) == True:
                     # reset old_subpath to restart again
                     old_subpath = ''
-                    print ('')
+                    #print ('')
                     pass
                 else:
                     continue

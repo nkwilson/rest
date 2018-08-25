@@ -237,41 +237,19 @@ def do_trade(subpath):
 
 def do_trade_new(subpath):
     global amount, trade_file
-    global price_lock
-    sell = False
-    buy = False
     #print (subpath)
     # only process file event of .boll.log
     symbol = figure_out_symbol_info(subpath)
     # get '.open' or '.close' action suffix
     pathext = os.path.splitext(subpath)
-    action = pathext[1]
+    action = pathext[1][1:]
     subsubpath = pathext[0]
-    print (pathext, subsubpath, action)
+    #print (pathext, subsubpath, action)
     # get '.buy' or '.sell' suffix
-    direction = os.path.splitext(subsubpath)[1]
-    print (direction)
-    return
-
-    if (event_type == 2): # must have a balance signal now
-        print (order_infos[symbol], order_infos[direction]['close'])
-        order_infos[direction]['close'](order_infos[symbol], amount)
-        if sell == True:
-            btc_usd_close_quarter_sell_10x(amount)
-        elif buy == True:
-            btc_usd_close_quarter_buy_10x(amount)
-        pass
-    elif (event_type != 256):
-        print (event_type)
-        pass
-    else: # type 256, new order signal
-        print (order_infos[symbol], order_infos[direction]['open'])
-        order_infos[direction]['open'](order_infos[symbol], amount)
-        if sell == True:
-            btc_usd_open_quarter_sell_10x(amount)
-        elif buy == True:
-            btc_usd_open_quarter_buy_10x(amount)
-        pass
+    direction = os.path.splitext(subsubpath)[1][1:]
+    print (direction, action)
+    print (order_infos[symbol], order_infos[direction][action])
+    order_infos[direction][action](order_infos[symbol], amount)
     
 price_lock = threading.Lock()
 print (sys.argv)
@@ -290,8 +268,8 @@ while True:
         # only consider %.buy or %.sell signal file
         if subpath.endswith(('.open', '.close')) == False:
             continue
-        print (subpath)
-        # do_trade_new(subpath)
+        #print (subpath)
+        do_trade_new(subpath)
     
 # stream = Stream(do_trade, l_dir, file_events=True)
 # print ('Waiting for sell signal\n')
