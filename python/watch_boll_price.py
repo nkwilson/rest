@@ -20,6 +20,12 @@ from fsevents import Observer
 from fsevents import Stream
 import threading
 
+import pipes
+from filelock_git import filelock
+
+import subprocess
+from subprocess import PIPE, run
+
 def main(argv):
     print (argv)
 
@@ -80,7 +86,7 @@ def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s sell at %0.4f\n' % (l_index, close)
-    with open(filename, 'w') as f:
+    with open('%s.open' % filename, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
 
@@ -89,7 +95,7 @@ def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s buy at %0.4f closed\n' % (l_index, close)
-    with open(filename, 'a') as f:
+    with open('%s.close' % filename, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
 
@@ -98,7 +104,7 @@ def signal_open_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s buy at %0.4f\n' % (l_index, close)
-    with open(filename, 'w') as f:
+    with open('%s.open' % filename, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
 
@@ -107,7 +113,7 @@ def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s sell at %0.4f closed\n' % (l_index, close)
-    with open(filename, 'a') as f:
+    with open('%s.close' % filename, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
 
@@ -126,12 +132,12 @@ def generate_trade_filename(dir, l_index, order_type):
 # format: mean, upper, lower
 def read_boll(filename):
     boll = 0
-    with open(filename, 'r') as f:
-        try: 
+    try: 
+        with open(filename, 'r') as f:
             line = f.readline().rstrip('\n')
             boll = [float(x) for x in line.split(',')]
-        except Exception as ex:
-            print ('read_boll: %s\n' % filename)
+    except Exception as ex:
+        print ('read_boll: %s\n' % filename)
     return boll
 
 #  '6179.63', '6183.09', '6178.98', '6180.34', '3148.0', '50.936313653924'
@@ -143,13 +149,13 @@ def read_close(filename):
     # print (filename)
     if os.path.isfile(filename) == False: # in case not exist
         return close
-    with open(filename, 'r') as f:
-        try: 
+    try: 
+        with open(filename, 'r') as f:
             line = eval(f.readline().rstrip('\n'))  # can't just copy from boll 
             close = float(line[3])
             # close = eval(f.readline())[3]
-        except Exception as ex:
-            print ('read_close: %s' % filename)
+    except Exception as ex:
+        print ('read_close: %s' % filename)
     # print (close)
     return close
 
@@ -182,8 +188,8 @@ def plot_living_price(subpath):
         print (event_type)
         pass
     else: # type 256, new file event
-        boll = read_boll(event_path)
         close = read_close(event_path)
+        boll = read_boll(event_path)
         print (boll)
         if boll == 0 or close == 0: # in case read failed
             price_lock.release()
@@ -227,8 +233,62 @@ def plot_living_price(subpath):
                     close_mean = close_mean[-latest_to_read:]
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
-    price_lock.release()
 
+                    price_lock.release()
+
+def plot_living_price_new(subpath):
+    global window_size, trade_file, old_close_mean
+    global old_open_price
+    global close_mean, close_upper, close_lower
+    #print (subpath)
+    event_path=subpath
+    l_index = os.path.basename(event_path)
+    # print (l_index, event_path)
+    if True: # type 256, new file event
+        boll = read_boll(event_path)
+        close = read_close(event_path)
+        print (boll, close)
+        if boll == 0 or close == 0: # in case read failed
+            return
+        if math.isnan(boll[0]) == False:
+                close_mean[l_index]=boll[0]
+                close_upper[l_index]=boll[1]
+                close_lower[l_index]=boll[2]
+                fresh_trade = False
+                if boll[0] < old_close_mean: # open sell order
+                    if trade_file == '':
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
+                        # print (trade_file)
+                        signal_open_order_with_sell(l_index, trade_file, close)
+                        fresh_trade = True
+                        old_open_price = close
+                elif boll[0] > old_close_mean: # open buy order
+                    if trade_file == '':
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
+                        # print (trade_file)
+                        signal_open_order_with_buy(l_index, trade_file, close)
+                        fresh_trade = True
+                        old_open_price = close
+                old_close_mean = boll[0] # update unconditiionally
+                if fresh_trade == True: # ok, fresh trade
+                    pass
+                elif trade_file == '':  # no open trade
+                    pass
+                elif close > ((boll[0]+boll[1]) / 2) and trade_file.endswith('.sell') == True : # close is touch half of upper
+                    # check if return bigger than fee
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                        signal_close_order_with_buy(l_index, trade_file, close)
+                        trade_file = ''  # make trade_file empty to indicate close
+                elif close < ((boll[0]+boll[2]) / 2) and trade_file.endswith('.buy') == True : # close is touch half of lower
+                    # check if return bigger than fee
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                        signal_close_order_with_sell(l_index, trade_file, close)
+                        trade_file = ''  # make trade_file empty to indicate close
+                elif close_lower.count() > 10 * latest_to_read:
+                    close_lower = close_lower[-latest_to_read:]
+                    close_mean = close_mean[-latest_to_read:]
+                    close_upper = close_upper[-latest_to_read:]
+                    print ('Reduce data size to %d', close_lower.count())
 
 
 # generate file list
@@ -273,24 +333,50 @@ def plot_saved_price(l_dir):
     except Exception as ex:
         print (traceback.format_exc())
 
-if __name__ == "__main__":
-        price_lock = threading.Lock()
-        if len(sys.argv) == 3: # any third argument means old trade_file
-            new_trade_file = False  
-        print ('Begin at %s' % (dt.now()))
-        l_dir = sys.argv[1].rstrip('/')
-        #print (l_dir, os.path.basename(l_dir))
-        plot_saved_price(l_dir)
-        print ('Stop at %s' % (dt.now()))
+# ['Path', 'is', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
+# ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
+# ['Change', '54052560', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000,', 'flags', '70912Change', '54052563', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000.lock,', 'flags', '66304', '-', 'matched', 'directory,', 'notifying\n']
 
-        stream = Stream(plot_living_price, l_dir, file_events=True)
-        print ('Waiting for process new coming file\n')
-        
-        observer = Observer()
-        observer.start()
-        
-        observer.schedule(stream)
+price_lock = threading.Lock()
+if len(sys.argv) == 3: # any third argument means old trade_file
+    new_trade_file = False  
+print ('Begin at %s' % (dt.now()))
+l_dir = sys.argv[1].rstrip('/')
+#print (l_dir, os.path.basename(l_dir))
+plot_saved_price(l_dir)
+print ('Stop at %s' % (dt.now()))
 
+t = pipes.Template()
+t.prepend('notifyloop %s false' % sys.argv[1] , '.-')
+f = t.open('process_price_fsevents', 'r')
+print ('Waiting for process new coming file\n')
+# only normal price file events, no .bool file event, don't know why
+old_subpath = ''
+while True:
+    data = f.readline().split(' ')
+    if data[0] == 'Change':
+        subpath = data[3].rstrip(',')
+        # print (subpath)
+        # check existence of %s.boll
+        if subpath.endswith(('.sell', '.buy', '.lock')) == True:
+            continue
+        if old_subpath == subpath:
+            continue
+        boll_subpath = '%s.boll' % subpath
+        if os.path.isfile(boll_subpath) == False:
+            command = ['notifywait', boll_subpath]
+            subprocess.run(command, stdout=PIPE) # wait file exist 
+        # print ('ok', os.path.getsize(boll_subpath))
+        plot_living_price_new(boll_subpath)
+        old_subpath = subpath
+        # stream = Stream(plot_living_price, l_dir, file_events=True)
+        # print ('Waiting for process new coming file\n')
+        
+        # observer = Observer()
+        # observer.start()
+        
+        # observer.schedule(stream)
+        
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
