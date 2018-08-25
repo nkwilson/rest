@@ -14,6 +14,9 @@ import datetime
 from datetime import datetime as dt
 import tempfile
 
+import subprocess
+from subprocess import PIPE, run
+
 # print (os.environ)
 # print (sys.modules.keys())  # too much infor
 print (sys.argv)
@@ -116,15 +119,16 @@ def callback_file_new(subpath):
     global l_index, old_l_index, event_path, old_event_path
     global close_mean, close_upper, close_lower
     global close_prices
-    if subpath.endswith(('.boll', '.sell', '.buy', '.lock')) == True:
+    if subpath.endswith(('.boll', '.open', '.close')) == True:
         return
-    old_l_index = l_index
-    old_event_path = event_path
     event_path=subpath
     l_index = os.path.basename(event_path)
+    if old_l_index == '':
+        old_l_index = l_index
+        old_event_path = event_path
     # For the very first time , old_event_path is empty
     if os.path.isfile(old_event_path) == False:
-        return 
+        return
     # if same, price updated
     if old_l_index == l_index:
         with open(old_event_path, 'r') as f:
@@ -152,22 +156,23 @@ def callback_file_new(subpath):
             # close_prices.append(pandas.Series([close], [l_index]), verify_integrity=True)
             # print (l_index, close)
     # if different, new file event
-    else: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
+    # case 1:
+    # ok_sub_futureusd_btc_kline_quarter_1min 1535198340000 1535198400000 418
+    # ok_sub_futureusd_btc_kline_quarter_1min 1535198400000 1535198340000 418
+    elif l_index > old_l_index: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
         print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count())
         close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
         # first save to tmp file
         try: 
             filename = '%s.boll' % (old_event_path)
-            # protect with filelock
-            with filelock.FileLock(filename, timeout=None) as flock:
-                tfd, tfilename = tempfile.mkstemp()
-                content = '%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index])
-                os.write(tfd, content.encode())
-                os.close(tfd)
-                # replace with required .boll name
-                os.replace(tfilename, filename)
+            with open(filename, 'w') as f:
+                f.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
         except Exception as ex:
-            print (tfilename, filename, traceback.format_exc())
+            print (filename, traceback.format_exc())
+            return # re do
+        # write .boll successed, update info
+        old_l_index = l_index
+        old_event_path = event_path
         if close_prices.count() > 10 * latest_to_read:
             close_prices = close_prices[-latest_to_read:]
             print ('Reduce data size to %d', close_lower.count())
@@ -196,14 +201,15 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
     #                 close=eval(f.readline())[3]
     #                 close_prices[entry.name]=close
     try :
+        l_dir = sys.argv[1].rstrip('/')
         read_saved = 0  # read boll data from saved file
-        files=with_scandir(sys.argv[1])
+        files=with_scandir(l_dir)
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
-            fpath = os.path.join(sys.argv[1], fname)
+            fpath = os.path.join(l_dir, fname)
             # print (fpath)
-            if fpath.endswith(('.boll', '.sell', '.buy')) == False: # not bolinger band data
+            if fpath.endswith(('.boll', '.open', '.close')) == False: # not bolinger band data
                 with open(fpath, 'r') as f:
                     close=eval(f.readline())[3]
                     close_prices[fname]=close
@@ -239,24 +245,26 @@ print ('Stop at %s' % (dt.now()))
 
 price_lock = threading.Lock()
 
-t = pipes.Template()
-t.prepend('notifyloop %s false' % sys.argv[1] , '.-')
-f = t.open('process_price_fsevents', 'r')
 print ('Waiting for process new coming file\n')
+
 while True:
-    data = f.readline().split(' ')
-    if data[0] == 'Change':
-        subpath = data[3].rstrip(',')
-        # print (subpath)
-        callback_file_new(subpath)
-
-# from fsevents import Stream
-# stream = Stream(callback_file, sys.argv[1], file_events=True)
-# print ('Waiting for process new coming file\n')
-
-# observer = Observer()
-# observer.start()
-
-# observer.schedule(stream)
-
+    command = ['notifywait', l_dir]
+    try:
+        result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
+        data = result.stdout.decode().split('\n')
+        #print (data)
+        data = data[2].split(' ')
+        #print (data)
+        # case 1:
+        # ['Change', '56123817', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000,', 'flags', '70912', '-', 'matched', 'directory,', 'notifying']
+        # case 2: triggered by us
+        # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000.boll']
+        if data[0] == 'Change' :
+            subpath = data[3].rstrip(',')
+            callback_file_new(subpath)
+        else:
+            continue;
+    except Exception as ex:
+        print (ex)
+        continue
 
