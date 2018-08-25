@@ -353,7 +353,7 @@ boll_subpath = ''
 while True:
     command = ['notifywait', l_dir]
     try:
-        result = subprocess.run(command, stdout=PIPE) # wait file exist, time out in 10s
+        result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
         data = result.stdout.decode().split('\n')
         if old_subpath == '': # restarted, ok
             print (data)
