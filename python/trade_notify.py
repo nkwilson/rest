@@ -72,40 +72,29 @@ levage_rate = 10
 def check_close_sell_fee_threshold(open_price, current_price):
     return abs((current_price - open_price) / open_price) > (fee_threshold / levage_rate)
 
-# plot and save to file
-def do_plot_with_window_size(l_index, filename, close):
-    if os.path.isfile(filename) == True: # already ordered
-        return
-    line = '%s sell at %f\n' % (l_index, close)
-    with open(filename, 'w') as f:
-        f.write(line)
-    print (line.rstrip('\n'))            
-
 # open sell order now
 def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s sell at %0.4f\n' % (l_index, close)
-    signal_fname = '%s.open' % filename
-    with open(signal_fname, 'w') as f:
+    with open(filename, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
     global trade_notify
     with open(trade_notify, 'w') as f:
-        f.write(signal_fname)
+        f.write('%s.open' % filename)
 
 # close sell order now
 def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s buy at %0.4f closed\n' % (l_index, close)
-    signal_fname = '%s.close' % filename
-    with open(signal_fname, 'a') as f:
+    with open(filename, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
     global trade_notify
     with open(trade_notify, 'w') as f:
-        f.write(signal_fname)
+        f.write('%s.close' % filename)
 
 
 # open buy order now
@@ -113,26 +102,24 @@ def signal_open_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s buy at %0.4f\n' % (l_index, close)
-    signal_fname = '%s.open' % filename
-    with open(signal_fname, 'w') as f:
+    with open(filename, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
     global trade_notify
     with open(trade_notify, 'w') as f:
-        f.write(signal_fname)
+        f.write('%s.open' % filename)
 
 # close buy order now
 def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s sell at %0.4f closed\n' % (l_index, close)
-    signal_fname = '%s.close' % filename
-    with open(signal_fname, 'a') as f:
+    with open(filename, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
     global trade_notify
     with open(trade_notify, 'w') as f:
-        f.write(signal_fname)
+        f.write('%s.close' % filename)
 
 def generate_trade_filename_new(dir, l_index, order_type):
     fname = '%s-trade.%s' % (l_index, order_type)
@@ -396,7 +383,7 @@ while True:
     subpath = ''
     command = ['notifywait', l_dir]
     try:
-        result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
+        result = subprocess.run(command, stdout=PIPE, timeout=120) # wait file exist, time out in 120s
         rawdata = result.stdout.decode().split('\n')
         if old_subpath == '': # restarted, ok
             #print (data)
