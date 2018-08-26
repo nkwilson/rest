@@ -167,10 +167,6 @@ def close_quarter_buy_10x(symbol, amount):
 #print (u'期货逐仓持仓信息')
 #print (okcoinFuture.future_position_4fix('ltc_usd','this_week',1))
 
-# read price data from path, and do trade of period, with specified amount
-def do_trade_with_boll(path, period, amount):
-    pass
-
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
     end_pattern = '_kline_'
@@ -180,7 +176,7 @@ def figure_out_symbol_info(path):
     return path[start:end]
 
 trade_file = ''  # signal storing file
-amount = 10 # default amount
+amount = 15 # default amount
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -191,50 +187,6 @@ order_infos = {'usd_btc':'btc_usd',
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def do_trade(subpath):
-    global amount, trade_file
-    global price_lock
-    price_lock.acquire()
-    sell = False
-    buy = False
-    #print (subpath)
-    tup=eval(str(subpath))
-    #print (type(tup), tup[0])
-    # only process file event of .boll.log
-    symbol = figure_out_symbol_info(tup[2])
-    if tup[2].endswith('.sell') == True:
-        direction='sell'
-        pass
-    elif tup[2].endswith('.buy') == True:
-        direction='buy'
-        pass
-    else:
-        price_lock.release()
-        return
-    event_type=tup[0]
-    event_path=tup[2]
-    print (event_type, event_path)
-    if (event_type == 2): # must have a balance signal now
-        print (order_infos[symbol], order_infos[direction]['close'])
-        order_infos[direction]['close'](order_infos[symbol], amount)
-        if sell == True:
-            btc_usd_close_quarter_sell_10x(amount)
-        elif buy == True:
-            btc_usd_close_quarter_buy_10x(amount)
-        pass
-    elif (event_type != 256):
-        print (event_type)
-        pass
-    else: # type 256, new order signal
-        print (order_infos[symbol], order_infos[direction]['open'])
-        order_infos[direction]['open'](order_infos[symbol], amount)
-        if sell == True:
-            btc_usd_open_quarter_sell_10x(amount)
-        elif buy == True:
-            btc_usd_open_quarter_buy_10x(amount)
-        pass
-    price_lock.release()
-
 def do_trade_new(subpath):
     global amount, trade_file
     #print (subpath)
@@ -273,7 +225,6 @@ def wait_trade_notify(notify):
             print (ex)
             continue
 
-price_lock = threading.Lock()
 print (sys.argv)
 #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
 l_dir = sys.argv[1].rstrip('/')
@@ -282,29 +233,6 @@ l_dir = sys.argv[1].rstrip('/')
 trade_notify = '%s.trade_notify' % l_dir
 print ('trade_notify is %s' % trade_notify)
 wait_trade_notify(trade_notify)
-
-while True:
-    command = ['notifywait', l_dir]
-    result = subprocess.run(command, stdout=PIPE) # wait file exist 
-    data = result.stdout.decode().split('\n')
-    data = data[2].split(' ')
-    #print (data)
-    if data[0] == 'Change' :
-        subpath = data[3].rstrip(',')
-        # only consider %.buy or %.sell signal file
-        if subpath.endswith(('.open', '.close')) == False:
-            continue
-        #print (subpath)
-        do_trade_new(subpath)
-    
-# stream = Stream(do_trade, l_dir, file_events=True)
-# print ('Waiting for sell signal\n')
-
-# observer = Observer()
-# observer.start()
-
-# observer.schedule(stream)
-
 
 
 # 调用  websocket 中的 okcoin_websocket.py 来获取实时价格，写入到对应的目录中
