@@ -96,7 +96,8 @@ def callback_file_new(subpath):
     # ok_sub_futureusd_btc_kline_quarter_1min 1535198340000 1535198400000 418
     # ok_sub_futureusd_btc_kline_quarter_1min 1535198400000 1535198340000 418
     elif l_index > old_l_index: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
-        try: 
+        try:
+            print ('')
             filename = '%s.boll' % (old_event_path)
             print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
             l_start = datetime.datetime.now()
@@ -207,7 +208,7 @@ while True:
     subpath = ''
     command = ['notifywait', price_notify]
     try:
-        result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
+        result = subprocess.run(command, stdout=PIPE, timeout=120) # wait file exist, time out in 60s
         rawdata = result.stdout.decode().split('\n')
         #print (rawdata)
         #data = rawdata[2].split(' ')
