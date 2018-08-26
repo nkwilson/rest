@@ -180,7 +180,7 @@ def figure_out_symbol_info(path):
     return path[start:end]
 
 trade_file = ''  # signal storing file
-amount = 20 # default amount
+amount = 10 # default amount
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -250,12 +250,38 @@ def do_trade_new(subpath):
     print (direction, action)
     print (order_infos[symbol], order_infos[direction][action])
     order_infos[direction][action](order_infos[symbol], amount)
-    
+
+trade_notify = ''
+# wait on trade_notify for signal
+def wait_trade_notify(notify):
+    while True:
+        command = ['notifywait', notify]
+        try:
+            result = subprocess.run(command, stdout=PIPE) # wait file modified
+            rawdata = result.stdout.decode().split('\n')
+            for e in rawdata:
+                data = e.split(' ')
+                if len(data) > 7 and data[7] == 'matched':
+                    print (data)
+                    subpath = data[3].rstrip(',')
+                    with open(subpath, 'r') as f:
+                        subpath = f.readline().rstrip('\n')
+                        do_trade_new(subpath)
+                    break
+        except Exception as ex:
+            print (ex)
+            continue
+
 price_lock = threading.Lock()
 print (sys.argv)
 #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
 l_dir = sys.argv[1].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
+
+if len(sys.argv) == 3: # second agrument is trade_notify filename
+    trade_notify = sys.argv[2]
+    print ('trade_notify is %s' % trade_notify)
+    wait_trade_notify(trade_notify)
 
 while True:
     command = ['notifywait', l_dir]

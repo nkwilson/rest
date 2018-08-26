@@ -86,36 +86,53 @@ def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s sell at %0.4f\n' % (l_index, close)
-    with open('%s.open' % filename, 'w') as f:
+    signal_fname = '%s.open' % filename
+    with open(signal_fname, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
+    global trade_notify
+    with open(trade_notify, 'w') as f:
+        f.write(signal_fname)
 
 # close sell order now
 def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s buy at %0.4f closed\n' % (l_index, close)
-    with open('%s.close' % filename, 'a') as f:
+    signal_fname = '%s.close' % filename
+    with open(signal_fname, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
+    global trade_notify
+    with open(trade_notify, 'w') as f:
+        f.write(signal_fname)
+
 
 # open buy order now
 def signal_open_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
     line = '%s buy at %0.4f\n' % (l_index, close)
-    with open('%s.open' % filename, 'w') as f:
+    signal_fname = '%s.open' % filename
+    with open(signal_fname, 'w') as f:
         f.write(line)
     print (line.rstrip('\n'))            
+    global trade_notify
+    with open(trade_notify, 'w') as f:
+        f.write(signal_fname)
 
 # close buy order now
 def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
     line = '%s sell at %0.4f closed\n' % (l_index, close)
-    with open('%s.close' % filename, 'a') as f:
+    signal_fname = '%s.close' % filename
+    with open(signal_fname, 'a') as f:
         f.write(line)
     print (line.rstrip('\n'))            
+    global trade_notify
+    with open(trade_notify, 'w') as f:
+        f.write(signal_fname)
 
 def generate_trade_filename_new(dir, l_index, order_type):
     fname = '%s-trade.%s' % (l_index, order_type)
@@ -337,34 +354,66 @@ def plot_saved_price(l_dir):
 # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
 # ['Change', '54052560', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000,', 'flags', '70912Change', '54052563', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000.lock,', 'flags', '66304', '-', 'matched', 'directory,', 'notifying\n']
 
+boll_notify = ''
+# wait on boll_notify for signal
+def wait_boll_notify(notify):
+    while True:
+        command = ['notifywait', notify]
+        try:
+            result = subprocess.run(command, stdout=PIPE) # wait file modified
+            with open(notify, 'r') as f:
+                subpath = f.readline().rstrip('\n')
+                print (subpath)
+                plot_living_price_new(subpath)
+        except Exception as ex:
+            print (ex)
+            continue
+    
 price_lock = threading.Lock()
-if len(sys.argv) == 3: # any third argument means old trade_file
-    new_trade_file = False  
+if len(sys.argv) == 3: # third argument is boll_notify filename
+    boll_notify = sys.argv[2]
+    print ('boll_notify is %s' % boll_notify)
 print ('Begin at %s' % (dt.now()))
 l_dir = sys.argv[1].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
 plot_saved_price(l_dir)
 print ('Stop at %s' % (dt.now()))
 
+trade_notify = '%s.trade-notify' % l_dir # file used to notify trade
+print (trade_notify)
+
 print ('Waiting for process new coming file\n')
+
+if boll_notify != '':
+    wait_boll_notify(boll_notify)
+    
 old_subpath = ''
 old_boll_subpath = ''
 boll_subpath = ''
 while True:
+    subpath = ''
     command = ['notifywait', l_dir]
     try:
         result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
-        data = result.stdout.decode().split('\n')
+        rawdata = result.stdout.decode().split('\n')
         if old_subpath == '': # restarted, ok
             #print (data)
             pass
-        data = data[2].split(' ')
+        #data = data[2].split(' ')
         #print (data)
         # case 1:
         # ['Change', '56123817', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000,', 'flags', '70912', '-', 'matched', 'directory,', 'notifying']
         # case 2: triggered by us
         # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000.boll']
-        if data[0] == 'Change' :
+        for e in rawdata:
+            data = e.split(' ')
+            if len(data) > 7 and data[7] == 'matched':
+                subpath = data[3].rstrip(',')
+                with open(subpath, 'r') as f:
+                    subpath = f.readline().rstrip('\n')
+                    subpath = os.path.join(l_dir, subpath)
+                break # found it
+        if os.path.isfile(subpath) == True:
             subpath = data[3].rstrip(',')
             if old_subpath == '':
                 old_subpath = subpath

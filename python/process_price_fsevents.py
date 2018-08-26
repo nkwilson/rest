@@ -167,8 +167,14 @@ def callback_file_new(subpath):
             filename = '%s.boll' % (old_event_path)
             with open(filename, 'w') as f:
                 f.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+            # make signal
+            global boll_notify
+            with open(boll_notify, 'w') as f:
+                f.write(filename)
         except Exception as ex:
             print (filename, traceback.format_exc())
+            old_l_index = l_index
+            old_event_path = event_path
             return # re do
         # write .boll successed, update info
         old_l_index = l_index
@@ -247,23 +253,40 @@ price_lock = threading.Lock()
 
 print ('Waiting for process new coming file\n')
 
+boll_notify = '%s.boll-notify' % l_dir  # file used to notify boll finish signal
+print (boll_notify)
+
+price_notify = '%s.price_notify' % l_dir
+print ('price_notify: %s' % price_notify)
+
 while True:
-    command = ['notifywait', l_dir]
+    subpath = ''
+    command = ['notifywait', price_notify]
     try:
         result = subprocess.run(command, stdout=PIPE, timeout=60) # wait file exist, time out in 60s
-        data = result.stdout.decode().split('\n')
-        #print (data)
-        data = data[2].split(' ')
+        rawdata = result.stdout.decode().split('\n')
+        #print (rawdata)
+        #data = rawdata[2].split(' ')
         #print (data)
         # case 1:
         # ['Change', '56123817', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000,', 'flags', '70912', '-', 'matched', 'directory,', 'notifying']
         # case 2: triggered by us
         # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000.boll']
-        if data[0] == 'Change' :
+        for e in rawdata:
+            data = e.split(' ')
+            if len(data) > 7 and data[7] == 'matched':
+                # print (data)
+                subpath = data[3].rstrip(',')
+                with open(subpath, 'r') as f:
+                    subpath = f.readline().rstrip('\n')
+                    subpath = os.path.join(l_dir, subpath)
+                    break
+        if os.path.isfile(subpath) == True:                
             subpath = data[3].rstrip(',')
-            callback_file_new(subpath)
-        else:
-            continue;
+            with open(subpath, 'r') as f:
+                subpath = f.readline().rstrip('\n')
+                subpath = os.path.join(l_dir, subpath)
+                callback_file_new(subpath)
     except Exception as ex:
         print (ex)
         continue
