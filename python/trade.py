@@ -143,16 +143,16 @@ def btc_usd_close_quarter_buy_10x(amount):
     print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '3', '1', '10'))
 
 def open_quarter_sell_10x(symbol, amount):
-    print(okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2', '1', '10'))
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2', '1', '10')
 
 def close_quarter_sell_10x(symbol, amount):
-    print(okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4', '1', '10'))
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4', '1', '10')
 
 def open_quarter_buy_10x(symbol, amount):
-    print(okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1', '1', '10'))
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1', '1', '10')
 
 def close_quarter_buy_10x(symbol, amount):
-    print(okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3', '1', '10'))
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3', '1', '10')
     
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
@@ -256,15 +256,15 @@ def wait_trade_notify(notify):
                 #wait for 10s
                 time.sleep(10)
                 for subpath in orders:
-                    result = do_trade_new(subpath)
-                    time.sleep(10)
-                    try: 
-                        if str(result).index('"result":true') >= 0: # means successed
-                            pass
+                    try:
+                        result = do_trade_new(subpath)
+                        time.sleep(5)
+                        print (result, type(result))
+                        if result.index('"result":') == 1: # means successed
+                            continue
                     except Exception as ex:
-                        print ('redo it once more')
-                        do_trade_new(subpath)
-                    time.sleep(10)
+                        orders.append(subpath)
+                        print ('append %s to do it again' % subpath)
         except Exception as ex:
             print (ex)
             continue
