@@ -72,6 +72,9 @@ levage_rate = 10
 def check_close_sell_fee_threshold(open_price, current_price):
     return abs((current_price - open_price) / open_price) > (fee_threshold / levage_rate)
 
+def trade_timestamp():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+           
 # open sell order now
 def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
@@ -79,7 +82,7 @@ def signal_open_order_with_sell(l_index, filename, close):
     line = '%s sell at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
-    print (line.rstrip('\n'))            
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
@@ -91,7 +94,7 @@ def signal_close_order_with_buy(l_index, filename, close):
     line = '%s buy at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
-    print (line.rstrip('\n'))            
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
@@ -104,7 +107,7 @@ def signal_open_order_with_buy(l_index, filename, close):
     line = '%s buy at %0.4f\n' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
-    print (line.rstrip('\n'))            
+    print (trade_timestamp(), line.rstrip('\n'))    
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
@@ -116,7 +119,7 @@ def signal_close_order_with_sell(l_index, filename, close):
     line = '%s sell at %0.4f closed\n' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
-    print (line.rstrip('\n'))            
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
