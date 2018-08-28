@@ -178,6 +178,7 @@ def figure_out_symbol_info(path):
     return path[start:end]
 
 trade_file = ''  # signal storing file
+amount_file = '' # if exist, read from file
 amount = 15 # default amount
 
 order_infos = {'usd_btc':'btc_usd',
@@ -212,13 +213,25 @@ def do_trade_new(subpath):
     # print (direction, action)
     print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
            (order_infos[symbol], order_infos[direction][action]))
-    order_infos[direction][action](order_infos[symbol], amount)
+    try:
+        return order_infos[direction][action](order_infos[symbol], amount)
+    except Exception as ex:
+        return ex
 
 trade_notify = ''
 # wait on trade_notify for signal
 def wait_trade_notify(notify):
     while True:
         command = ['notifywait', notify]
+        try:
+            # check if should read amount from file
+            if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
+                with open(amount_file) as f:
+                    amount = int(f.readline())
+                print ('amount updated to %d' % amount)
+        except Exception as ex:
+            amount = 15
+            print ('amount reset to %d' % amount)
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
@@ -240,8 +253,18 @@ def wait_trade_notify(notify):
                             orders.append(subpath)
                     with open(trade_queue, 'w') as f:
                         pass
+                #wait for 10s
+                time.sleep(10)
                 for subpath in orders:
-                    do_trade_new(subpath)                    
+                    result = do_trade_new(subpath)
+                    time.sleep(10)
+                    try: 
+                        if str(result).index('"result":true') >= 0: # means successed
+                            pass
+                    except Exception as ex:
+                        print ('redo it once more')
+                        do_trade_new(subpath)
+                    time.sleep(10)
         except Exception as ex:
             print (ex)
             continue
@@ -256,6 +279,9 @@ print ('trade_queue: is %s' % trade_queue)
 
 trade_notify = '%s.trade_notify' % l_dir
 print ('trade_notify is %s' % trade_notify)
+
+amount_file = '%s.amount' % l_dir
+print ('amount will read from %s if exist, default is %d' % (amount_file, amount))
 
 wait_trade_notify(trade_notify)
 
