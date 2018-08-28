@@ -126,8 +126,8 @@ def callback_file_new(subpath):
             close_prices = close_prices[-latest_to_read:]
             print ('Reduce data size to %d', close_lower.count())
     else: # Yes, things has happened: old_l_index  > l_index
-        old_l_index = l_index
-        old_event_path = event_path
+        old_l_index = ''
+        old_event_path = ''
         print ('*', end=' ', flush=True)
 
 # generate file list
