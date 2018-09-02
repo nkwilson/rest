@@ -19,7 +19,6 @@ from datetime import datetime as dt
 import threading
 
 import pipes
-from filelock_git import filelock
 
 import subprocess
 from subprocess import PIPE, run
