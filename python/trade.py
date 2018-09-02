@@ -18,8 +18,6 @@ import random
 import math
 import threading
 
-from fsevents import Observer
-from fsevents import Stream
 
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
@@ -27,7 +25,7 @@ from OkcoinFutureAPI import OKCoinFuture
 import subprocess
 from subprocess import PIPE, run
 
-from filelock_git import filelock
+import filelock
 
 #初始化apikey，secretkey,url
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
@@ -189,9 +187,10 @@ order_infos = {'usd_btc':'btc_usd',
 
 # use global trade queue file to sync trade process
 trade_queue = ''
+trade_queue_lock = ''
 
 def queue_trade_order(subpath):
-    with filelock.FileLock(trade_queue, timeout=20) as flock:
+    with filelock.FileLock(trade_queue_lock, timeout=20) as flock:
         with open(trade_queue, 'a') as f:
             f.write(subpath)
 
@@ -222,7 +221,7 @@ trade_notify = ''
 # wait on trade_notify for signal
 def wait_trade_notify(notify):
     while True:
-        command = ['notifywait', notify]
+        command = ['fswatch', '-1', notify]
         try:
             # check if should read amount from file
             if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
@@ -235,11 +234,11 @@ def wait_trade_notify(notify):
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
-            for e in rawdata:
-                data = e.split(' ')
-                if len(data) > 7 and data[7] == 'matched':
+            # print (rawdata)
+            for data in rawdata:
+                if len(data) > 7 and data == notify:
                     # print (data)
-                    subpath = data[3].rstrip(',')
+                    subpath = data
                     with open(subpath, 'r') as f:
                         subpath = f.readline().rstrip('\n')
                         queue_trade_order(subpath)
@@ -247,16 +246,20 @@ def wait_trade_notify(notify):
             if os.path.isfile(trade_queue) == True:
                 orders = list()
                 # first get file lock, saved and cleared
-                with filelock.FileLock(trade_queue, timeout=20) as flock:
+                # print (trade_queue)
+                with filelock.FileLock(trade_queue_lock, timeout=20) as flock:
+                    # print ('locked')
                     with open(trade_queue, 'r') as f:
                         for subpath in iter(f.readline, ''):
                             orders.append(subpath)
                     with open(trade_queue, 'w') as f:
                         pass
+                # print ('unlocked with %d orders' % len(orders))
                 #wait for 10s
                 time.sleep(10)
                 for subpath in orders:
                     try:
+                        # print ('order: %s' % subpath)
                         result = do_trade_new(subpath)
                         time.sleep(5)
                         print (result, type(result))
@@ -275,6 +278,7 @@ l_dir = sys.argv[1].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
 
 trade_queue = os.path.join(os.path.dirname(l_dir), 'trade_queue')
+trade_queue_lock = '%s.lock' % trade_queue
 print ('trade_queue: is %s' % trade_queue)
 
 trade_notify = '%s.trade_notify' % l_dir
@@ -283,6 +287,7 @@ print ('trade_notify is %s' % trade_notify)
 amount_file = '%s.amount' % l_dir
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount))
 
+trade_notify = os.path.realpath(trade_notify)
 wait_trade_notify(trade_notify)
 
 

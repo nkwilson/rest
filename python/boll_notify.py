@@ -205,22 +205,16 @@ print ('boll_notify: %s' % boll_notify)
 
 while True:
     subpath = ''
-    command = ['notifywait', price_notify]
+    price_notify = os.path.realpath(price_notify)
+    command = ['fswatch', '-1', price_notify]
     try:
-        result = subprocess.run(command, stdout=PIPE, timeout=120) # wait file exist, time out in 60s
+        result = subprocess.run(command, stdout=PIPE) # wait file until rewrited
         rawdata = result.stdout.decode().split('\n')
         #print (rawdata)
-        #data = rawdata[2].split(' ')
-        #print (data)
-        # case 1:
-        # ['Change', '56123817', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000,', 'flags', '70912', '-', 'matched', 'directory,', 'notifying']
-        # case 2: triggered by us
-        # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535198640000.boll']
-        for e in rawdata:
-            data = e.split(' ')
-            if len(data) > 7 and data[7] == 'matched':
+        for data in rawdata:
+            if len(data) > 7 and data == price_notify:
                 #print (data)
-                subpath = data[3].rstrip(',')
+                subpath = data
                 #print (subpath)
                 with open(subpath, 'r') as f:
                     subpath = f.readline().rstrip('\n')

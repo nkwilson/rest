@@ -344,7 +344,7 @@ def plot_saved_price(l_dir):
 # wait on boll_notify for signal
 def wait_boll_notify(notify):
     while True:
-        command = ['notifywait', notify]
+        command = ['fswatch', '-1', notify]
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
@@ -374,6 +374,7 @@ print ('trade_notify: %s' % trade_notify)
 print ('Waiting for process new coming file\n')
 
 if boll_notify != '':
+    boll_notify = os.path.realpath(boll_notify)
     wait_boll_notify(boll_notify)
     
 old_subpath = ''
