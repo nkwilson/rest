@@ -16,8 +16,6 @@ import math
 import datetime
 from datetime import datetime as dt
 
-from fsevents import Observer
-from fsevents import Stream
 import threading
 
 import pipes
