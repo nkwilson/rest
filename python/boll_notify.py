@@ -5,7 +5,6 @@ import numpy
 import pprint
 import traceback
 import threading 
-from fsevents import Observer
 
 import pipes
 
