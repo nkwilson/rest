@@ -263,7 +263,7 @@ def wait_trade_notify(notify):
                         result = do_trade_new(subpath)
                         time.sleep(5)
                         print (result, type(result))
-                        if result.index('"result":true') == 1: # means successed
+                        if result.index('"result"') == 1: # means successed
                             continue
                     except Exception as ex:
                         orders.append(subpath)
