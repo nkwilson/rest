@@ -220,7 +220,9 @@ def do_trade_new(subpath):
 trade_notify = ''
 # wait on trade_notify for signal
 def wait_trade_notify(notify):
+    global amount
     while True:
+        print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
         try:
             # check if should read amount from file
@@ -271,6 +273,7 @@ def wait_trade_notify(notify):
         except Exception as ex:
             print (ex)
             continue
+        print ('', end='', flush=True)
 
 print (sys.argv)
 #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
@@ -285,7 +288,7 @@ trade_notify = '%s.trade_notify' % l_dir
 print ('trade_notify is %s' % trade_notify)
 
 amount_file = '%s.amount' % l_dir
-print ('amount will read from %s if exist, default is %d' % (amount_file, amount))
+print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
 trade_notify = os.path.realpath(trade_notify)
 wait_trade_notify(trade_notify)

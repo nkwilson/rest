@@ -201,9 +201,10 @@ price_notify = '%s.price_notify' % l_dir
 print ('price_notify: %s' % price_notify)
 
 boll_notify = '%s.boll_notify' % l_dir  # file used to notify boll finish signal
-print ('boll_notify: %s' % boll_notify)
+print ('boll_notify: %s' % boll_notify, flush=True)
 
 while True:
+    print ('', end='', flush=True)
     subpath = ''
     price_notify = os.path.realpath(price_notify)
     command = ['fswatch', '-1', price_notify]
