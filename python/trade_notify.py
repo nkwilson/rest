@@ -62,12 +62,12 @@ old_open_price = 0
 old_close_mean = 0
 window_size = 20
 trade_file = ''
-fee_threshold = 0.0001 / 0.0009 # baesed on one order's fee 
-levage_rate = 10
+fee_threshold = 0.005# baesed on one order's fee 
+levage_rate = 20
 
 # if fee is bigger than lost, then delay it to next signal
 def check_close_sell_fee_threshold(open_price, current_price):
-    return abs((current_price - open_price) / open_price) > (fee_threshold / levage_rate)
+    return abs((current_price - open_price) / open_price) > fee_threshold
 
 def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
