@@ -62,7 +62,7 @@ old_open_price = 0
 old_close_mean = 0
 window_size = 20
 trade_file = ''
-fee_threshold = 0.005# baesed on one order's fee 
+fee_threshold = 0.01# baesed on one order's fee 
 levage_rate = 20
 
 # if fee is bigger than lost, then delay it to next signal
@@ -343,9 +343,19 @@ def plot_saved_price(l_dir):
 
 # wait on boll_notify for signal
 def wait_boll_notify(notify):
+    global fee_threshold, fee_file
     while True:
-        print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
+        try: 
+            # check if should read amount from file
+            if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
+                with open(fee_file) as f:
+                    fee_threshold = float(f.readline())
+                print ('fee_threshold updated to %f' % fee_threshold)
+        except Exception as ex:
+            fee_threshold = 0.01
+            print ('fee_threshold reset to %f' % fee_threshold)
+        print ('', end='', flush=True)
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
@@ -371,6 +381,9 @@ print ('boll_notify: %s' % boll_notify)
 
 trade_notify = '%s.trade_notify' % l_dir # file used to notify trade
 print ('trade_notify: %s' % trade_notify)
+
+fee_file = '%s.fee' % l_dir
+print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
 print ('Waiting for process new coming file\n', flush=True)
 
