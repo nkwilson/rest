@@ -105,7 +105,7 @@ def callback_file_new(subpath):
             l_start = datetime.datetime.now()
             print (l_delta, end=' ', flush=True)
             with open(filename, 'w') as f:
-                f.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+                f.write('%0.7f, %0.7f, %0.7f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
             l_delta = datetime.datetime.now() - l_start                
             print (l_delta)
             # make signal
@@ -186,7 +186,7 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
                 close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
                 # print (close_mean[fname])
                 with open('%s.boll' % (fpath), 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.4f, %0.4f, %0.4f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
+                    fb.write('%0.7f, %0.7f, %0.7f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
         print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
