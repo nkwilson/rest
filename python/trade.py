@@ -195,8 +195,10 @@ amount = 15 # default amount
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
                'usd_bch':'bch_usd',
-               'sell':{'open':open_quarter_sell_rate, 'close':close_quarter_sell_rate},
-               'buy':{'open':open_quarter_buy_rate, 'close':close_quarter_buy_rate}}
+               'sell':{'open':open_quarter_sell_rate,
+                       'close':close_quarter_sell_rate},
+               'buy':{'open':open_quarter_buy_rate,
+                      'close':close_quarter_buy_rate}}
 
 # use global trade queue file to sync trade process
 trade_queue = ''
