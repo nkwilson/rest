@@ -150,6 +150,16 @@ def close_quarter_buy_10x(symbol, amount, price='', lever_rate='20'):
                                      match_price,
                                      lever_rate)
 
+def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
+    data=okcoinFuture.future_depth(symbol, contract_type, depth)
+    # print (data['asks'])
+    return data['asks'][0][0] * (1 + 0.001) # the biggest ask
+
+def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
+    data=okcoinFuture.future_depth(symbol, contract_type, depth)
+    # print (data['bids'])
+    return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
+
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
 
