@@ -116,30 +116,6 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #future_trade(self,symbol,contractType,price='',amount='',tradeType='',matchPrice='',leverRate='') tradeType=2 best match price
 #print (u'期货下单')
 #print (okcoinFuture.future_trade('btc_usd','quarter','','1','1','1','10')) # works
-def future_trade_open_buy(symbol, contract_type, price, amount, match_price):
-    okcoinFuture.future_trade(symbol, contract_type, price, amount,'1', match_price)
-
-def future_trade_close_buy(symbol, contract_type, price, amount, match_price):
-    okcoinFuture.future_trade(symbol, contract_type, price, amount,'3', match_price)
-
-def future_trade_open_sell(symbol, contract_type, price, amount, match_price):
-    okcoinFuture.future_trade(symbol, contract_type, price, amount,'2', match_price)
-
-def future_trade_close_sell(symbol, contract_type, price, amount, match_price):
-    okcoinFuture.future_trade(symbol, contract_type, price, amount,'4', match_price)
-
-def btc_usd_open_quarter_sell_10x(amount):
-    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '2', '1', '10'))
-
-def btc_usd_close_quarter_sell_10x(amount):
-    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '4', '1', '10'))
-
-def btc_usd_open_quarter_buy_10x(amount):
-    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '1', '1', '10'))
-
-def btc_usd_close_quarter_buy_10x(amount):
-    print (okcoinFuture.future_trade('btc_usd', 'quarter', '', amount, '3', '1', '10'))
-
 def open_quarter_sell_10x(symbol, amount):
     return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2', '1', '10')
 
