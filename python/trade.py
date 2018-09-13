@@ -136,13 +136,13 @@ def check_match_price_and_lever_rate(price, lever_rate):
         lever_rate = '20'
     return match_price, lever_rate
 
-def open_quarter_sell_10x(symbol, amount, price='', lever_rate='20'):
+def open_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '2',
                                      match_price,
                                      lever_rate)
 
-def close_quarter_sell_10x(symbol, amount, price='', lever_rate='20'):
+def close_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
     # should auto figure best close price
     price = figure_best_price_buy(symbol)
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
@@ -150,13 +150,13 @@ def close_quarter_sell_10x(symbol, amount, price='', lever_rate='20'):
                                      match_price,
                                      lever_rate)
 
-def open_quarter_buy_10x(symbol, amount, price='', lever_rate='20'):
+def open_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '1',
                                      match_price,
                                      lever_rate)
 
-def close_quarter_buy_10x(symbol, amount, price='', lever_rate='20'):
+def close_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
     # should auto figure best close price
     price = figure_best_price_sell(symbol)
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
@@ -195,8 +195,8 @@ amount = 15 # default amount
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
                'usd_bch':'bch_usd',
-               'sell':{'open':open_quarter_sell_10x, 'close':close_quarter_sell_10x},
-               'buy':{'open':open_quarter_buy_10x, 'close':close_quarter_buy_10x}}
+               'sell':{'open':open_quarter_sell_rate, 'close':close_quarter_sell_rate},
+               'buy':{'open':open_quarter_buy_rate, 'close':close_quarter_buy_rate}}
 
 # use global trade queue file to sync trade process
 trade_queue = ''
