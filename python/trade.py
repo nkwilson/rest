@@ -244,7 +244,7 @@ def do_trade_new(subpath):
             msg = 'successed'
             order_id_msg = '"order_id":'
             order_id = result[result.index(order_id_msg) + len(order_id_msg):-1]
-            print (order_id)
+            #print (order_id)
             print (quarter_orderinfo(order_infos[symbol], str(order_id)))
     except Exception as ex:
         print (ex)
