@@ -243,8 +243,10 @@ def wait_trade_notify(notify):
         try:
             # check if should read amount from file
             with open(amount_file) as f:
+                old_amount = amount
                 amount = int(f.readline())
-            print ('amount updated to %d' % amount)
+                if old_amount != amount:
+                    print ('amount updated to %d' % amount)
         except Exception as ex:
             amount = default_amount
             print ('amount reset to default %d' % amount)
