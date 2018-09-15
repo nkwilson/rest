@@ -175,7 +175,7 @@ def close_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
 #print (okcoinFuture.future_orderinfo('ltc_usd','this_week','47231812','0','1','2'))
 
 def quarter_orderinfo(symbol, order_id):
-    return okcoinFuture.future_orderinfo(symbol,'quarter',order_id,'0','1','2'))
+    return okcoinFuture.future_orderinfo(symbol,'quarter',order_id,'0','1','2')
 
 #print (u'期货逐仓账户信息')
 #print (okcoinFuture.future_userinfo_4fix())
