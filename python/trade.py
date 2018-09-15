@@ -213,6 +213,10 @@ def queue_trade_order(subpath):
         with open(trade_queue, 'a') as f:
             f.write(subpath)
 
+#print (quarter_orderinfo('bch_usd', '1460633310147580'))
+#print (quarter_orderinfo('bch_usd', '1426230836341760'))
+#os.sys.exit()
+
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -234,11 +238,12 @@ def do_trade_new(subpath):
     msg = 'failed' # means failed
     try:
         result = order_infos[direction][action](order_infos[symbol], amount)
+        print (result)
         normal_str = '"result":'
         if result.index(normal_str) == 1: # means successed
             msg = 'successed'
             order_id_msg = '"order_id":'
-            order_id = result[result.index(order_id_msg) + len(order_id_msg):-2]
+            order_id = result[result.index(order_id_msg) + len(order_id_msg):-1]
             print (order_id)
             print (quarter_orderinfo(symbol, order_id))
     except Exception as ex:
