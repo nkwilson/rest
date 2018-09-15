@@ -190,7 +190,8 @@ def figure_out_symbol_info(path):
 
 trade_file = ''  # signal storing file
 amount_file = '' # if exist, read from file
-amount = 15 # default amount
+default_amount = 1 # default amount, if auto then figure it out 
+amount = 1
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -241,13 +242,12 @@ def wait_trade_notify(notify):
         command = ['fswatch', '-1', notify]
         try:
             # check if should read amount from file
-            if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
-                with open(amount_file) as f:
-                    amount = int(f.readline())
-                print ('amount updated to %d' % amount)
+            with open(amount_file) as f:
+                amount = int(f.readline())
+            print ('amount updated to %d' % amount)
         except Exception as ex:
-            amount = 15
-            print ('amount reset to %d' % amount)
+            amount = default_amount
+            print ('amount reset to default %d' % amount)
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
