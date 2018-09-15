@@ -174,6 +174,9 @@ def close_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
 #print (u'期货获取订单信息')
 #print (okcoinFuture.future_orderinfo('ltc_usd','this_week','47231812','0','1','2'))
 
+def quarter_orderinfo(symbol, order_id):
+    return okcoinFuture.future_orderinfo(symbol,'quarter',order_id,'0','1','2'))
+
 #print (u'期货逐仓账户信息')
 #print (okcoinFuture.future_userinfo_4fix())
 
@@ -228,10 +231,19 @@ def do_trade_new(subpath):
     # print (direction, action)
     print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
            (order_infos[symbol], order_infos[direction][action]))
+    msg = 'failed' # means failed
     try:
-        return order_infos[direction][action](order_infos[symbol], amount)
+        result = order_infos[direction][action](order_infos[symbol], amount)
+        normal_str = '"result":'
+        if result.index(normal_str) == 1: # means successed
+            msg = 'successed'
+            order_id_msg = '"order_id":'
+            order_id = result[result.index(order_id_msg) + len(order_id_msg):-2]
+            print (order_id)
+            print (quarter_orderinfo(symbol, order_id))
     except Exception as ex:
-        return ex
+        print (ex)
+    return msg
 
 trade_notify = ''
 # wait on trade_notify for signal
@@ -281,8 +293,7 @@ def wait_trade_notify(notify):
                         # print ('order: %s' % subpath)
                         result = do_trade_new(subpath)
                         time.sleep(5)
-                        print (result, type(result))
-                        if result.index('"result"') == 1: # means successed
+                        if result.index('successed'):
                             continue
                     except Exception as ex:
                         orders.append(subpath)
