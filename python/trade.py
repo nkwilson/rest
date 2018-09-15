@@ -213,7 +213,7 @@ def queue_trade_order(subpath):
         with open(trade_queue, 'a') as f:
             f.write(subpath)
 
-#print (quarter_orderinfo('bch_usd', '1460633310147580'))
+#print (quarter_orderinfo('bch_usd', '1460707150205952'))
 #print (quarter_orderinfo('bch_usd', '1426230836341760'))
 #os.sys.exit()
 
@@ -245,7 +245,7 @@ def do_trade_new(subpath):
             order_id_msg = '"order_id":'
             order_id = result[result.index(order_id_msg) + len(order_id_msg):-1]
             print (order_id)
-            print (quarter_orderinfo(symbol, order_id))
+            print (quarter_orderinfo(order_infos[symbol], str(order_id)))
     except Exception as ex:
         print (ex)
     return msg
