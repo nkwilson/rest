@@ -203,6 +203,13 @@ print ('price_notify: %s' % price_notify)
 boll_notify = '%s.boll_notify' % l_dir  # file used to notify boll finish signal
 print ('boll_notify: %s' % boll_notify, flush=True)
 
+pid_file = '%s.boll_notify.pid' % l_dir
+# os.setsid() # privilge
+#print (os.getpgrp(), os.getpgid(os.getpid()))
+with open(pid_file, 'w') as f:
+    f.write('%d' % os.getpgrp())
+print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
 while True:
     print ('', end='', flush=True)
     subpath = ''

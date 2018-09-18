@@ -323,9 +323,8 @@ print ('trade_notify is %s' % trade_notify)
 amount_file = '%s.amount' % l_dir
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
-pid_file = '%s.trade_notify.pid' % l_dir
+pid_file = '%s.trade.pid' % l_dir
 # os.setsid() # privilge
-os.setpgrp()
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())

@@ -385,6 +385,13 @@ print ('trade_notify: %s' % trade_notify)
 fee_file = '%s.fee' % l_dir
 print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
+pid_file = '%s.trade_notify.pid' % l_dir
+# os.setsid() # privilge
+#print (os.getpgrp(), os.getpgid(os.getpid()))
+with open(pid_file, 'w') as f:
+    f.write('%d' % os.getpgrp())
+print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
 print ('Waiting for process new coming file\n', flush=True)
 
 if boll_notify != '':
