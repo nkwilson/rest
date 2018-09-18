@@ -213,7 +213,7 @@ def queue_trade_order(subpath):
         with open(trade_queue, 'a') as f:
             f.write(subpath)
 
-#print (quarter_orderinfo('bch_usd', '1460707150205952'))
+#print (quarter_orderinfo('bch_usd', '1460633310147580'))
 #print (quarter_orderinfo('bch_usd', '1426230836341760'))
 #os.sys.exit()
 
@@ -322,6 +322,14 @@ print ('trade_notify is %s' % trade_notify)
 
 amount_file = '%s.amount' % l_dir
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
+
+pid_file = '%s.trade_notify.pid' % l_dir
+# os.setsid() # privilge
+os.setpgrp()
+#print (os.getpgrp(), os.getpgid(os.getpid()))
+with open(pid_file, 'w') as f:
+    f.write('%d' % os.getpgrp())
+print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
 trade_notify = os.path.realpath(trade_notify)
 wait_trade_notify(trade_notify)
