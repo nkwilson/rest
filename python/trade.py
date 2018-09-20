@@ -260,15 +260,13 @@ def do_trade_new(subpath):
            (order_infos[symbol], order_infos[direction][action]))
     msg = 'failed' # means failed
     try:
-        result = order_infos[direction][action](order_infos[symbol], amount)
+        raw_result = order_infos[direction][action](order_infos[symbol], amount)
+        result = json.loads(raw_result)
         print (result)
-        normal_str = '"result":'
-        if result.index(normal_str) == 1: # means successed
-            msg = 'successed'
-            order_id_msg = '"order_id":'
-            order_id = result[result.index(order_id_msg) + len(order_id_msg):-1]
-            #print (order_id)
-            print (quarter_orderinfo(order_infos[symbol], str(order_id)))
+        order_id = result['order_id'] # means successed
+        msg = 'successed'
+        #print (order_id)
+        print (quarter_orderinfo(order_infos[symbol], str(order_id)))
     except Exception as ex:
         print (ex)
     return msg
