@@ -244,7 +244,7 @@ def queue_trade_order(subpath):
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def do_trade_new(subpath):
-    global amount, trade_file
+    global amount
     #print (subpath)
     # only process file event of .boll.log
     symbol = figure_out_symbol_info(subpath)
@@ -260,13 +260,25 @@ def do_trade_new(subpath):
            (order_infos[symbol], order_infos[direction][action]))
     msg = 'failed' # means failed
     try:
-        raw_result = order_infos[direction][action](order_infos[symbol], amount)
+        l_amount = amount
+        if action == 'open': # if open, append amount info to subsubpath
+            with open(subsubpath, 'a') as f:
+                f.write(',%d\n' % amount)
+        elif action == 'close': # if close, read amount info from subsubpath
+            try: # in case read amount failed
+                with open(subsubpath, 'r') as f:
+                    l_amount = f.readline().split(',')[1]
+            except Exception as ex:
+                pass
+        raw_result = order_infos[direction][action](order_infos[symbol], l_amount)
         result = json.loads(raw_result)
         print (result)
         order_id = result['order_id'] # means successed
         msg = 'successed'
         #print (order_id)
         print (quarter_orderinfo(order_infos[symbol], str(order_id)))
+        if action == 'close': # if order closed
+            amount = quarter_auto_amount(symbol)
     except Exception as ex:
         print (ex)
     return msg
