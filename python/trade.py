@@ -27,6 +27,8 @@ from subprocess import PIPE, run
 
 import filelock
 
+import json
+
 #初始化apikey，secretkey,url
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
 #secretkey = '4752BE55655A6233A7254628FB7E9F50'
@@ -178,10 +180,31 @@ def quarter_orderinfo(symbol, order_id):
     return okcoinFuture.future_orderinfo(symbol,'quarter',order_id,'0','1','2')
 
 #print (u'期货逐仓账户信息')
-#print (okcoinFuture.future_userinfo_4fix())
+#print (json.loads(okcoinFuture.future_userinfo_4fix()))
 
 #print (u'期货逐仓持仓信息')
-#print (okcoinFuture.future_position_4fix('ltc_usd','this_week',1))
+#print (json.loads(okcoinFuture.future_position_4fix('ltc_usd','quarter', '1')))
+
+def quarter_auto_amount(symbol):
+    coin = symbol[0:symbol.index('_')]
+    result=json.loads(okcoinFuture.future_userinfo_4fix())
+    if result['result'] != True:
+        return 1
+    balance=result['info'][coin]['balance']
+
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    if holding['result'] != True:
+        return 1
+    if len(holding['holding']) == 0:
+        return 1
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            if data['buy_amount'] > 0:
+                bond=data['buy_bond']/data['buy_amount']
+            elif data['sell_amount'] > 0:
+                bond=data['sell_bond']/data['sell_amount']
+            break
+    return int(balance / bond)
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
