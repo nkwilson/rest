@@ -76,7 +76,7 @@ def trade_timestamp():
 def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s sell at %0.7f\n' % (l_index, close)
+    line = '%s sell at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
     print (trade_timestamp(), line.rstrip('\n'))
@@ -88,7 +88,7 @@ def signal_open_order_with_sell(l_index, filename, close):
 def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s buy at %0.7f closed\n' % (l_index, close)
+    line = '%s buy at %0.7f closed' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
     print (trade_timestamp(), line.rstrip('\n'))
@@ -101,7 +101,7 @@ def signal_close_order_with_buy(l_index, filename, close):
 def signal_open_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s buy at %0.7f\n' % (l_index, close)
+    line = '%s buy at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
     print (trade_timestamp(), line.rstrip('\n'))    
@@ -113,7 +113,7 @@ def signal_open_order_with_buy(l_index, filename, close):
 def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s sell at %0.7f closed\n' % (l_index, close)
+    line = '%s sell at %0.7f closed' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
     print (trade_timestamp(), line.rstrip('\n'))
