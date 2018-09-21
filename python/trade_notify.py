@@ -166,6 +166,20 @@ def read_close(filename):
 latest_to_read = 1000
 new_trade_file = True
 
+pick_old_order = True # try to pick old order
+def try_to_pick_old_order():
+    global trade_notify, trade_file
+    # first check trade_notify
+    if os.path.isfile(trade_notify) and os.path.getsize(trade_notify) > 0:
+        with open(trade_notify, 'r') as f:
+            line=f.readline().rstrip('\n')
+            # print (line)
+            pathext = os.path.splitext(line)
+            # print (pathext)
+            if pathext[1][1:] == 'open': # means pending order
+                trade_file = pathext[0]
+                return
+
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -370,6 +384,10 @@ price_lock = threading.Lock()
 if len(sys.argv) == 3: # third argument is boll_notify filename
     boll_notify = sys.argv[2]
     print ('boll_notify is %s' % boll_notify)
+
+if len(sys.argv) == 4: # fourth argument is no_pick_old_order
+    pick_old_order = False
+
 print ('Begin at %s' % (dt.now()))
 l_dir = sys.argv[1].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
@@ -391,6 +409,11 @@ pid_file = '%s.trade_notify.pid' % l_dir
 with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
+if pick_old_order == True:
+    try_to_pick_old_order()
+    if trade_file != '': # yes, old pending order exists
+        print ('### pick old order: %s\n' % trade_file)
 
 print ('Waiting for process new coming file\n', flush=True)
 
