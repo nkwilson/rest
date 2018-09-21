@@ -163,7 +163,7 @@ def read_close(filename):
     # print (close)
     return close
 
-latest_to_read = 300
+latest_to_read = 1000
 new_trade_file = True
 
 # inotify specified dir to plot living price
