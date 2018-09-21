@@ -204,7 +204,7 @@ def quarter_auto_amount(symbol):
             elif data['sell_amount'] > 0:
                 bond=data['sell_bond']/data['sell_amount']
             break
-    return int(balance / bond)
+    return int(balance / bond) / 2
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
