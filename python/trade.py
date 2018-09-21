@@ -272,9 +272,10 @@ def do_trade_new(subpath):
                 pass
         raw_result = order_infos[direction][action](order_infos[symbol], l_amount)
         result = json.loads(raw_result)
+        msg = 'failed,go'
         print (result)
         order_id = result['order_id'] # means successed
-        msg = 'successed'
+        msg = 'successed,go'
         #print (order_id)
         print (quarter_orderinfo(order_infos[symbol], str(order_id)))
         if action == 'close': # if order closed
@@ -331,7 +332,7 @@ def wait_trade_notify(notify):
                         # print ('order: %s' % subpath)
                         result = do_trade_new(subpath)
                         time.sleep(5)
-                        if result.index('successed'):
+                        if result.index('go'):
                             continue
                     except Exception as ex:
                         orders.append(subpath)
