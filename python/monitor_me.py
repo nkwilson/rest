@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 from subprocess import PIPE, run
+import signal
 
 print (sys.argv)
 # skip sys.argv[0] 
@@ -14,7 +15,7 @@ print (command, os.getsid(os.getpid()))
 
 while True:
     result = subprocess.run(command, start_new_session=True)
-    if result.returncode == -30: # SIGUSR1 means restart 
+    if result.returncode == -signal.SIGUSR1: # SIGUSR1 means restart
         pass
     else:
         print (result)
