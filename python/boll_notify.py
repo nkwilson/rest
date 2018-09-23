@@ -141,11 +141,14 @@ def with_scandir(l_dir):
             files.append(entry.name)
     return files
 
-latest_to_read = 300
+latest_to_read = 1000
 
-print ('Begin at %s' % (dt.now()))
-
-if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
+# switch default to with-old-files, disabled with explicit without-old-files
+if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
+    print ('Skip processing old files\n')
+    pass
+else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
+    print ('Processing old files, begin at %s' % (dt.now()))
     # with os.scandir(sys.argv[1]) as it:
     #     for entry in it:
     #         if not entry.name.startswith('.') and entry.is_file():
@@ -192,8 +195,7 @@ if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in 
         #print ('exception occured: %s' % (ex))
         print (traceback.format_exc())
         exit ()
-
-print ('Stop at %s' % (dt.now()))
+    print ('Stop at %s' % (dt.now()))
 
 print ('Waiting for process new coming file\n')
 
