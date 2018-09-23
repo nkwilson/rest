@@ -62,7 +62,8 @@ old_open_price = 0
 old_close_mean = 0
 window_size = 20
 trade_file = ''
-fee_threshold = 0.01# baesed on one order's fee 
+default_fee_threshold = 0.003# baesed on one order's fee
+fee_threshold = default_fee_threshold
 levage_rate = 20
 
 # if fee is bigger than lost, then delay it to next signal
@@ -367,7 +368,7 @@ def wait_boll_notify(notify):
                     fee_threshold = float(f.readline())
                 print ('fee_threshold updated to %f' % fee_threshold)
         except Exception as ex:
-            fee_threshold = 0.01
+            fee_threshold = default_fee_threshold
             print ('fee_threshold reset to %f' % fee_threshold)
         print ('', end='', flush=True)
         try:
