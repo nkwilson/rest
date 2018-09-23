@@ -60,7 +60,22 @@ def plot_boll(l_dir, latest):
     matplotlib.pyplot.show()
     # return data
 
+def plot_boll_mdev(l_dir, latest):
+    files = with_scandir(l_dir)
+    files.sort()
+    data = list()
+    for fname in files[-int(latest):-1]:
+        boll = read_boll(os.path.join(l_dir,fname))
+        if boll == 0:
+            continue
+        #print (boll)
+        data.append(boll)
+    pdata=pandas.DataFrame(data, columns=['boll', 'upper', 'lower'])
+    matplotlib.pyplot.plot((pdata['upper']-pdata['boll'])/pdata['boll']/2)
+    matplotlib.pyplot.show()
+    # return data
+    
 print ('Usage: l_dir count\n')
 print (sys.argv)
-print (plot_boll(sys.argv[1], sys.argv[2]))
+print (plot_boll_mdev(sys.argv[1], sys.argv[2]))
 
