@@ -134,12 +134,17 @@ def with_listdir(l_dir):
     return os.listdir(l_dir)
 
 # v2, fast than listdir
-def with_scandir(l_dir):
+def with_scandir_withskip(l_dir, skips):
     files = list()
     with os.scandir(l_dir) as it:
         for entry in it:
+            if skips != '' and entry.name.endswith(skips) == True:
+                continue
             files.append(entry.name)
     return files
+
+def with_scandir(l_dir):
+    return with_scandir_withskip(l_dir, skips='')
 
 latest_to_read = 1000
 
@@ -148,7 +153,8 @@ if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
     print ('Skip processing old files\n')
     pass
 else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
-    print ('Processing old files, begin at %s' % (dt.now()))
+    start = dt.now()
+    print ('Processing old files, begin at %s' % (start))
     # with os.scandir(sys.argv[1]) as it:
     #     for entry in it:
     #         if not entry.name.startswith('.') and entry.is_file():
@@ -158,18 +164,15 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
     try :
         l_dir = sys.argv[1].rstrip('/')
         read_saved = 0  # read boll data from saved file
-        files=with_scandir(l_dir)
+        files=with_scandir_withskip(l_dir, ('.boll', '.open', '.close', '.buy', '.sell', '.log'))
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
             fpath = os.path.join(l_dir, fname)
-            # print (fpath)
-            if fpath.endswith(('.boll', '.open', '.close', '.buy', '.sell', '.log')) == False: # not bolinger band data
-                with open(fpath, 'r') as f:
-                    close=eval(f.readline())[3]
-                    close_prices[fname]=close
-            else:
-                continue # 
+            #print (fpath)
+            with open(fpath, 'r') as f:
+                close=eval(f.readline())[3]
+                close_prices[fname]=close
             # first check .boll is exist
             fpathboll='%s.boll' % (fpath)
             # print (fpathboll)
@@ -195,7 +198,8 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
         #print ('exception occured: %s' % (ex))
         print (traceback.format_exc())
         exit ()
-    print ('Stop at %s' % (dt.now()))
+    stop = dt.now()
+    print ('Stop at %s, cost %s' % (stop, stop - start))
 
 print ('Waiting for process new coming file\n')
 
