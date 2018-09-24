@@ -170,6 +170,7 @@ new_trade_file = True
 pick_old_order = True # try to pick old order
 def try_to_pick_old_order():
     global trade_notify, trade_file
+    global old_open_price
     # first check trade_notify
     if os.path.isfile(trade_notify) and os.path.getsize(trade_notify) > 0:
         with open(trade_notify, 'r') as f:
@@ -179,6 +180,8 @@ def try_to_pick_old_order():
             # print (pathext)
             if pathext[1][1:] == 'open': # means pending order
                 trade_file = pathext[0]
+                with open(trade_file, 'r') as f:
+                    old_open_price = float(f.readline().split(' ')[3]
                 return
 
 # inotify specified dir to plot living price
@@ -346,7 +349,7 @@ print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.g
 if pick_old_order == True:
     try_to_pick_old_order()
     if trade_file != '': # yes, old pending order exists
-        print ('### pick old order: %s\n' % trade_file)
+        print ('### pick old order: %s, open price %f\n' % (trade_file, old_open_price))
 
 print ('Waiting for process new coming file\n', flush=True)
 
