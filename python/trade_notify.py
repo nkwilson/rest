@@ -381,6 +381,7 @@ def wait_boll_notify(notify):
                 plot_living_price_new(subpath)
         except Exception as ex:
             print (ex)
+            print (traceback.format_exc())
             continue
     
 price_lock = threading.Lock()
