@@ -184,77 +184,6 @@ def try_to_pick_old_order():
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def plot_living_price(subpath):
-    global window_size, trade_file, old_close_mean
-    global old_open_price
-    global close_mean, close_upper, close_lower
-    global price_lock
-    #print (subpath, str(subpath), type(subpath))
-    price_lock.acquire()
-    tup=eval(str(subpath))
-    #print (type(tup), tup[0])
-    # only process file event of %.boll
-    if tup[2].endswith('.boll') == False:
-        price_lock.release()
-        return
-    event_type=tup[0]
-    event_path=tup[2]
-    l_index = os.path.basename(event_path)
-    # print (event_type, event_path)
-    if (event_type == 2):
-        pass
-    elif (event_type != 256):
-        print (event_type)
-        pass
-    else: # type 256, new file event
-        close = read_close(event_path)
-        boll = read_boll(event_path)
-        print (boll)
-        if boll == 0 or close == 0: # in case read failed
-            price_lock.release()
-            return
-        if math.isnan(boll[0]) == False:
-                close_mean[l_index]=boll[0]
-                close_upper[l_index]=boll[1]
-                close_lower[l_index]=boll[2]
-                fresh_trade = False
-                if boll[0] < old_close_mean: # open sell order
-                    if trade_file == '':
-                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
-                        # print (trade_file)
-                        signal_open_order_with_sell(l_index, trade_file, close)
-                        fresh_trade = True
-                        old_open_price = close
-                elif boll[0] > old_close_mean: # open buy order
-                    if trade_file == '':
-                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
-                        # print (trade_file)
-                        signal_open_order_with_buy(l_index, trade_file, close)
-                        fresh_trade = True
-                        old_open_price = close
-                old_close_mean = boll[0] # update unconditiionally
-                if fresh_trade == True: # ok, fresh trade
-                    pass
-                elif trade_file == '':  # no open trade
-                    pass
-                elif close > ((boll[0]+boll[1]) / 2) and trade_file.endswith('.sell') == True : # close is touch half of upper
-                    # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
-                        signal_close_order_with_buy(l_index, trade_file, close)
-                        trade_file = ''  # make trade_file empty to indicate close
-                elif close < ((boll[0]+boll[2]) / 2) and trade_file.endswith('.buy') == True : # close is touch half of lower
-                    # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
-                        signal_close_order_with_sell(l_index, trade_file, close)
-                        trade_file = ''  # make trade_file empty to indicate close
-                elif close_lower.count() > 10 * latest_to_read:
-                    close_lower = close_lower[-latest_to_read:]
-                    close_mean = close_mean[-latest_to_read:]
-                    close_upper = close_upper[-latest_to_read:]
-                    print ('Reduce data size to %d', close_lower.count())
-
-                    price_lock.release()
-
 def plot_living_price_new(subpath):
     global window_size, trade_file, old_close_mean
     global old_open_price
@@ -266,7 +195,7 @@ def plot_living_price_new(subpath):
     if True: # type 256, new file event
         boll = read_boll(event_path)
         close = read_close(event_path)
-        print (boll, close)
+        print (boll, close, old_open_price)
         if boll == 0 or close == 0: # in case read failed
             return
         if math.isnan(boll[0]) == False:
