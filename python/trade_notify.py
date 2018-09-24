@@ -181,7 +181,7 @@ def try_to_pick_old_order():
             if pathext[1][1:] == 'open': # means pending order
                 trade_file = pathext[0]
                 with open(trade_file, 'r') as f:
-                    old_open_price = float(f.readline().split(' ')[3]
+                   old_open_price = float(f.readline().split(' ')[3])
                 return
 
 # inotify specified dir to plot living price
