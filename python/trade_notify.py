@@ -365,8 +365,10 @@ def wait_boll_notify(notify):
             # check if should read amount from file
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
-                    fee_threshold = float(f.readline())
-                print ('fee_threshold updated to %f' % fee_threshold)
+                    t_fee_threshold = float(f.readline())
+                    if t_fee_threshold != fee_threshold: # update if diff
+                        fee_threshold = t_fee_threshold
+                        print ('fee_threshold updated to %f' % fee_threshold)
         except Exception as ex:
             fee_threshold = default_fee_threshold
             print ('fee_threshold reset to %f' % fee_threshold)
