@@ -185,26 +185,31 @@ def quarter_orderinfo(symbol, order_id):
 #print (u'期货逐仓持仓信息')
 #print (json.loads(okcoinFuture.future_position_4fix('ltc_usd','quarter', '1')))
 
-def quarter_auto_amount(symbol):
-    coin = symbol[0:symbol.index('_')]
-    result=json.loads(okcoinFuture.future_userinfo_4fix())
-    if result['result'] != True:
-        return 1
-    balance=result['info'][coin]['balance']
+last_bond = 0 # means uninitialized
+last_balance = 0
 
+def quarter_auto_bond(symbol):
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
-        return 1
+        return 0 # 0 means failed
     if len(holding['holding']) == 0:
-        return 1
+        return 0
     for data in holding['holding']:
         if data['symbol'] == symbol:
             if data['buy_amount'] > 0:
                 bond=data['buy_bond']/data['buy_amount']
             elif data['sell_amount'] > 0:
                 bond=data['sell_bond']/data['sell_amount']
-            break
-    return int(balance / bond) / 2
+            return bond
+    return 0
+    
+def quarter_auto_balance(symbol):
+    coin = symbol[0:symbol.index('_')]
+    result=json.loads(okcoinFuture.future_userinfo_4fix())
+    if result['result'] != True:
+        return 0
+    balance=result['info'][coin]['balance']
+    return balance
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
@@ -244,7 +249,7 @@ def queue_trade_order(subpath):
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def do_trade_new(subpath):
-    global amount
+    global amount, last_balance, last_bond
     #print (subpath)
     # only process file event of .boll.log
     symbol = figure_out_symbol_info(subpath)
@@ -279,8 +284,20 @@ def do_trade_new(subpath):
         msg = 'successed,go'
         #print (order_id)
         print (quarter_orderinfo(order_infos[symbol], str(order_id)))
-        if action == 'close': # if order closed
-            amount = quarter_auto_amount(symbol)
+        if action == 'open': # figure bond info
+            bond = quarter_auto_bond(symbol)
+            if bond > 0: # successed
+                print ('bond is updated from %f to %f\n' % (last_bond, bond))
+                last_bond = bond
+        elif action == 'close': # figreu balance info
+            balance = quarter_auto_balance(symbol)
+            if balance > 0 and last_bond > 0: # successed
+                print ('balance is updated from %f to %f\n' % (last_balance, balance))
+                last_balance = balance
+                new_amount = int(last_balance / bond)
+                if new_amount != amount:
+                    print ('amount is updated from %d to %d, with bond %f\n' % (amount, new_amount, last_bond))
+                    amount = new_amount
     except Exception as ex:
         print (ex)
     return msg
