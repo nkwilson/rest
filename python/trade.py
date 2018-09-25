@@ -285,12 +285,12 @@ def do_trade_new(subpath):
         #print (order_id)
         print (quarter_orderinfo(order_infos[symbol], str(order_id)))
         if action == 'open': # figure bond info
-            bond = quarter_auto_bond(symbol)
+            bond = quarter_auto_bond(order_infos[symbol])
             if bond > 0: # successed
                 print ('bond is updated from %f to %f\n' % (last_bond, bond))
                 last_bond = bond
         elif action == 'close': # figreu balance info
-            balance = quarter_auto_balance(symbol)
+            balance = quarter_auto_balance(order_infos[symbol])
             if balance > 0 and last_bond > 0: # successed
                 print ('balance is updated from %f to %f\n' % (last_balance, balance))
                 last_balance = balance
