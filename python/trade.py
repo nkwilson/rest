@@ -269,6 +269,7 @@ def do_trade_new(subpath):
                 with open(subsubpath, 'r') as f:
                     l_amount = f.readline().split(',')[1]
             except Exception as ex:
+                print (traceback.format_exc())
                 pass
         raw_result = order_infos[direction][action](order_infos[symbol], l_amount)
         result = json.loads(raw_result)
