@@ -294,7 +294,7 @@ def do_trade_new(subpath):
             if balance > 0 and last_bond > 0: # successed
                 print ('balance is updated from %f to %f\n' % (last_balance, balance))
                 last_balance = balance
-                new_amount = int(last_balance / bond)
+                new_amount = int(last_balance / bond / 3)
                 if new_amount != amount:
                     print ('amount is updated from %d to %d, with bond %f\n' % (amount, new_amount, last_bond))
                     amount = new_amount
