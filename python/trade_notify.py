@@ -225,12 +225,12 @@ def plot_living_price_new(subpath):
                     pass
                 elif trade_file == '':  # no open trade
                     pass
-                elif close > ((boll[0]+boll[1]) / 2) and trade_file.endswith('.sell') == True : # close is touch half of upper
+                elif close > boll[1] and trade_file.endswith('.sell') == True : # close is touch half of upper
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
-                elif close < ((boll[0]+boll[2]) / 2) and trade_file.endswith('.buy') == True : # close is touch half of lower
+                elif close < boll[2] and trade_file.endswith('.buy') == True : # close is touch half of lower
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
