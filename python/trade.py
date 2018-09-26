@@ -313,6 +313,11 @@ def wait_trade_notify(notify):
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
+        if os.path.isfile(stop_notify):
+            print ('stop signaled by %s, quit now' % stop_notify)
+            os.unlink(stop_notify)
+            print ('%s unlinked' % stop_notify)
+            break
         if os.path.isfile(amount_file) and os.path.getsize(amount_file)>0:
             auto_amount = 0
             # check if should read amount from file
@@ -384,6 +389,9 @@ print ('trade_notify is %s' % trade_notify)
 
 amount_file = '%s.amount' % l_dir
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
+
+stop_notify = '%s.stop_notify' % l_dir # file indicate trade should stop
+print ('stop_notify: %s' % stop_notify)
 
 pid_file = '%s.trade.pid' % l_dir
 # os.setsid() # privilge
