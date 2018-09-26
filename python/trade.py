@@ -290,8 +290,11 @@ def do_trade_new(subpath):
             if bond > 0: # successed
                 print ('bond is updated from %f to %f\n' % (last_bond, bond))
                 last_bond = bond
-        elif action == 'close': # figreu balance info
-            balance = quarter_auto_balance(order_infos[symbol])
+        elif action == 'close': # figure balance info
+            # only update when no holdings, check with bond
+            balance = 0
+            if quarter_auto_bond(order_infos[symbol]) == 0:
+                balance = quarter_auto_balance(order_infos[symbol])
             if balance > 0 and last_bond > 0: # successed
                 print ('balance is updated from %f to %f\n' % (last_balance, balance))
                 last_balance = balance
