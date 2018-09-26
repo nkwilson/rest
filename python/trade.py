@@ -223,6 +223,7 @@ trade_file = ''  # signal storing file
 amount_file = '' # if exist, read from file
 default_amount = 1 # default amount, if auto then figure it out 
 amount = 1
+auto_amount = 0 # if non-zero, auto figure out amount; enabled if amount_file no exists
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -309,16 +310,22 @@ def wait_trade_notify(notify):
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
-        try:
+        if os.path.isfile(amount_file) and os.path.getsize(amount_file)>0:
+            auto_amount = 0
             # check if should read amount from file
             with open(amount_file) as f:
                 old_amount = amount
-                amount = int(f.readline())
-                if old_amount != amount:
-                    print ('amount updated to %d' % amount)
-        except Exception as ex:
-            amount = default_amount
-            print ('amount reset to default %d' % amount)
+                try:
+                    amount = int(f.readline())
+                    if old_amount != amount:
+                        print ('amount updated to %d' % amount)
+                except Exception as ex:
+                    amount = default_amount
+                    print ('amount reset to default %d' % amount)
+        else: # no amount file means auto
+            if auto_amount != 1:
+                print ('switched to auto amount policy\n')
+            auto_amount = 1
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
