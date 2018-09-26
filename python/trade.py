@@ -390,7 +390,7 @@ print ('trade_notify is %s' % trade_notify)
 amount_file = '%s.amount' % l_dir
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
-stop_notify = '%s.stop_notify' % l_dir # file indicate trade should stop
+stop_notify = '%s.trade.stop_notify' % l_dir # file indicate trade should stop
 print ('stop_notify: %s' % stop_notify)
 
 pid_file = '%s.trade.pid' % l_dir
