@@ -313,11 +313,6 @@ def wait_trade_notify(notify):
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
-        if os.path.isfile(stop_notify):
-            print ('stop signaled by %s, quit now' % stop_notify)
-            os.unlink(stop_notify)
-            print ('%s unlinked' % stop_notify)
-            break
         if os.path.isfile(amount_file) and os.path.getsize(amount_file)>0:
             auto_amount = 0
             # check if should read amount from file
@@ -360,7 +355,9 @@ def wait_trade_notify(notify):
                 # print ('unlocked with %d orders' % len(orders))
                 #wait for 10s
                 time.sleep(10)
+                last_subpath = ''
                 for subpath in orders:
+                    last_subpath = subpath
                     try:
                         # print ('order: %s' % subpath)
                         result = do_trade_new(subpath)
@@ -370,6 +367,11 @@ def wait_trade_notify(notify):
                     except Exception as ex:
                         orders.append(subpath)
                         print ('append %s to do it again' % subpath)
+                if os.path.isfile(stop_notify) and last_subpath.endswith('.close'):
+                    print ('stop signaled by %s, quit now' % stop_notify)
+                    os.unlink(stop_notify)
+                    print ('%s unlinked' % stop_notify)
+                    break
         except Exception as ex:
             print (ex)
             continue
