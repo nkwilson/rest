@@ -253,7 +253,7 @@ def do_trade_new(subpath):
     global amount, last_balance, last_bond
     #print (subpath)
     # only process file event of .boll.log
-    symbol = figure_out_symbol_info(subpath)
+    raw_symbol = figure_out_symbol_info(subpath)
     # get '.open' or '.close' action suffix
     pathext = os.path.splitext(subpath)
     action = pathext[1][1:]
@@ -262,8 +262,9 @@ def do_trade_new(subpath):
     # get '.buy' or '.sell' suffix
     direction = os.path.splitext(subsubpath)[1][1:]
     # print (direction, action)
+    symbol = order_infos[raw_symbol]
     print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-           (order_infos[symbol], order_infos[direction][action]))
+           (symbol, order_infos[direction][action]))
     msg = 'failed' # means failed
     try:
         l_amount = amount
@@ -277,24 +278,24 @@ def do_trade_new(subpath):
             except Exception as ex:
                 print (traceback.format_exc())
                 pass
-        raw_result = order_infos[direction][action](order_infos[symbol], l_amount)
+        raw_result = order_infos[direction][action](symbol, l_amount)
         result = json.loads(raw_result)
         msg = 'failed,go'
         print (result)
         order_id = result['order_id'] # means successed
         msg = 'successed,go'
         #print (order_id)
-        print (quarter_orderinfo(order_infos[symbol], str(order_id)))
+        print (quarter_orderinfo(symbol, str(order_id)))
         if action == 'open': # figure bond info
-            bond = quarter_auto_bond(order_infos[symbol])
+            bond = quarter_auto_bond(symbol)
             if bond > 0: # successed
                 print ('bond is updated from %f to %f\n' % (last_bond, bond))
                 last_bond = bond
         elif action == 'close': # figure balance info
             # only update when no holdings, check with bond
             balance = 0
-            if quarter_auto_bond(order_infos[symbol]) == 0:
-                balance = quarter_auto_balance(order_infos[symbol])
+            if quarter_auto_bond(symbol) == 0:
+                balance = quarter_auto_balance(symbol)
             if balance > 0 and last_bond > 0: # successed
                 print ('balance is updated from %f to %f\n' % (last_balance, balance))
                 last_balance = balance
