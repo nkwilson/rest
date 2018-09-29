@@ -25,7 +25,7 @@ close_upper = pandas.Series()
 close_lower = pandas.Series()
 
 # parameters for bollinger band
-window_size=20 
+window_size=60
 num_of_std=2
 
 def Bolinger_Bands(stock_price, window_size, num_of_std):
