@@ -268,13 +268,17 @@ def do_trade_new(subpath):
     msg = 'failed' # means failed
     try:
         l_amount = amount
-        if action == 'open': # if open, append amount info to subsubpath
-            with open(subsubpath, 'a') as f:
-                f.write(',%d\n' % amount)
-        elif action == 'close': # if close, read amount info from subsubpath
+        if action == 'close': # if close, read order_id info from subsubpath
             try: # in case read amount failed
                 with open(subsubpath, 'r') as f:
-                    l_amount = f.readline().split(',')[1]
+                    order_id = f.readline().split(',')[1]
+                    order_info = json.loads(quarter_orderinfo(symbol, order_id))
+                    this_order = order_info['orders'][0]
+                    if this_order['type'] < 3: # 1: buy, 2:sell
+                        l_amount = this_order['amount']
+                    else:
+                        # unexpected type, skip and return
+                        return msg
             except Exception as ex:
                 print (traceback.format_exc())
                 pass
@@ -282,15 +286,15 @@ def do_trade_new(subpath):
         result = json.loads(raw_result)
         msg = 'failed,go'
         print (result)
-        order_id = result['order_id'] # means successed
+        order_id = str(result['order_id']) # no exceptions, means successed
         msg = 'successed,go'
         #print (order_id)
-        print (quarter_orderinfo(symbol, str(order_id)))
+        order_info = json.loads(quarter_orderinfo(symbol, order_id))
+        print (order_info)
         if action == 'open': # figure bond info
-            bond = quarter_auto_bond(symbol)
-            if bond > 0: # successed
-                print ('bond is updated from %f to %f\n' % (last_bond, bond))
-                last_bond = bond
+            # append amount info to subsubpath
+            with open(subsubpath, 'a') as f:
+                f.write(',%d' % order_id)
         elif action == 'close': # figure balance info
             # only update when no holdings, check with bond
             balance = 0
@@ -299,10 +303,6 @@ def do_trade_new(subpath):
             if balance > 0 and last_bond > 0: # successed
                 print ('balance is updated from %f to %f\n' % (last_balance, balance))
                 last_balance = balance
-                new_amount = int(last_balance / last_bond / 4)
-                if new_amount != amount:
-                    print ('amount is updated from %d to %d, with bond %f\n' % (amount, new_amount, last_bond))
-                    amount = new_amount
     except Exception as ex:
         print (ex)
     return msg
