@@ -154,7 +154,7 @@ def with_scandir_withskip(l_dir, skips):
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
-latest_to_read = 300000
+latest_to_read = 1000
 
 # switch default to with-old-files, disabled with explicit without-old-files
 if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
