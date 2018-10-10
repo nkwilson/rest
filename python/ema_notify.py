@@ -32,16 +32,17 @@ def Bolinger_Bands(stock_price, window_size, num_of_std):
     lower_band = rolling_mean - (rolling_std*num_of_std)
     return rolling_mean, upper_band, lower_band
 
+# refer to: http://pandas.pydata.org/pandas-docs/stable/computation.html#exponentially-weighted-windows
 def ewma(stock_price, w1=5, w2=10, w3=20, w4=60):
     #print (w1, w2, w3, w4)
-    l_w1 = stock_price.rolling(window=w1).mean().get_values()
-    l_w2 = stock_price.rolling(window=w2).mean().get_values()
-    l_w3 = stock_price.rolling(window=w3).mean().get_values()
-    l_w4 = stock_price.rolling(window=w4).mean().get_values()
-#    l_w1 = stock_price.ewm(span=w1).mean().get_values()
-#    l_w2 = stock_price.ewm(span=w2).mean().get_values()
-#    l_w3 = stock_price.ewm(span=w3).mean().get_values()
-#    l_w4 = stock_price.ewm(span=w4).mean().get_values()
+#    l_w1 = stock_price.rolling(window=w1).mean().get_values()
+#    l_w2 = stock_price.rolling(window=w2).mean().get_values()
+#    l_w3 = stock_price.rolling(window=w3).mean().get_values()
+#    l_w4 = stock_price.rolling(window=w4).mean().get_values()
+    l_w1 = stock_price.ewm(span=w1, min_periods=w1).mean().get_values()
+    l_w2 = stock_price.ewm(span=w2, min_periods=w2).mean().get_values()
+    l_w3 = stock_price.ewm(span=w3, min_periods=w3).mean().get_values()
+    l_w4 = stock_price.ewm(span=w4, min_periods=w4).mean().get_values()
     print (l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1])
     return l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1]
 
