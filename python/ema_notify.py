@@ -20,9 +20,6 @@ from subprocess import PIPE, run
 print (sys.argv)
 
 close_prices = pandas.Series()
-close_mean = pandas.Series()
-close_upper = pandas.Series()
-close_lower = pandas.Series()
 
 # parameters for bollinger band
 window_size=20 
@@ -34,6 +31,19 @@ def Bolinger_Bands(stock_price, window_size, num_of_std):
     upper_band = rolling_mean + (rolling_std*num_of_std)
     lower_band = rolling_mean - (rolling_std*num_of_std)
     return rolling_mean, upper_band, lower_band
+
+def ewma(stock_price, w1=5, w2=10, w3=20, w4=60):
+    #print (w1, w2, w3, w4)
+    l_w1 = stock_price.rolling(window=w1).mean().get_values()
+    l_w2 = stock_price.rolling(window=w2).mean().get_values()
+    l_w3 = stock_price.rolling(window=w3).mean().get_values()
+    l_w4 = stock_price.rolling(window=w4).mean().get_values()
+#    l_w1 = stock_price.ewm(span=w1).mean().get_values()
+#    l_w2 = stock_price.ewm(span=w2).mean().get_values()
+#    l_w3 = stock_price.ewm(span=w3).mean().get_values()
+#    l_w4 = stock_price.ewm(span=w4).mean().get_values()
+    print (l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1])
+    return l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1]
 
 # #import the pandas library and aliasing as pd
 # import pandas as pd
@@ -51,10 +61,7 @@ old_event_path = ''
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def callback_file_new(subpath):
     global l_index, old_l_index, event_path, old_event_path
-    global close_mean, close_upper, close_lower
     global close_prices
-    if subpath.endswith(('.boll', '.open', '.close')) == True:
-        return
     event_path=subpath
     l_index = os.path.basename(event_path)
     if old_l_index == '':
@@ -97,20 +104,20 @@ def callback_file_new(subpath):
     elif l_index > old_l_index: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
         try:
             print ('')
-            filename = '%s.boll' % (old_event_path)
+            filename = '%s.ewma' % (old_event_path)
             print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
             l_start = datetime.datetime.now()
-            close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
+            w1, w2, w3, w4 = ewma(close_prices)
             l_delta = datetime.datetime.now() - l_start
             l_start = datetime.datetime.now()
             print (l_delta, end=' ', flush=True)
             with open(filename, 'w') as f:
-                f.write('%0.7f, %0.7f, %0.7f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
+                f.write('%0.7f, %0.7f, %0.7f, %0.7f\n' % (w1, w2, w3, w4))
             l_delta = datetime.datetime.now() - l_start                
             print (l_delta)
             # make signal
-            global boll_notify
-            with open(boll_notify, 'w') as f:
+            global ewma_notify
+            with open(ewma_notify, 'w') as f:
                 f.write(filename)
         except Exception as ex:
             print (filename)
@@ -146,7 +153,7 @@ def with_scandir_withskip(l_dir, skips):
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
-latest_to_read = 1000
+latest_to_read = 300000
 
 # switch default to with-old-files, disabled with explicit without-old-files
 if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
@@ -164,7 +171,7 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
     try :
         l_dir = sys.argv[1].rstrip('/')
         read_saved = 0  # read boll data from saved file
-        files=with_scandir_withskip(l_dir, ('.boll', '.open', '.close', '.buy', '.sell', '.log'))
+        files=with_scandir_withskip(l_dir, ('.ewma', '.boll', '.open', '.close', '.buy', '.sell', '.log'))
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
@@ -173,8 +180,8 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
             with open(fpath, 'r') as f:
                 close=eval(f.readline())[3]
                 close_prices[fname]=close
-            # first check .boll is exist
-            fpathboll='%s.boll' % (fpath)
+            # first check .ewma is exist
+            fpathboll='%s.ewma' % (fpath)
             # print (fpathboll)
             if os.path.isfile(fpathboll) and os.path.getsize(fpathboll) > 0 :
                 with open(fpathboll, 'r') as fb:
@@ -185,14 +192,11 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
                     # print (boll)
                     boll = [float(x) for x in boll]
                     # print (boll)
-                    close_mean[fname]=boll[0]
-                    close_upper[fname]=boll[1]
-                    close_lower[fname]=boll[2]
             else:
-                close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
-                # print (close_mean[fname])
-                with open('%s.boll' % (fpath), 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.7f, %0.7f, %0.7f\n' % (close_mean[fname], close_upper[fname], close_lower[fname]))
+                w1, w2, w3, w4 = ewma(close_prices)
+                # print (w1, w2, w3, w4)
+                with open(fpathboll, 'w') as fb: # write bull result to file with suffix of '.boll'
+                    fb.write('%0.7f, %0.7f, %0.7f, %0.7f\n' % (w1, w2, w3, w4))
         print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
@@ -206,10 +210,10 @@ print ('Waiting for process new coming file\n')
 price_notify = '%s.price_notify' % l_dir
 print ('price_notify: %s' % price_notify)
 
-boll_notify = '%s.boll_notify' % l_dir  # file used to notify boll finish signal
-print ('boll_notify: %s' % boll_notify, flush=True)
+ewma_notify = '%s.ewma_notify' % l_dir  # file used to notify boll finish signal
+print ('ewma_notify: %s' % ewma_notify, flush=True)
 
-pid_file = '%s.boll_notify.pid' % l_dir
+pid_file = '%s.ewma_notify.pid' % l_dir
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
