@@ -16,8 +16,6 @@ import math
 import datetime
 from datetime import datetime as dt
 
-import threading
-
 import pipes
 
 import subprocess
@@ -62,7 +60,7 @@ old_open_price = 0
 old_close_mean = 0
 window_size = 20
 trade_file = ''
-default_fee_threshold = 0.003# baesed on one order's fee
+default_fee_threshold = 0.012# baesed on one order's fee
 fee_threshold = default_fee_threshold
 levage_rate = 20
 
@@ -72,7 +70,7 @@ def check_close_sell_fee_threshold(open_price, current_price):
 
 def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-           
+
 # open sell order now
 def signal_open_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == True: # already ordered
@@ -105,7 +103,7 @@ def signal_open_order_with_buy(l_index, filename, close):
     line = '%s buy at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
-    print (trade_timestamp(), line.rstrip('\n'))    
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
@@ -137,7 +135,7 @@ def generate_trade_filename(dir, l_index, order_type):
 # format: mean, upper, lower
 def read_boll(filename):
     boll = 0
-    try: 
+    try:
         with open(filename, 'r') as f:
             line = f.readline().rstrip('\n')
             boll = [float(x) for x in line.split(',')]
@@ -154,9 +152,9 @@ def read_close(filename):
     # print (filename)
     if os.path.isfile(filename) == False: # in case not exist
         return close
-    try: 
+    try:
         with open(filename, 'r') as f:
-            line = eval(f.readline().rstrip('\n'))  # can't just copy from boll 
+            line = eval(f.readline().rstrip('\n'))  # can't just copy from boll
             close = float(line[3])
             # close = eval(f.readline())[3]
     except Exception as ex:
@@ -258,7 +256,7 @@ def with_scandir(l_dir):
     return files
 
 
-# process saved prices in specified dir        
+# process saved prices in specified dir
 def plot_saved_price(l_dir):
     global old_close_mean
     try:
@@ -295,7 +293,7 @@ def wait_boll_notify(notify):
     global fee_threshold, fee_file
     while True:
         command = ['fswatch', '-1', notify]
-        try: 
+        try:
             # check if should read amount from file
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
@@ -317,36 +315,57 @@ def wait_boll_notify(notify):
             print (ex)
             print (traceback.format_exc())
             continue
-    
-price_lock = threading.Lock()
-if len(sys.argv) == 3: # third argument is boll_notify filename
-    boll_notify = sys.argv[2]
-    print ('boll_notify is %s' % boll_notify)
 
-if len(sys.argv) == 4: # fourth argument is no_pick_old_order
-    pick_old_order = False
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--signal_notify", dest="signal_notify",
+                  help="specify signal notifier")
+parser.add_option("", "--no_pick_old_order", dest='pick_old_order',
+                  action="store_false", default=True,
+                  help="do not pick old order")
+parser.add_option('', '--signal', dest='signal', default='boll',
+                  help='use wich signal to generate trade notify and also as prefix')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+
+pick_old_order = options.pick_old_order
+l_dir = args[0].rstrip('/')
 
 print ('Begin at %s' % (dt.now()))
-l_dir = sys.argv[1].rstrip('/')
+
 #print (l_dir, os.path.basename(l_dir))
 plot_saved_price(l_dir)
 print ('Stop at %s' % (dt.now()))
 
-boll_notify = '%s.boll_notify' % l_dir
-print ('boll_notify: %s' % boll_notify)
+l_signal = options.signal
+l_prefix = ''
+if l_signal == 'boll': # old scheme
+    pass
+else: # new scheme
+    l_prefix = '%s_' % l_signal
 
-trade_notify = '%s.trade_notify' % l_dir # file used to notify trade
+if options.signal_notify :
+    signal_notify = options.signal_notify
+else:
+    signal_notify = '%s.%s_notify' % (l_dir, l_signal)
+print ('signal_notify: %s' % signal_notify)
+
+trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 print ('trade_notify: %s' % trade_notify)
 
-fee_file = '%s.fee' % l_dir
+fee_file = '%s.%sfee' % (l_dir, l_prefix)
 print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
-pid_file = '%s.trade_notify.pid' % l_dir
+pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
+os.sys.exit(0)
 
 if pick_old_order == True:
     try_to_pick_old_order()
@@ -358,7 +377,7 @@ print ('Waiting for process new coming file\n', flush=True)
 if boll_notify != '':
     boll_notify = os.path.realpath(boll_notify)
     wait_boll_notify(boll_notify)
-    
+
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
-        
+
