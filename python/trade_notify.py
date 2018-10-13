@@ -120,14 +120,15 @@ def signal_close_order_with_sell(l_index, filename, close):
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
 
-def generate_trade_filename_new(dir, l_index, order_type):
-    fname = '%s-trade.%s' % (l_index, order_type)
+def generate_trade_filename_new(dir, l_index, order_type, prefix=''):
+    fname = '%s-%strade.%s' % (l_index, prefix, order_type)
     return os.path.join(dir, fname)
 
 def generate_trade_filename(dir, l_index, order_type):
+        global l_prefix
         global new_trade_file
         if new_trade_file == True:
-            return generate_trade_filename_new(dir, l_index, order_type)
+            return generate_trade_filename_new(dir, l_index, order_type, l_prefix)
         fname = '%s-trade-%s.%s' % (os.path.basename(dir), l_index, order_type)
         #print (trade_file)
         return os.path.join(os.path.dirname(dir), fname)
