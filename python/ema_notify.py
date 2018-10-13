@@ -43,7 +43,7 @@ def ewma(stock_price, w1=5, w2=10, w3=20, w4=60):
     l_w2 = stock_price.ewm(span=w2, min_periods=w2).mean().get_values()
     l_w3 = stock_price.ewm(span=w3, min_periods=w3).mean().get_values()
     l_w4 = stock_price.ewm(span=w4, min_periods=w4).mean().get_values()
-    print (l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1])
+    # print (l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1])
     return l_w1[-1], l_w2[-1], l_w3[-1], l_w4[-1]
 
 # #import the pandas library and aliasing as pd
