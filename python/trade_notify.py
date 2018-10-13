@@ -312,11 +312,18 @@ def wait_boll_notify(notify):
                 subpath = f.readline().rstrip('\n')
                 #print (subpath)
                 plot_living_price_new(subpath)
+        except FileNotFoundError as fnfe:
+            print (fnfe)
+            break
         except Exception as ex:
             print (ex)
             print (traceback.format_exc())
             continue
 
+def wait_signal_notify(notify):
+    if l_signal == 'boll':
+        wait_boll_notify(notify)
+    
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
@@ -366,18 +373,13 @@ with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
-os.sys.exit(0)
-
 if pick_old_order == True:
     try_to_pick_old_order()
     if trade_file != '': # yes, old pending order exists
         print ('### pick old order: %s, open price %f\n' % (trade_file, old_open_price))
 
 print ('Waiting for process new coming file\n', flush=True)
-
-if boll_notify != '':
-    boll_notify = os.path.realpath(boll_notify)
-    wait_boll_notify(boll_notify)
+wait_signal_notify(signal_notify)
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
