@@ -18,8 +18,13 @@ from datetime import datetime as dt
 
 import pipes
 
+from OkcoinSpotAPI import OKCoinSpot
+from OkcoinFutureAPI import OKCoinFuture
+
 import subprocess
 from subprocess import PIPE, run
+
+import json
 
 def main(argv):
     print (argv)
@@ -67,6 +72,37 @@ levage_rate = 20
 # if fee is bigger than lost, then delay it to next signal
 def check_close_sell_fee_threshold(open_price, current_price):
     return abs((current_price - open_price) / open_price) > fee_threshold
+
+symbols_mapping = { 'usd_btc': 'btc_usd',
+                    'usd_ltc': 'ltc_usd',
+                    'usd_bch': 'bch_usd'}
+
+reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda (order_price, current_price):
+                        return check_close_sell_fee_threshold(order_price, current_price) },
+                        'sell': {'reverse_dir':'buy', 'gate': lambda (order_price, current_price):
+                        return check_close_sell_fee_threshold(current_price, order_price)}}
+
+def figure_out_symbol_info(path):
+    start_pattern = 'ok_sub_future'
+    end_pattern = '_kline_'
+    start = path.index(start_pattern) + len(start_pattern)
+    end = path.index(end_pattern)
+    # print (path[start:end])
+    return path[start:end]
+
+# if current order is permit to issue
+def check_open_order_gate(symbol, direction, current_price):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    if holding['result'] != True:
+        return False
+    if len(holding['holding']) == 0:
+        return True
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            dirs = reverse_dirs[direction]
+            return data['%s_amount' % dirs['reverse_dir']] > 0 and
+                    dirs['gate'](data['%s_price' % dirs['reverse_dir']], current_price)
+    return False
 
 def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -205,15 +241,17 @@ def plot_living_price_new(subpath):
                 close_upper[l_index]=boll[1]
                 close_lower[l_index]=boll[2]
                 fresh_trade = False
+                symbol=symbols_mapping[figure_out_symbol_info(event_path)]
+                print (symbol)
                 if boll[0] < old_close_mean: # open sell order
-                    if trade_file == '':
+                    if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         # print (trade_file)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
                 elif boll[0] > old_close_mean: # open buy order
-                    if trade_file == '':
+                    if trade_file == '' and check_open_order_gate(symbol, 'open', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
@@ -295,7 +333,7 @@ def wait_boll_notify(notify):
     while True:
         command = ['fswatch', '-1', notify]
         try:
-            # check if should read amount from file
+            # check if should read fee from file
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
                     t_fee_threshold = float(f.readline())
