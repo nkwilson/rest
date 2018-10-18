@@ -280,6 +280,7 @@ def do_trade_new(subpath):
                         # unexpected type, skip and return
                         return msg
             except Exception as ex:
+                print (ex)
                 print (traceback.format_exc())
                 pass
         raw_result = order_infos[direction][action](symbol, l_amount)
@@ -305,6 +306,7 @@ def do_trade_new(subpath):
                 last_balance = balance
     except Exception as ex:
         print (ex)
+        print (traceback.format_exc())
     return msg
 
 trade_notify = ''
@@ -375,6 +377,7 @@ def wait_trade_notify(notify):
                     break
         except Exception as ex:
             print (ex)
+            print (traceback.format_exc())
             continue
         print ('', end='', flush=True)
 
