@@ -84,15 +84,18 @@ levage_rate = 20
 def check_close_sell_fee_threshold(open_price, current_price):
     return abs((current_price - open_price) / open_price) > fee_threshold
 
+def check_close_sell_half_fee_threshold(open_price, current_price):
+    return abs((current_price - open_price) / open_price) > (fee_threshold / 2.0)
+
 symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
                     'usd_bch': 'bch_usd'}
 
 reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price:
-                         (order_price > current_price) and check_close_sell_fee_threshold(order_price, current_price)},
+                         (order_price > current_price) and check_close_sell_half_fee_threshold(order_price, current_price)},
                          
                  'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price:
-                        (order_price < current_price) and check_close_sell_fee_threshold(current_price, order_price)}}
+                        (order_price < current_price) and check_close_sell_half_fee_threshold(current_price, order_price)}}
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
