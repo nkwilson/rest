@@ -295,7 +295,7 @@ def do_trade_new(subpath):
         if action == 'open': # figure bond info
             # append amount info to subsubpath
             with open(subsubpath, 'a') as f:
-                f.write(',%d' % order_id)
+                f.write(',%s' % order_id)
         elif action == 'close': # figure balance info
             # only update when no holdings, check with bond
             balance = 0
