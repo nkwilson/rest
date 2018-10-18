@@ -26,6 +26,17 @@ from subprocess import PIPE, run
 
 import json
 
+apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
+secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
+okcoinRESTURL = 'www.okex.com'
+    
+#现货API
+okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
+
+#期货API
+okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
+
+
 def main(argv):
     print (argv)
 
@@ -77,10 +88,11 @@ symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
                     'usd_bch': 'bch_usd'}
 
-reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda (order_price, current_price):
-                        return check_close_sell_fee_threshold(order_price, current_price) },
-                        'sell': {'reverse_dir':'buy', 'gate': lambda (order_price, current_price):
-                        return check_close_sell_fee_threshold(current_price, order_price)}}
+reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price:
+                         (order_price > current_price) and check_close_sell_fee_threshold(order_price, current_price)},
+                         
+                 'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price:
+                        (order_price < current_price) and check_close_sell_fee_threshold(current_price, order_price)}}
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
@@ -97,11 +109,15 @@ def check_open_order_gate(symbol, direction, current_price):
         return False
     if len(holding['holding']) == 0:
         return True
+    # print (holding['holding'])
     for data in holding['holding']:
         if data['symbol'] == symbol:
             dirs = reverse_dirs[direction]
-            return data['%s_amount' % dirs['reverse_dir']] > 0 and
-                    dirs['gate'](data['%s_price' % dirs['reverse_dir']], current_price)
+            # print (dirs, dirs['gate'])
+            if data['%s_amount' % dirs['reverse_dir']] == 0 :
+                return True;
+            else :
+                return dirs['gate'](data['%s_price_avg' % dirs['reverse_dir']], current_price)
     return False
 
 def trade_timestamp():
