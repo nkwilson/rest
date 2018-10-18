@@ -258,7 +258,7 @@ def plot_living_price_new(subpath):
                 close_lower[l_index]=boll[2]
                 fresh_trade = False
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
-                print (symbol)
+                # print (symbol)
                 if boll[0] < old_close_mean: # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
