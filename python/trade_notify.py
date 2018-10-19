@@ -270,7 +270,7 @@ def plot_living_price_new(subpath):
                         fresh_trade = True
                         old_open_price = close
                 elif boll[0] > old_close_mean: # open buy order
-                    if trade_file == '' and check_open_order_gate(symbol, 'open', close):
+                    if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
