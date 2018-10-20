@@ -107,6 +107,7 @@ def figure_out_symbol_info(path):
 
 # if current order is permit to issue
 def check_open_order_gate(symbol, direction, current_price):
+    return True
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
         return False
@@ -299,7 +300,7 @@ def plot_living_price_new(subpath):
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
 
-def read_ema(subpath):
+def read_ema(filename):
     ema = 0
     try:
         with open(filename, 'r') as f:
@@ -330,18 +331,17 @@ def try_to_trade(subpath):
                 if ema[0] < ema[1]: # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
-                        # print (trade_file)
+                        print (trade_file)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
                 elif ema[0] > ema[1]: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
-                        # print (trade_file)
+                        print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                old_close_mean = boll[0] # update unconditiionally
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -461,7 +461,7 @@ def wait_ema_notify(notify):
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
-                #print (subpath)
+                # print (subpath)
                 try_to_trade(subpath)
         except FileNotFoundError as fnfe:
             print (fnfe)

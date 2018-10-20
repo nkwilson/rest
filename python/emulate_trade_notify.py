@@ -218,7 +218,7 @@ def read_close(filename):
     # print (close)
     return close
 
-latest_to_read = 1000
+latest_to_read = 100000
 new_trade_file = True
 
 pick_old_order = True # try to pick old order
@@ -299,7 +299,7 @@ def plot_living_price_new(subpath):
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
 
-def read_ema(subpath):
+def read_ema(filename):
     ema = 0
     try:
         with open(filename, 'r') as f:
@@ -430,7 +430,7 @@ def emul_signal_notify(l_dir):
             print (fpath)
             with open(signal_notify, 'w') as f:
                 f.write(fpath)
-            time.sleep(1)
+            time.sleep(1.5)
         files = None
         #print (close_mean)
     except Exception as ex:
