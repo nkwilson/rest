@@ -383,7 +383,16 @@ def wait_trade_notify(notify):
 
 print (sys.argv)
 #print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
-l_dir = sys.argv[1].rstrip('/')
+
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option('', '--signal', dest='signal', default='boll',
+                  help='use wich signal to generate trade notify and also as prefix')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+l_dir = args[0].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
 
 trade_queue = os.path.join(os.path.dirname(l_dir), 'trade_queue')
