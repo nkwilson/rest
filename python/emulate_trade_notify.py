@@ -406,6 +406,36 @@ def plot_saved_price(l_dir):
     except Exception as ex:
         print (traceback.format_exc())
 
+# v2, fast than listdir
+def with_scandir_ewma(l_dir):
+    files = list()
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            if entry.name.endswith('.ewma') == True:
+                files.append(entry.name)
+    return files
+
+# try to emulate signal notification
+def emul_signal_notify(l_dir):
+    global old_close_mean, signal_notify
+    try:
+        files = with_scandir_ewma(l_dir)
+        files.sort()
+        to_read = len(files)
+        if to_read > latest_to_read:
+            to_read = latest_to_read
+        print ('Total %d files, read latest %d' % (len(files), to_read))
+        for fname in files[-to_read:]:
+            fpath = os.path.join(l_dir, fname)
+            print (fpath)
+            with open(signal_notify, 'w') as f:
+                f.write(fpath)
+            time.sleep(1)
+        files = None
+        #print (close_mean)
+    except Exception as ex:
+        print (traceback.format_exc())
+    
 # ['Path', 'is', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
 # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
 # ['Change', '54052560', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000,', 'flags', '70912Change', '54052563', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000.lock,', 'flags', '66304', '-', 'matched', 'directory,', 'notifying\n']
@@ -486,6 +516,8 @@ parser.add_option("", "--no_pick_old_order", dest='pick_old_order',
                   help="do not pick old order")
 parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--emulate', dest='emulate',
+                  help="try to emulate trade notify")
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -511,6 +543,10 @@ if options.signal_notify :
 else:
     signal_notify = '%s.%s_notify' % (l_dir, l_signal)
 print ('signal_notify: %s' % signal_notify)
+
+if options.emulate :
+    emul_signal_notify(l_dir)
+    os.sys.exit(0)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 print ('trade_notify: %s' % trade_notify)
