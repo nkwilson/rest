@@ -312,7 +312,7 @@ def do_trade_new(subpath):
 trade_notify = ''
 # wait on trade_notify for signal
 def wait_trade_notify(notify):
-    global amount
+    global amount, auto_amount
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
@@ -370,6 +370,7 @@ def wait_trade_notify(notify):
                     except Exception as ex:
                         orders.append(subpath)
                         print ('append %s to do it again' % subpath)
+                        time.sleep(5)
                 if os.path.isfile(stop_notify) and last_subpath.endswith('.close'):
                     print ('stop signaled by %s, quit now' % stop_notify)
                     os.unlink(stop_notify)
@@ -386,7 +387,7 @@ print (sys.argv)
 
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option('', '--signal', dest='signal', default='boll',
+parser.add_option('', '--signal', dest='signal', default='ema',
                   help='use wich signal to generate trade notify and also as prefix')
 
 (options, args) = parser.parse_args()
@@ -395,20 +396,23 @@ print (type(options), options, args)
 l_dir = args[0].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
 
-trade_queue = os.path.join(os.path.dirname(l_dir), 'trade_queue')
+l_signal = options.signal
+l_prefix = '%s_' % l_signal
+
+trade_queue = os.path.join(os.path.dirname(l_dir), '%strade_queue' % l_prefix)
 trade_queue_lock = '%s.lock' % trade_queue
 print ('trade_queue: is %s' % trade_queue)
 
-trade_notify = '%s.trade_notify' % l_dir
+trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)
 print ('trade_notify is %s' % trade_notify)
 
-amount_file = '%s.amount' % l_dir
+amount_file = '%s.%samount' % (l_dir, l_prefix)
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
-stop_notify = '%s.trade.stop_notify' % l_dir # file indicate trade should stop
+stop_notify = '%s.%strade.stop_notify' % (l_dir, l_prefix) # file indicate trade should stop
 print ('stop_notify: %s' % stop_notify)
 
-pid_file = '%s.trade.pid' % l_dir
+pid_file = '%s.%strade.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
