@@ -134,10 +134,12 @@ def signal_open_order_with_sell(l_index, filename, close):
     line = '%s sell at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
-    print (trade_timestamp(), line.rstrip('\n'))
+        f.close()
+    print (trade_timestamp(), line.rstrip('\n'), flush=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
+        f.close()
 
 # close sell order now
 def signal_close_order_with_buy(l_index, filename, close):
@@ -146,10 +148,12 @@ def signal_close_order_with_buy(l_index, filename, close):
     line = '%s buy at %0.7f closed' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
-    print (trade_timestamp(), line.rstrip('\n'))
+        f.close()
+    print (trade_timestamp(), line.rstrip('\n'), flush=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
+        f.close()
 
 
 # open buy order now
@@ -159,10 +163,12 @@ def signal_open_order_with_buy(l_index, filename, close):
     line = '%s buy at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
-    print (trade_timestamp(), line.rstrip('\n'))
+        f.close()
+    print (trade_timestamp(), line.rstrip('\n'), flush=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
+        f.close()
 
 # close buy order now
 def signal_close_order_with_sell(l_index, filename, close):
@@ -171,10 +177,12 @@ def signal_close_order_with_sell(l_index, filename, close):
     line = '%s sell at %0.7f closed' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
-    print (trade_timestamp(), line.rstrip('\n'))
+        f.close()
+    print (trade_timestamp(), line.rstrip('\n'), flush=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
+        f.close()
 
 def generate_trade_filename_new(dir, l_index, order_type, prefix=''):
     fname = '%s-%strade.%s' % (l_index, prefix, order_type)
@@ -196,6 +204,7 @@ def read_boll(filename):
         with open(filename, 'r') as f:
             line = f.readline().rstrip('\n')
             boll = [float(x) for x in line.split(',')]
+            f.close()
     except Exception as ex:
         print ('read_boll: %s\n' % filename)
     return boll
@@ -213,6 +222,7 @@ def read_close(filename):
         with open(filename, 'r') as f:
             line = eval(f.readline().rstrip('\n'))  # can't just copy from boll
             close = float(line[3])
+            f.close()
             # close = eval(f.readline())[3]
     except Exception as ex:
         print ('read_close: %s' % filename)
@@ -230,6 +240,7 @@ def try_to_pick_old_order():
     if os.path.isfile(trade_notify) and os.path.getsize(trade_notify) > 0:
         with open(trade_notify, 'r') as f:
             line=f.readline().rstrip('\n')
+            f.close()
             # print (line)
             pathext = os.path.splitext(line)
             # print (pathext)
@@ -237,6 +248,7 @@ def try_to_pick_old_order():
                 trade_file = pathext[0]
                 with open(trade_file, 'r') as f:
                    old_open_price = float(f.readline().split(' ')[3].split(',')[0])
+                   f.close()
                 return
 
 # inotify specified dir to plot living price
@@ -306,6 +318,7 @@ def read_ema(filename):
         with open(filename, 'r') as f:
             line = f.readline().rstrip('\n')
             ema = [float(x) for x in line.split(',')]
+            f.close()
     except Exception as ex:
         print ('read_ema: %s\n' % filename)
     return ema
@@ -314,6 +327,7 @@ def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
+    global trade_notify
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -321,7 +335,7 @@ def try_to_trade(subpath):
     if True: # type 256, new file event
         ema = read_ema(event_path)
         close = read_close(event_path)
-        print (ema, close, old_open_price)
+        print (ema, close, old_open_price, '^' if ema[0] > ema[1] else 'v')
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema[0]) == False:
@@ -363,6 +377,10 @@ def try_to_trade(subpath):
                     close_mean = close_mean[-latest_to_read:]
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
+        # used when do emulation
+        with open('%s.goon' % trade_notify, 'w') as f:
+            f.write('goon')
+            f.close()
 
 # generate file list
 def with_listdir(l_dir):
@@ -420,6 +438,7 @@ def wait_boll_notify(notify):
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
                     t_fee_threshold = float(f.readline())
+                    f.close()
                     if t_fee_threshold != fee_threshold: # update if diff
                         fee_threshold = t_fee_threshold
                         print ('fee_threshold updated to %f' % fee_threshold)
@@ -431,6 +450,7 @@ def wait_boll_notify(notify):
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
+                f.close()
                 #print (subpath)
                 plot_living_price_new(subpath)
         except FileNotFoundError as fnfe:
@@ -450,6 +470,7 @@ def wait_ema_notify(notify):
             if False and os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
                     t_fee_threshold = float(f.readline())
+                    f.close()
                     if t_fee_threshold != fee_threshold: # update if diff
                         fee_threshold = t_fee_threshold
                         print ('fee_threshold updated to %f' % fee_threshold)
@@ -461,6 +482,7 @@ def wait_ema_notify(notify):
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
+                f.close()
                 # print (subpath)
                 try_to_trade(subpath)
         except FileNotFoundError as fnfe:
@@ -523,6 +545,7 @@ pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
+    f.close()
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
 if pick_old_order == True:
