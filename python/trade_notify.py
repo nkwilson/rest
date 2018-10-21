@@ -467,7 +467,7 @@ def wait_ema_notify(notify):
         command = ['fswatch', '-1', notify]
         try:
             # check if should read fee from file
-            if False and os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
+            if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
                 with open(fee_file) as f:
                     t_fee_threshold = float(f.readline())
                     f.close()
