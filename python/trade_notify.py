@@ -463,6 +463,7 @@ def wait_boll_notify(notify):
 
 # wait on ema_notify for signal
 def wait_ema_notify(notify):
+    global fee_threshold, fee_file
     while True:
         command = ['fswatch', '-1', notify]
         try:
