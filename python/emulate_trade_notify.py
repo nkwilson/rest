@@ -567,10 +567,6 @@ print ('signal_notify: %s' % signal_notify)
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 print ('trade_notify: %s' % trade_notify)
 
-if options.emulate :
-    emul_signal_notify(l_dir)
-    os.sys.exit(0)
-
 fee_file = '%s.%sfee' % (l_dir, l_prefix)
 print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
@@ -586,6 +582,10 @@ if pick_old_order == True:
     try_to_pick_old_order()
     if trade_file != '': # yes, old pending order exists
         print ('### pick old order: %s, open price %f\n' % (trade_file, old_open_price))
+
+if options.emulate:
+    emul_signal_notify(l_dir)
+    os.sys.exit(0)
 
 print ('Waiting for process new coming file\n', flush=True)
 wait_signal_notify(signal_notify)

@@ -129,13 +129,13 @@ def trade_timestamp():
 
 # open sell order now
 def signal_open_order_with_sell(l_index, filename, close):
-    if os.path.isfile(filename) == True: # already ordered
+    if not options.emulate and os.path.isfile(filename) == True: # already ordered
         return
     line = '%s sell at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
         f.close()
-    print (trade_timestamp(), line.rstrip('\n'), flush=True)
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
@@ -158,13 +158,13 @@ def signal_close_order_with_buy(l_index, filename, close):
 
 # open buy order now
 def signal_open_order_with_buy(l_index, filename, close):
-    if os.path.isfile(filename) == True: # already ordered
+    if not options.emulate and os.path.isfile(filename) == True: # already ordered
         return
     line = '%s buy at %0.7f' % (l_index, close)
     with open(filename, 'w') as f:
         f.write(line)
         f.close()
-    print (trade_timestamp(), line.rstrip('\n'), flush=True)
+    print (trade_timestamp(), line.rstrip('\n'))
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.open' % filename)
@@ -229,7 +229,7 @@ def read_close(filename):
     # print (close)
     return close
 
-latest_to_read = 1000
+latest_to_read = 12000
 new_trade_file = True
 
 pick_old_order = True # try to pick old order
@@ -323,8 +323,10 @@ def read_ema(filename):
         print ('read_ema: %s\n' % filename)
     return ema
 
+total_revenue = 0
 def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
+    global total_revenue
     global old_open_price
     global close_mean, close_upper, close_lower
     global trade_notify
@@ -335,7 +337,8 @@ def try_to_trade(subpath):
     if True: # type 256, new file event
         ema = read_ema(event_path)
         close = read_close(event_path)
-        print (ema, close, old_open_price, '^' if ema[0] > ema[1] else 'v')
+        if not options.emulate:
+            print (ema, close, old_open_price, '^' if ema[0] > ema[1] else 'v')
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema[0]) == False:
@@ -345,14 +348,14 @@ def try_to_trade(subpath):
                 if ema[0] < ema[1]: # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
-                        print (trade_file)
+                        #print (trade_file)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
                 elif ema[0] > ema[1]: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
-                        print (trade_file)
+                        # print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
@@ -365,12 +368,16 @@ def try_to_trade(subpath):
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
+                        print ('return = ', old_open_price - close)
+                        total_revenue += old_open_price - close
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
                 elif ema[0] < ema[1] and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
+                        print ('return = ', close - old_open_price)
+                        total_revenue += close - old_open_price
                         trade_file = ''  # make trade_file empty to indicate close
                 elif close_lower.count() > 10 * latest_to_read:
                     close_lower = close_lower[-latest_to_read:]
@@ -420,6 +427,36 @@ def plot_saved_price(l_dir):
             except Exception as ex:
                     print (fpath)
         files = None
+        #print (close_mean)
+    except Exception as ex:
+        print (traceback.format_exc())
+
+# v2, fast than listdir
+def with_scandir_ewma(l_dir):
+    files = list()
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            if entry.name.endswith('.ewma') == True:
+                files.append(entry.name)
+    return files
+
+# try to emulate signal notification
+def emul_signal_notify(l_dir):
+    global old_close_mean, signal_notify, trade_notify
+    global total_revenue
+    try:
+        files = with_scandir_ewma(l_dir)
+        files.sort()
+        to_read = len(files)
+        if to_read > latest_to_read:
+            to_read = latest_to_read
+        print ('Total %d files, read latest %d' % (len(files), to_read))
+        for fname in files[-to_read:]:
+            fpath = os.path.join(l_dir, fname)
+            # print (fpath)
+            wait_ema_notify(fpath)
+        files = None
+        print ('Total revenue ', total_revenue)
         #print (close_mean)
     except Exception as ex:
         print (traceback.format_exc())
@@ -480,6 +517,10 @@ def wait_ema_notify(notify):
             print ('fee_threshold reset to %f' % fee_threshold)
         print ('', end='', flush=True)
         try:
+            if options.emulate:
+                try_to_trade(notify)
+                break
+            
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
@@ -509,10 +550,11 @@ parser.add_option("", "--no_pick_old_order", dest='pick_old_order',
                   help="do not pick old order")
 parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--emulate', dest='emulate',
+                  help="try to emulate trade notify")
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
-
 
 pick_old_order = options.pick_old_order
 l_dir = args[0].rstrip('/')
@@ -553,6 +595,10 @@ if pick_old_order == True:
     try_to_pick_old_order()
     if trade_file != '': # yes, old pending order exists
         print ('### pick old order: %s, open price %f\n' % (trade_file, old_open_price))
+
+if options.emulate:
+    emul_signal_notify(l_dir)
+    os.sys.exit(0)
 
 print ('Waiting for process new coming file\n', flush=True)
 wait_signal_notify(signal_notify)
