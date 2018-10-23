@@ -229,7 +229,7 @@ def read_close(filename):
     # print (close)
     return close
 
-latest_to_read = 12000
+latest_to_read = 11000
 new_trade_file = True
 
 pick_old_order = True # try to pick old order
@@ -324,9 +324,11 @@ def read_ema(filename):
     return ema
 
 total_revenue = 0
+previous_close_price = 0
+
 def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
-    global total_revenue
+    global total_revenue, previous_close_price
     global old_open_price
     global close_mean, close_upper, close_lower
     global trade_notify
@@ -349,6 +351,7 @@ def try_to_trade(subpath):
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         #print (trade_file)
+                        print (previous_close_price, close)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
@@ -356,6 +359,7 @@ def try_to_trade(subpath):
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
+                        print (previous_close_price, close)
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
@@ -368,6 +372,10 @@ def try_to_trade(subpath):
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
+                        if old_open_price < close:
+                            previous_close_price = -close # negative means ever sold
+                        else:
+                            previous_close_price = 0
                         print ('return = ', old_open_price - close)
                         total_revenue += old_open_price - close
                         trade_file = ''  # make trade_file empty to indicate close
@@ -376,6 +384,10 @@ def try_to_trade(subpath):
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
+                        if old_open_price > close:
+                            previous_close_price = close # positive means ever bought
+                        else:
+                            previous_close_price = 0
                         print ('return = ', close - old_open_price)
                         total_revenue += close - old_open_price
                         trade_file = ''  # make trade_file empty to indicate close

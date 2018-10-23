@@ -154,7 +154,7 @@ def with_scandir_withskip(l_dir, skips):
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
-latest_to_read = 1000
+latest_to_read = 1000000
 
 # switch default to with-old-files, disabled with explicit without-old-files
 if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
@@ -198,6 +198,7 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
                 # print (w1, w2, w3, w4)
                 with open(fpathboll, 'w') as fb: # write bull result to file with suffix of '.boll'
                     fb.write('%0.7f, %0.7f, %0.7f, %0.7f\n' % (w1, w2, w3, w4))
+                    fb.close()
         print ('Processed total %d(%d saved) old files\n' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
