@@ -1,2 +1,3 @@
 python trade_notify.py ../../../aws/websocket/python/ok_sub_futureusd_btc_kline_quarter_5min --signal=ema --no_pick_old_order
 python emulate_trade_notify.py ../../../aws/websocket/python/ok_sub_futureusd_btc_kline_quarter_5min --signal=ema --emulate=1
+python trade_notify.py ../../../aws/websocket/python/ok_sub_futureusd_btc_kline_quarter_5min --signal=ema --no_pick_old_order --emulate=1
