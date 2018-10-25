@@ -229,7 +229,7 @@ def read_close(filename):
     # print (close)
     return close
 
-latest_to_read = 11000
+latest_to_read = 15000
 new_trade_file = True
 
 pick_old_order = True # try to pick old order
@@ -347,7 +347,7 @@ def try_to_trade(subpath):
                 fresh_trade = False
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
                 # print (symbol)
-                if ema[0] < ema[1]: # open sell order
+                if ema[0] < ema[1] : # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         #print (trade_file)
@@ -355,7 +355,7 @@ def try_to_trade(subpath):
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                elif ema[0] > ema[1]: # open buy order
+                elif ema[0] > ema[1] : # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
@@ -368,7 +368,7 @@ def try_to_trade(subpath):
                 elif trade_file == '':  # no open trade
                     pass
                 # close is touch upper
-                elif ema[0] > ema[1] and trade_file.endswith('.sell') == True :
+                elif (ema[0] > ema[1]) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
@@ -380,7 +380,7 @@ def try_to_trade(subpath):
                         total_revenue += old_open_price - close
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
-                elif ema[0] < ema[1] and trade_file.endswith('.buy') == True :
+                elif (ema[0] < ema[1]) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
