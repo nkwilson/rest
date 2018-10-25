@@ -343,7 +343,7 @@ def try_to_trade(subpath):
     if True: # type 256, new file event
         ema = read_ema(event_path)
         close = read_close(event_path)
-        if options.emulate:
+        if not options.emulate:
             print (ema[0], ema[1], close, old_open_price, '#%.2f' % (old_open_price - close), '^' if ema[0] > ema[1] else 'v')
         if ema == 0 or close == 0: # in case read failed
             return
@@ -476,7 +476,11 @@ def emul_signal_notify(l_dir):
             # print (fpath)
             wait_ema_notify(fpath)
         files = None
-        print ('Total revenue %f with %d data' % (total_revenue, latest_to_read))
+        msg = 'Total revenue %f with %d data' % (total_revenue, latest_to_read)
+        if total_revenue > 0:
+            with open("new_result.txt", 'a') as f:
+                f.write('%s\n' % msg)
+        print (msg)
         #print (close_mean)
     except Exception as ex:
         print (traceback.format_exc())
