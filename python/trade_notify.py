@@ -474,7 +474,7 @@ def emul_signal_notify(l_dir):
         for fname in files[start_at:start_at+to_read]:
             fpath = os.path.join(l_dir, fname)
             # print (fpath)
-            wait_ema_notify(fpath)
+            wait_signal_notify(fpath)
         files = None
         msg = 'Total revenue %f with %d data from %d' % (total_revenue, to_read, start_at)
         with open("%s_new_result.txt" % l_dir, 'a') as f:
