@@ -145,7 +145,7 @@ def signal_open_order_with_sell(l_index, filename, close):
 def signal_close_order_with_buy(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s buy at %0.7f closed' % (l_index, close)
+    line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
         f.close()
@@ -174,7 +174,7 @@ def signal_open_order_with_buy(l_index, filename, close):
 def signal_close_order_with_sell(l_index, filename, close):
     if os.path.isfile(filename) == False: # no order opened
         return
-    line = '%s sell at %0.7f closed' % (l_index, close)
+    line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
         f.write(line)
         f.close()
@@ -382,7 +382,7 @@ def try_to_trade(subpath):
                             previous_close_price = -close # negative means ever sold
                         else:
                             previous_close_price = 0
-                        # print ('return = ', old_open_price - close)
+                        print ('return = ', old_open_price - close)
                         total_revenue += old_open_price - close
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
@@ -394,7 +394,7 @@ def try_to_trade(subpath):
                             previous_close_price = close # positive means ever bought
                         else:
                             previous_close_price = 0
-                        # print ('return = ', close - old_open_price)
+                        print ('return = ', close - old_open_price)
                         total_revenue += close - old_open_price
                         trade_file = ''  # make trade_file empty to indicate close
                 elif close_lower.count() > 10 * latest_to_read:
