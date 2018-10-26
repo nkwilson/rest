@@ -343,7 +343,7 @@ def try_to_trade(subpath):
     if True: # type 256, new file event
         ema = read_ema(event_path)
         close = read_close(event_path)
-        if False and not options.emulate:
+        if not options.emulate:
             print (ema[0], ema[1], close, old_open_price, '#%.2f' % (old_open_price - close), '^' if ema[0] > ema[1] else 'v')
         if ema == 0 or close == 0: # in case read failed
             return
