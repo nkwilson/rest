@@ -232,7 +232,7 @@ def read_close(filename):
 import random
 
 random.seed()
-latest_to_read = int(15000 * random.random())
+latest_to_read = int(150000 * random.random())
 new_trade_file = True
 
 pick_old_order = True # try to pick old order
@@ -343,7 +343,7 @@ def try_to_trade(subpath):
     if True: # type 256, new file event
         ema = read_ema(event_path)
         close = read_close(event_path)
-        if not options.emulate:
+        if False and not options.emulate:
             print (ema[0], ema[1], close, old_open_price, '#%.2f' % (old_open_price - close), '^' if ema[0] > ema[1] else 'v')
         if ema == 0 or close == 0: # in case read failed
             return
@@ -382,7 +382,7 @@ def try_to_trade(subpath):
                             previous_close_price = -close # negative means ever sold
                         else:
                             previous_close_price = 0
-                        print ('return = ', old_open_price - close)
+                        # print ('return = ', old_open_price - close)
                         total_revenue += old_open_price - close
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
@@ -394,7 +394,7 @@ def try_to_trade(subpath):
                             previous_close_price = close # positive means ever bought
                         else:
                             previous_close_price = 0
-                        print ('return = ', close - old_open_price)
+                        # print ('return = ', close - old_open_price)
                         total_revenue += close - old_open_price
                         trade_file = ''  # make trade_file empty to indicate close
                 elif close_lower.count() > 10 * latest_to_read:
@@ -467,19 +467,19 @@ def emul_signal_notify(l_dir):
     try:
         files = with_scandir_ewma(l_dir)
         files.sort()
-        to_read = len(files)
-        if to_read > latest_to_read:
-            to_read = latest_to_read
-        print ('Total %d files, read latest %d' % (len(files), to_read))
-        for fname in files[-to_read:]:
+        total_files = len(files)
+        to_read = int (random.random() * total_files)
+        start_at = int (random.random() * (total_files - to_read))
+        print ('Total %d files, read latest %d from %d' % (total_files, to_read, start_at))
+        for fname in files[start_at:start_at+to_read]:
             fpath = os.path.join(l_dir, fname)
             # print (fpath)
             wait_ema_notify(fpath)
         files = None
-        msg = 'Total revenue %f with %d data' % (total_revenue, latest_to_read)
-        if total_revenue > 0:
-            with open("new_result.txt", 'a') as f:
-                f.write('%s\n' % msg)
+        msg = 'Total revenue %f with %d data from %d' % (total_revenue, to_read, start_at)
+        with open("%s_new_result.txt" % l_dir, 'a') as f:
+            f.write('%s\n' % msg)
+            f.close()
         print (msg)
         #print (close_mean)
     except Exception as ex:
