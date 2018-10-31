@@ -10,6 +10,7 @@ import traceback
 import pandas
 import numpy
 import datetime
+from datetime import datetime as dt
 
 import os
 import os.path as path
@@ -394,6 +395,11 @@ print (type(options), options, args)
 
 l_dir = args[0].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
+
+logfile='%s.trade.log' % l_dir
+saved_stdout = sys.stdout
+sys.stdout = open(logfile, 'a')
+print (dt.now())
 
 trade_queue = os.path.join(os.path.dirname(l_dir), 'trade_queue')
 trade_queue_lock = '%s.lock' % trade_queue
