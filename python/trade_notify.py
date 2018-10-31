@@ -25,6 +25,7 @@ import subprocess
 from subprocess import PIPE, run
 
 import json
+import logging
 
 apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
 secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
@@ -595,16 +596,26 @@ else: # new scheme
     l_prefix = '%s_' % l_signal
 
 
+trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
+logfile='%s.log' % trade_notify
+logging.basicConfig(filename=logfile, 
+                    format='%(asctime)s %(message)s',
+                    level=logging.DEBUG)
+#logging.info('trade_notify: %s' % trade_notify)
+saved_stdout = sys.stdout
+sys.stdout = open(logfile, 'a')
+print (dt.now())
+print ('trade_notify: %s' % trade_notify)
+
 if options.signal_notify :
     signal_notify = options.signal_notify
 else:
     signal_notify = '%s.%s_notify' % (l_dir, l_signal)
+#logging.info ('signal_notify: %s' % signal_notify)
 print ('signal_notify: %s' % signal_notify)
 
-trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
-print ('trade_notify: %s' % trade_notify)
-
 fee_file = '%s.%sfee' % (l_dir, l_prefix)
+#logging.info ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
 pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
