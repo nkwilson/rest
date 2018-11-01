@@ -313,7 +313,7 @@ def do_trade_new(subpath):
 trade_notify = ''
 # wait on trade_notify for signal
 def wait_trade_notify(notify):
-    global amount
+    global amount, auto_amount
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify]
