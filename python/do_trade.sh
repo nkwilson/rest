@@ -19,9 +19,10 @@ else
 fi	
 
 echo "${amount}" > ${target_coin_amount}
-(python3 monitor_me.py trade.py ${target_coin} >> ${target_coin}.trade.log) 2>&1 &
-sleep 10 
-(python3 monitor_me.py trade_notify.py ${target_coin} >> ${target_coin}.trade_notify.log ) 2>&1 &
-sleep 10
-(python3 monitor_me.py boll_notify.py ${target_coin} with-old-files >> ${target_coin}.boll_notify.log ) 2>&1 &
-
+(python3 monitor_me.py trade.py ${target_coin} &
+sleep 5
+(python3 monitor_me.py trade_notify.py ${target_coin} &
+sleep 5
+(python3 monitor_me.py boll_notify.py ${target_coin} &
+sleep 5
+ 
