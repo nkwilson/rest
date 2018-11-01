@@ -148,6 +148,14 @@ def with_scandir(l_dir):
 
 latest_to_read = 1000
 
+l_dir = sys.argv[1].rstrip('/')
+boll_notify = '%s.boll_notify' % l_dir  # file used to notify boll finish signal
+
+logfile='%s.log' % boll_notify
+saved_stdout = sys.stdout
+sys.stdout = open(logfile, 'a')
+print (dt.now())
+
 # switch default to with-old-files, disabled with explicit without-old-files
 if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
     print ('Skip processing old files\n')
@@ -162,7 +170,6 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
     #                 close=eval(f.readline())[3]
     #                 close_prices[entry.name]=close
     try :
-        l_dir = sys.argv[1].rstrip('/')
         read_saved = 0  # read boll data from saved file
         files=with_scandir_withskip(l_dir, ('.boll', '.open', '.close', '.buy', '.sell', '.log'))
         files.sort()
