@@ -177,9 +177,14 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
         for fname in files[-latest_to_read:]:
             fpath = os.path.join(l_dir, fname)
             #print (fpath)
-            with open(fpath, 'r') as f:
-                close=eval(f.readline())[3]
-                close_prices[fname]=close
+            try: 
+                with open(fpath, 'r') as f:
+                    close=eval(f.readline())[3]
+                    close_prices[fname]=close
+            except Exception as ex:
+                print ('Skip abnormal file ', fpath)
+                print (traceback.format_exc())
+                continue
             # first check .boll is exist
             fpathboll='%s.boll' % (fpath)
             # print (fpathboll)
