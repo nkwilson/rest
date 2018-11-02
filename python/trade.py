@@ -424,8 +424,9 @@ print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.g
 trade_notify = os.path.realpath(trade_notify)
 wait_trade_notify(trade_notify)
 
-
 # 调用  websocket 中的 okcoin_websocket.py 来获取实时价格，写入到对应的目录中
 # 调用 rest 中的 process_price_fsevents.py 来监控价格数据，生成 bolinger band 数据写入相同目录下的 .boll文件
 # 调用 rest 中的 watch_poll_price.py 来监控boll数据，并根据趋势生成交易信号，分别写入 .sell 或者  .buy 文件
 # 最后调用 Client.py 根据信号来执行交易
+
+# 首先，用 boll 1hour 触发入场交易
