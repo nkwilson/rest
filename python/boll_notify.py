@@ -1,16 +1,16 @@
 import os
 import sys
 import pandas
-import numpy
-import pprint
+#import numpy
+#import pprint
 import traceback
-import threading 
+#import threading 
 
-import pipes
+#import pipes
 
-import datetime
+#import datetime
 from datetime import datetime as dt
-import tempfile
+#import tempfile
 
 import subprocess
 from subprocess import PIPE, run
@@ -99,14 +99,14 @@ def callback_file_new(subpath):
             print ('')
             filename = '%s.boll' % (old_event_path)
             print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
-            l_start = datetime.datetime.now()
+            l_start = dt.now()
             close_mean, close_upper, close_lower = Bolinger_Bands(close_prices, window_size, num_of_std)
-            l_delta = datetime.datetime.now() - l_start
-            l_start = datetime.datetime.now()
+            l_delta = dt.now() - l_start
+            l_start = dt.now()
             print (l_delta, end=' ', flush=True)
             with open(filename, 'w') as f:
                 f.write('%0.7f, %0.7f, %0.7f\n' % (close_mean[old_l_index], close_upper[old_l_index], close_lower[old_l_index]))
-            l_delta = datetime.datetime.now() - l_start                
+            l_delta = dt.now() - l_start                
             print (l_delta)
             # make signal
             global boll_notify
