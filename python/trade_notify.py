@@ -334,7 +334,6 @@ def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
     global total_revenue, previous_close_price
     global old_open_price, old_ema_0, old_close
-    global close_mean, close_upper, close_lower
     global trade_notify
     #print (subpath)
     event_path=subpath
@@ -397,11 +396,6 @@ def try_to_trade(subpath):
                         print ('return = ', close - old_open_price)
                         total_revenue += close - old_open_price
                         trade_file = ''  # make trade_file empty to indicate close
-                elif close_lower.count() > 10 * latest_to_read:
-                    close_lower = close_lower[-latest_to_read:]
-                    close_mean = close_mean[-latest_to_read:]
-                    close_upper = close_upper[-latest_to_read:]
-                    print ('Reduce data size to %d', close_lower.count())
                 old_ema_0 = ema[0]
                 old_close = close
         # used when do emulation
