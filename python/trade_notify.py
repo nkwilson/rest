@@ -406,9 +406,10 @@ def try_to_trade(subpath):
                 old_ema_0 = ema[0]
                 old_close = close
         # used when do emulation
-        with open('%s.goon' % trade_notify, 'w') as f:
-            f.write('goon')
-            f.close()
+        if options.emulate:
+            with open('%s.goon' % trade_notify, 'w') as f:
+                f.write('goon')
+                f.close()
 
 # generate file list
 def with_listdir(l_dir):
