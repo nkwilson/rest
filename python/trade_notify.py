@@ -493,6 +493,7 @@ def emul_signal_notify(l_dir):
 # wait on boll_notify for signal
 def wait_boll_notify(notify):
     global fee_threshold, fee_file
+    global fence_count
     while True:
         command = ['fswatch', '-1', notify]
         try:
@@ -515,17 +516,22 @@ def wait_boll_notify(notify):
                 f.close()
                 #print (subpath)
                 plot_living_price_new(subpath)
+            fence_count = 0
         except FileNotFoundError as fnfe:
             print (fnfe)
             break
         except Exception as ex:
+            fence_count += 1
             print (ex)
             print (traceback.format_exc())
+            if fence_count > 20: # exceptions 20 continiously
+                break
             continue
 
 # wait on ema_notify for signal
 def wait_ema_notify(notify):
     global fee_threshold, fee_file
+    global fence_count
     while True:
         command = ['fswatch', '-1', notify]
         try:
@@ -552,12 +558,16 @@ def wait_ema_notify(notify):
                 f.close()
                 # print (subpath)
                 try_to_trade(subpath)
+            fence_count = 0
         except FileNotFoundError as fnfe:
             print (fnfe)
             break
         except Exception as ex:
+            fence_count += 1
             print (ex)
             print (traceback.format_exc())
+            if fence_count > 20:
+                break
             continue
 
 def wait_signal_notify(notify):
