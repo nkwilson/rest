@@ -154,7 +154,7 @@ def with_scandir_withskip(l_dir, skips):
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
-latest_to_read = 1000000
+latest_to_read = 1000
 
 l_dir = sys.argv[1].rstrip('/')
 # switch default to with-old-files, disabled with explicit without-old-files
