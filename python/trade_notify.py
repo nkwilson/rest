@@ -346,6 +346,7 @@ def try_to_trade(subpath):
     # print (l_index, event_path)
     if True: # type 256, new file event
         ema = read_ema(event_path)
+        ema[0] = ema[int(options.which_ema)]
         close = read_close(event_path)
         if not options.emulate:
             print (ema[0], ema[1], close, old_open_price, '#%.2f' % (old_open_price - close), '^' if ema[0] > ema[1] else 'v')
@@ -588,6 +589,8 @@ parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
 parser.add_option('', '--emulate', dest='emulate',
                   help="try to emulate trade notify")
+parser.add_option('', '--which_ema', dest='which_ema',
+                  help='using with one of ema')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
