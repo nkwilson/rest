@@ -332,11 +332,12 @@ def read_ema(filename):
 
 total_revenue = 0
 previous_close_price = 0
+total_orders = 0
 
 old_ema_0 = 0
 def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
-    global total_revenue, previous_close_price
+    global total_revenue, previous_close_price, total_orders
     global old_open_price, old_ema_0, old_close
     global trade_notify
     #print (subpath)
@@ -387,6 +388,7 @@ def try_to_trade(subpath):
                             previous_close_price = 0
                         print ('return = ', old_open_price - close)
                         total_revenue += old_open_price - close
+                        total_orders += 1
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
                 elif (ema[0] < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
@@ -399,6 +401,7 @@ def try_to_trade(subpath):
                             previous_close_price = 0
                         print ('return = ', close - old_open_price)
                         total_revenue += close - old_open_price
+                        total_orders += 1
                         trade_file = ''  # make trade_file empty to indicate close
                 old_ema_0 = ema[0]
                 old_close = close
@@ -462,7 +465,7 @@ def with_scandir_ewma(l_dir):
 # try to emulate signal notification
 def emul_signal_notify(l_dir):
     global old_close_mean, signal_notify, trade_notify
-    global total_revenue
+    global total_revenue, total_orders
     try:
         files = with_scandir_ewma(l_dir)
         files.sort()
@@ -475,7 +478,7 @@ def emul_signal_notify(l_dir):
             # print (fpath)
             wait_signal_notify(fpath)
         files = None
-        msg = 'Total revenue %f with %d data from %d' % (total_revenue, to_read, start_at)
+        msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
         with open("%s_new_result.txt" % l_dir, 'a') as f:
             f.write('%s\n' % msg)
             f.close()
