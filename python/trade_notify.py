@@ -413,13 +413,15 @@ def try_to_trade(subpath):
                     if options.policy == 'ema_greedy':
                         act = ema_greedy_policy('sell', [old_ema_0, ema[0]],
                                                 [old_close, close])
-                        if act == 'open':
+                        if act == 'open' and order_num < 2:
                             signal_open_order_with_sell(l_index, trade_file, close)
                             average_close_price = (average_close_price + close)/2.0
+                            old_open_price = (old_open_price + close)/2.0
                             order_num += 1
                             print (' %0.3f %0.3f\n' % (ema[0], close))
                             pass
-                        elif act == 'close' and abs(average_close_price - close) > 1:
+                        # igore close signal
+                        elif False and act == 'close' and abs(average_close_price - close) > 1:
                             signal_close_order_with_buy(l_index, trade_file, close)
                             print ('return %f\n' % ((average_close_price - close) * order_num))
                             total_revenue += (average_close_price - close) * order_num
@@ -430,14 +432,14 @@ def try_to_trade(subpath):
                             pass
                         elif act == 'keep':
                             pass
-                    elif check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         if old_open_price < close:
                             previous_close_price = -close # negative means ever sold
                         else:
                             previous_close_price = 0
-                        print ('return = ', old_open_price - close)
-                        total_revenue += old_open_price - close
+                        print ('return = ', (old_open_price - close)*order_num)
+                        total_revenue += (old_open_price - close)*order_num
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
                 elif (ema[0] < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
@@ -445,13 +447,14 @@ def try_to_trade(subpath):
                     if options.policy == 'ema_greedy':
                         act = ema_greedy_policy('buy', [old_ema_0, ema[0]],
                                                 [old_close, close])
-                        if act == 'open':
+                        if act == 'open' and order_num < 5:
                             signal_open_order_with_buy(l_index, trade_file, close)
                             average_close_price = (average_close_price + close)/2.0
+                            old_open_price = (old_open_price + close)/2.00
                             order_num += 1
                             print (' %0.3f %0.3f\n' % (ema[0], close))
                             pass
-                        elif act == 'close' and abs(close - average_close_price) > 1:
+                        elif False and act == 'close' and abs(close - average_close_price) > 1:
                             signal_close_order_with_sell(l_index, trade_file, close)
                             print ('return %f\n' % ((close - average_close_price) * order_num))
                             total_revenue += (close - average_close_price) * order_num
@@ -462,14 +465,14 @@ def try_to_trade(subpath):
                             pass
                         elif act == 'keep':
                             pass
-                    elif check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         if old_open_price > close:
                             previous_close_price = close # positive means ever bought
                         else:
                             previous_close_price = 0
-                        print ('return = ', close - old_open_price)
-                        total_revenue += close - old_open_price
+                        print ('return = ', (close - old_open_price)*order_num)
+                        total_revenue += (close - old_open_price)*order_num
                         trade_file = ''  # make trade_file empty to indicate close
                 old_ema_0 = ema[0]
                 old_close = close

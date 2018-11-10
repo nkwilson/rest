@@ -10,3 +10,8 @@
 
 	退出条件有些问题，应该是用ema[0]/ema[1]判断，而不是close进行判断。调整之后，
 	0.012 费率不好，改为0.006之后，可以盈利。
+
+2018.11.10
+	昨天测试了 ema_greedy ，效果很差。基于当前数据看，结果远不如直接使用ema，增加 order_num 控制（最小到2，5也测试过），结果也不好。几乎全部都是负收益。
+	将  ema_greedy 和 ema 混合，结果也不好
+	使用方式为 ： python trade_notify.py ../../websocket/python/ok_sub_futureusd_btc_kline_quarter_5min --emulate=1 --signal=ema --no_pick_old_order --policy=ema_greedy
