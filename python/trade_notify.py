@@ -107,8 +107,11 @@ def figure_out_symbol_info(path):
     # print (path[start:end])
     return path[start:end]
 
+options = ''
 # if current order is permit to issue
 def check_open_order_gate(symbol, direction, current_price):
+    if options.emulate:
+        return True
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
         return False
