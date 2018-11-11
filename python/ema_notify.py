@@ -210,7 +210,7 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
 print ('Waiting for process new coming file\n')
 
 
-ewma_notify = '%s.ewma_notify' % l_dir  # file used to notify boll finish signal
+ewma_notify = '%s.ema_notify' % l_dir  # file used to notify boll finish signal
 
 logfile='%s.log' % ewma_notify
 saved_stdout = sys.stdout
@@ -221,7 +221,7 @@ print ('ewma_notify: %s' % ewma_notify, flush=True)
 price_notify = '%s.price_notify' % l_dir
 print ('price_notify: %s' % price_notify)
 
-pid_file = '%s.ewma_notify.pid' % l_dir
+pid_file = '%s.ema_notify.pid' % l_dir
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
