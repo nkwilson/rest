@@ -23,5 +23,5 @@ python3 monitor_me.py trade.py ${target_coin} --signal=ema &
 sleep 5
 python3 monitor_me.py trade_notify.py ${target_coin}  --signal=ema --which_ema=1 &
 sleep 5
-python3 monitor_me.py ema_notify.py ${target_coin} &
+python3 monitor_me.py ema_notify.py ${target_coin} --signal=ema &
 sleep 5
