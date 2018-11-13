@@ -274,7 +274,8 @@ def do_trade_new(subpath):
             try: # in case read amount failed
                 with open(subsubpath, 'r') as f:
                     order_id = f.readline().split(',')[1]
-                    order_info = json.loads(quarter_orderinfo(symbol, order_id))
+                    raw_order_info = quarter_orderinfo(symbol, order_id)
+                    order_info = json.loads(raw_order_info)
                     this_order = order_info['orders'][0]
                     if this_order['type'] < 3: # 1: buy, 2:sell
                         l_amount = this_order['amount']
@@ -282,6 +283,7 @@ def do_trade_new(subpath):
                         # unexpected type, skip and return
                         return msg
             except Exception as ex:
+                print (order_id, raw_order_info)
                 print (ex)
                 print (traceback.format_exc())
                 pass
