@@ -228,6 +228,7 @@ auto_amount = 0 # if non-zero, auto figure out amount; enabled if amount_file no
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
+               'usd_eth':'eth_usd',               
                'usd_bch':'bch_usd',
                'sell':{'open':open_quarter_sell_rate,
                        'close':close_quarter_sell_rate},
