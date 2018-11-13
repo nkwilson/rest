@@ -340,25 +340,32 @@ def try_to_trade(subpath):
     global total_revenue, previous_close_price, total_orders
     global old_open_price, old_ema_0, old_close
     global trade_notify
+    global direction
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
     # print (l_index, event_path)
     if True: # type 256, new file event
         ema = read_ema(event_path)
-        ema[0] = ema[int(options.which_ema)]
+        ema_0 = ema[int(options.which_ema)]
         close = read_close(event_path)
         if not options.emulate:
-            print (ema[0], ema[1], close, old_open_price, '#%.2f' % (old_open_price - close), '^' if ema[0] > ema[1] else 'v')
+            if direction == 'sell':
+                delta = old_open_price - close
+            elif direction == 'buy':
+                delta = close - old_open_price
+            else:
+                delta = 0
+            print (ema_0, old_ema_0, close, old_open_price, '#%0.2f' % delta)
         if ema == 0 or close == 0: # in case read failed
             return
-        if math.isnan(ema[0]) == False:
+        if math.isnan(ema_0) == False:
                 fresh_trade = False
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
                 # print (symbol)
                 if old_ema_0 == 0:
-                    old_ema_0 = ema[0]
-                if ema[0] < old_ema_0 and close < old_close : # open sell order
+                    old_ema_0 = ema_0
+                if ema_0 < old_ema_0 and close < old_close : # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         #print (trade_file)
@@ -366,7 +373,8 @@ def try_to_trade(subpath):
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                elif ema[0] > old_ema_0 and close > old_close: # open buy order
+                        direction = 'sell'
+                elif ema_0 > old_ema_0 and close > old_close: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
@@ -374,12 +382,13 @@ def try_to_trade(subpath):
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
+                        direction = 'buy'
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
                     pass
                 # close is touch upper
-                elif (ema[0] > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
+                elif (ema_0 > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
@@ -391,8 +400,9 @@ def try_to_trade(subpath):
                         total_revenue += old_open_price - close
                         total_orders += 1
                         trade_file = ''  # make trade_file empty to indicate close
+                        direction = ''
                 # close is touch lower
-                elif (ema[0] < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
+                elif (ema_0 < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
@@ -404,7 +414,8 @@ def try_to_trade(subpath):
                         total_revenue += close - old_open_price
                         total_orders += 1
                         trade_file = ''  # make trade_file empty to indicate close
-                old_ema_0 = ema[0]
+                        direction = ''
+                old_ema_0 = ema_0
                 old_close = close
         # used when do emulation
         if options.emulate:
