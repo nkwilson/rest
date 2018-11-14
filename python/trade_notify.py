@@ -593,8 +593,8 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
                   help="specify signal notifier")
-parser.add_option("", "--no_pick_old_order", dest='pick_old_order',
-                  action="store_false", default=True,
+parser.add_option("", "--pick_old_order", dest='pick_old_order',
+                  action="store_true", default=False,
                   help="do not pick old order")
 parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
