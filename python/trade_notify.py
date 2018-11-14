@@ -335,6 +335,7 @@ previous_close_price = 0
 total_orders = 0
 
 old_ema_0 = 0
+direction = ''
 def try_to_trade(subpath):
     global window_size, trade_file, old_close_mean
     global total_revenue, previous_close_price, total_orders
@@ -503,6 +504,7 @@ def emul_signal_notify(l_dir):
 # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
 # ['Change', '54052560', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000,', 'flags', '70912Change', '54052563', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000.lock,', 'flags', '66304', '-', 'matched', 'directory,', 'notifying\n']
 
+fence_count = 0
 # wait on boll_notify for signal
 def wait_boll_notify(notify):
     global fee_threshold, fee_file
