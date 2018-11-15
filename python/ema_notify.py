@@ -33,7 +33,7 @@ def Bolinger_Bands(stock_price, window_size, num_of_std):
     return rolling_mean, upper_band, lower_band
 
 # refer to: http://pandas.pydata.org/pandas-docs/stable/computation.html#exponentially-weighted-windows
-def ewma(stock_price, w1=5, w2=10, w3=20, w4=60):
+def ewma(stock_price, w1=3, w2=10, w3=20, w4=60):
     #print (w1, w2, w3, w4)
 #    l_w1 = stock_price.rolling(window=w1).mean().get_values()
 #    l_w2 = stock_price.rolling(window=w2).mean().get_values()
