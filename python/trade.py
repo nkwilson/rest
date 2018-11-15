@@ -273,14 +273,19 @@ def do_trade_new(subpath):
         if action == 'close': # if close, read order_id info from subsubpath
             order_id = ''
             raw_order_info = ''
+            id_amounts = 0
             try: # in case read amount failed
                 with open(subsubpath, 'r') as f:
-                    order_id = f.readline().split(',')[1]
-                    raw_order_info = quarter_orderinfo(symbol, order_id)
+                    order_ids = f.readline().split(',')[1:]
+                    f.close()
+                for this_id in order_ids:
+                    raw_order_info = quarter_orderinfo(symbol, this_id)
                     order_info = json.loads(raw_order_info)
                     this_order = order_info['orders'][0]
                     if this_order['type'] < 3: # 1: buy, 2:sell
-                        l_amount = this_order['amount']
+                        this_amount = int(this_order['amount'])
+                        print ('order %s has %d' % (this_id, this_amount))
+                        id_amounts += this_amount
                     else:
                         # unexpected type, skip and return
                         return msg
@@ -289,6 +294,10 @@ def do_trade_new(subpath):
                 print (ex)
                 print (traceback.format_exc())
                 pass
+            finally:
+                if id_amounts != 0:
+                    l_amount = id_amounts
+                    print ('amount may accumulated to %d' % l_amount)
         raw_result = order_infos[direction][action](symbol, l_amount)
         result = json.loads(raw_result)
         msg = 'failed,go'
@@ -365,6 +374,7 @@ def wait_trade_notify(notify):
                 #wait for 10s
                 time.sleep(10)
                 last_subpath = ''
+                redo = 0
                 for subpath in orders:
                     last_subpath = subpath
                     try:
@@ -374,8 +384,12 @@ def wait_trade_notify(notify):
                         if result.index('go'):
                             continue
                     except Exception as ex:
+                        if redo > 3:
+                            print ('more than %d redo, quit' % redo)
+                            break
                         orders.append(subpath)
                         print ('append %s to do it again' % subpath)
+                        redo++
                 if os.path.isfile(stop_notify) and last_subpath.endswith('.close'):
                     print ('stop signaled by %s, quit now' % stop_notify)
                     os.unlink(stop_notify)
