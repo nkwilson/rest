@@ -99,6 +99,7 @@ reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, curre
                  'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price, amount:
                         (order_price < current_price) and check_close_sell_half_fee_threshold(current_price, order_price, amount)}}
 
+options = ''
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
     end_pattern = '_kline_'
@@ -132,11 +133,13 @@ def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # open sell order now
-def signal_open_order_with_sell(l_index, filename, close):
+def signal_open_order_with_sell(l_index, filename, close, multiple=False):
     if not options.emulate and os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s sell at %0.7f' % (l_index, close)
-    with open(filename, 'w') as f:
+    mode = 'w' if multiple == False else 'a'
+    append = '' if multiple == False else '\n'
+    line = '%s sell at %0.7f%s' % (l_index, close, append)
+    with open(filename, mode) as f:
         f.write(line)
         f.close()
     print (trade_timestamp(), line.rstrip('\n'))
@@ -161,11 +164,13 @@ def signal_close_order_with_buy(l_index, filename, close):
 
 
 # open buy order now
-def signal_open_order_with_buy(l_index, filename, close):
+def signal_open_order_with_buy(l_index, filename, close, multiple=False):
     if not options.emulate and os.path.isfile(filename) == True: # already ordered
         return
-    line = '%s buy at %0.7f' % (l_index, close)
-    with open(filename, 'w') as f:
+    mode = 'w' if multiple == False else 'a'
+    append = '' if multiple == False else '\n'
+    line = '%s buy at %0.7f%s' % (l_index, close, append)
+    with open(filename, mode) as f:
         f.write(line)
         f.close()
     print (trade_timestamp(), line.rstrip('\n'))
@@ -334,6 +339,24 @@ total_revenue = 0
 previous_close_price = 0
 total_orders = 0
 
+# emas[0] is old, emas[1] is new. The save to closes[2]
+def ema_greedy_policy(direction, emas, closes):
+    if direction == 'sell':
+        # only use first period of ema
+        if (emas[0] < emas[1]) and abs(emas[0] - emas[1]) > 1 and (closes[0] < closes[1]) and abs(closes[0] - closes[1]) > 1: # double revert
+            return 'close'
+        elif (closes[0] < closes[1]) and abs(closes[0] - closes[1]) > 1: # close revert
+            return 'open'
+        else:
+            return 'keep'
+    else: # 'buy'
+        if (emas[0] > emas[1]) and abs(emas[0] - emas[1]) > 1 and (closes[0] > closes[1]) and abs(closes[0] - closes[1]) > 1 : # double revert
+            return 'close'
+        elif (closes[0] > closes[1]) and abs(closes[0] - closes[1]) > 1 : # close revert
+            return 'open'
+        else:
+            return 'keep'
+
 amount = 1
 old_ema_0 = 0
 direction = ''
@@ -343,6 +366,7 @@ def try_to_trade(subpath):
     global old_open_price, old_ema_0, old_close
     global trade_notify
     global direction
+    global average_close_price, order_num
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -376,6 +400,9 @@ def try_to_trade(subpath):
                         fresh_trade = True
                         old_open_price = close
                         direction = 'sell'
+                        average_close_price = close
+                        order_num = 1
+                        print ('<%0.3f %0.3f\n' % (ema[0], close))
                 elif ema_0 > old_ema_0 and close > old_close: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -385,6 +412,9 @@ def try_to_trade(subpath):
                         fresh_trade = True
                         old_open_price = close
                         direction = 'buy'
+                        average_close_price = close
+                        order_num = 1
+                        print ('<%0.3f %0.3f\n' % (ema[0], close))
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -392,6 +422,28 @@ def try_to_trade(subpath):
                 # close is touch upper
                 elif (ema_0 > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
+                    if options.policy == 'ema_greedy':
+                        act = ema_greedy_policy('sell', [old_ema_0, ema[0]],
+                                                [old_close, close])
+                        if act == 'open' and order_num < 2:
+                            signal_open_order_with_sell(l_index, trade_file, close)
+                            average_close_price = (average_close_price + close)/2.0
+                            old_open_price = (old_open_price + close)/2.0
+                            order_num += 1
+                            print (' %0.3f %0.3f\n' % (ema[0], close))
+                            pass
+                        # igore close signal
+                        elif False and act == 'close' and abs(average_close_price - close) > 1:
+                            signal_close_order_with_buy(l_index, trade_file, close)
+                            print ('return %f\n' % ((average_close_price - close) * order_num))
+                            total_revenue += (average_close_price - close) * order_num
+                            trade_file = ''
+                            print ('%0.3f %0.3f>\n' % (ema[0], close))
+                            # open trade again
+                            try_to_trade(subpath)
+                            pass
+                        elif act == 'keep':
+                            pass
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         if old_open_price < close:
@@ -406,6 +458,27 @@ def try_to_trade(subpath):
                 # close is touch lower
                 elif (ema_0 < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
+                    if options.policy == 'ema_greedy':
+                        act = ema_greedy_policy('buy', [old_ema_0, ema[0]],
+                                                [old_close, close])
+                        if act == 'open' and order_num < 5:
+                            signal_open_order_with_buy(l_index, trade_file, close)
+                            average_close_price = (average_close_price + close)/2.0
+                            old_open_price = (old_open_price + close)/2.00
+                            order_num += 1
+                            print (' %0.3f %0.3f\n' % (ema[0], close))
+                            pass
+                        elif False and act == 'close' and abs(close - average_close_price) > 1:
+                            signal_close_order_with_sell(l_index, trade_file, close)
+                            print ('return %f\n' % ((close - average_close_price) * order_num))
+                            total_revenue += (close - average_close_price) * order_num
+                            trade_file = ''
+                            print ('%0.3f %0.3f>\n' % (ema[0], close))
+                            # open trade again
+                            try_to_trade(subpath)
+                            pass
+                        elif act == 'keep':
+                            pass
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         if old_open_price > close:
@@ -619,6 +692,8 @@ parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
 parser.add_option('', '--emulate', dest='emulate',
                   help="try to emulate trade notify")
+parser.add_option('', '--policy', dest='policy',
+                  help="use specified trade policy")
 parser.add_option('', '--which_ema', dest='which_ema',
                   help='using with one of ema')
 
