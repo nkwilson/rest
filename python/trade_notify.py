@@ -82,22 +82,22 @@ fee_threshold = default_fee_threshold
 levage_rate = 20
 
 # if fee is bigger than lost, then delay it to next signal
-def check_close_sell_fee_threshold(open_price, current_price):
-    return abs((current_price - open_price) / open_price) > fee_threshold
+def check_close_sell_fee_threshold(open_price, current_price, amount=1):
+    return abs((current_price - open_price) / open_price) * amount > fee_threshold
 
-def check_close_sell_half_fee_threshold(open_price, current_price):
-    return abs((current_price - open_price) / open_price) > (fee_threshold / 2.0)
+def check_close_sell_half_fee_threshold(open_price, current_price, amount=1):
+    return abs((current_price - open_price) / open_price) * amount > (fee_threshold / 2.0)
 
 symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
                     'usd_eth': 'eth_usd',                    
                     'usd_bch': 'bch_usd'}
 
-reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price:
-                         (order_price > current_price) and check_close_sell_half_fee_threshold(order_price, current_price)},
+reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price, amount:
+                         (order_price > current_price) and check_close_sell_half_fee_threshold(order_price, current_price, amount)},
                          
-                 'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price:
-                        (order_price < current_price) and check_close_sell_half_fee_threshold(current_price, order_price)}}
+                 'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price, amount:
+                        (order_price < current_price) and check_close_sell_half_fee_threshold(current_price, order_price, amount)}}
 
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
@@ -125,7 +125,7 @@ def check_open_order_gate(symbol, direction, current_price):
             if data['%s_amount' % dirs['reverse_dir']] == 0 :
                 return True;
             else :
-                return dirs['gate'](data['%s_price_avg' % dirs['reverse_dir']], current_price)
+                return dirs['gate'](data['%s_price_avg' % dirs['reverse_dir']], current_price, amount)
     return False
 
 def trade_timestamp():
@@ -304,13 +304,13 @@ def plot_living_price_new(subpath):
                 # close is touch upper
                 elif close > boll[1] and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
                 elif close < boll[2] and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                 elif close_lower.count() > 10 * latest_to_read:
@@ -334,6 +334,7 @@ total_revenue = 0
 previous_close_price = 0
 total_orders = 0
 
+amount = 1
 old_ema_0 = 0
 direction = ''
 def try_to_trade(subpath):
@@ -350,14 +351,14 @@ def try_to_trade(subpath):
         ema = read_ema(event_path)
         ema_0 = ema[int(options.which_ema)]
         close = read_close(event_path)
-        if not options.emulate:
+        if options.emulate:
             if direction == 'sell':
                 delta = old_open_price - close
             elif direction == 'buy':
                 delta = close - old_open_price
             else:
                 delta = 0
-            print (ema_0, old_ema_0, close, old_open_price, '#%0.2f' % delta)
+            print (ema_0, close, old_open_price, '#%0.2f' % delta)
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema_0) == False:
@@ -391,7 +392,7 @@ def try_to_trade(subpath):
                 # close is touch upper
                 elif (ema_0 > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         if old_open_price < close:
                             previous_close_price = -close # negative means ever sold
@@ -405,7 +406,7 @@ def try_to_trade(subpath):
                 # close is touch lower
                 elif (ema_0 < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
-                    if check_close_sell_fee_threshold(old_open_price, close) == True:
+                    if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         if old_open_price > close:
                             previous_close_price = close # positive means ever bought
@@ -507,8 +508,9 @@ def emul_signal_notify(l_dir):
 fence_count = 0
 # wait on boll_notify for signal
 def wait_boll_notify(notify):
-    global fee_threshold, fee_file
+    global fee_threshold, fee_file, amount_file
     global fence_count
+    global amount
     while True:
         command = ['fswatch', '-1', notify]
         try:
@@ -520,6 +522,13 @@ def wait_boll_notify(notify):
                     if t_fee_threshold != fee_threshold: # update if diff
                         fee_threshold = t_fee_threshold
                         print ('fee_threshold updated to %f' % fee_threshold)
+            if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
+                with open(amount_file) as f:
+                    t_amount = int(f.readline())
+                    f.close()
+                    if t_amount != amount: # update amount
+                        print ('amount updated from %d to %d' % (amount, t_amount))
+                        amount = t_amount
         except Exception as ex:
             fee_threshold = default_fee_threshold
             print ('fee_threshold reset to %f' % fee_threshold)
@@ -545,8 +554,9 @@ def wait_boll_notify(notify):
 
 # wait on ema_notify for signal
 def wait_ema_notify(notify):
-    global fee_threshold, fee_file
+    global fee_threshold, fee_file, amount_file
     global fence_count
+    global amount
     while True:
         command = ['fswatch', '-1', notify]
         try:
@@ -558,6 +568,13 @@ def wait_ema_notify(notify):
                     if t_fee_threshold != fee_threshold: # update if diff
                         fee_threshold = t_fee_threshold
                         print ('fee_threshold updated to %f' % fee_threshold)
+            if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
+                with open(amount_file) as f:
+                    t_amount = int(f.readline())
+                    f.close()
+                    if t_amount != amount: # update amount
+                        print ('amount updated from %d to %d' % (amount, t_amount))
+                        amount = t_amount
         except Exception as ex:
             fee_threshold = default_fee_threshold
             print ('fee_threshold reset to %f' % fee_threshold)
@@ -622,6 +639,7 @@ if l_signal == 'boll': # old scheme
 else: # new scheme
     l_prefix = '%s_' % l_signal
 
+amount_file = '%s.%samount' % (l_dir, l_prefix)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 logfile='%s.log' % trade_notify
@@ -633,6 +651,8 @@ saved_stdout = sys.stdout
 sys.stdout = open(logfile, 'a')
 print (dt.now())
 print ('trade_notify: %s' % trade_notify)
+
+print ('using amount file: %s' % amount_file)
 
 if options.signal_notify :
     signal_notify = options.signal_notify

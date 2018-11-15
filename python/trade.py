@@ -271,9 +271,9 @@ def do_trade_new(subpath):
     try:
         l_amount = amount
         if action == 'close': # if close, read order_id info from subsubpath
+            order_id = ''
+            raw_order_info = ''
             try: # in case read amount failed
-                order_id = ''
-                raw_order_info = ''
                 with open(subsubpath, 'r') as f:
                     order_id = f.readline().split(',')[1]
                     raw_order_info = quarter_orderinfo(symbol, order_id)
