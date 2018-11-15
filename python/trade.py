@@ -389,7 +389,7 @@ def wait_trade_notify(notify):
                             break
                         orders.append(subpath)
                         print ('append %s to do it again' % subpath)
-                        redo++
+                        redo +=1 
                 if os.path.isfile(stop_notify) and last_subpath.endswith('.close'):
                     print ('stop signaled by %s, quit now' % stop_notify)
                     os.unlink(stop_notify)
