@@ -380,6 +380,8 @@ old_ema_0 = 0
 direction = ''
 old_close = 0
 average_open_price = 0
+old_delta = 0
+delta = 0
 def try_to_trade_close_ema(subpath):
     global window_size, trade_file, old_close_mean
     global total_revenue, previous_close_price, total_orders
@@ -387,6 +389,7 @@ def try_to_trade_close_ema(subpath):
     global trade_notify
     global direction
     global average_open_price, order_num
+    global delta, old_delta
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -403,7 +406,7 @@ def try_to_trade_close_ema(subpath):
             else:
                 delta = 0
             if delta != 0:
-                print ('%0.3f %0.3f %0.3f #%0.2f' % (ema_0, close, average_open_price, delta))
+                print ('%0.3f %0.3f %0.3f #%0.2f=>%0.2f' % (ema_0, close, average_open_price, old_delta, delta))
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema_0) == False:
@@ -453,8 +456,18 @@ def try_to_trade_close_ema(subpath):
                         trade_file = ''
                         direction = ''
                         print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                    else: # abnormal case
+                        print ('stay unchanged, neight to close nor to buy, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
                 elif direction == 'buy' :
-                    if close <= ema_0 :
+                    if old_delta !=0 and old_delta > delta : # return is decreasing
+                        signal_close_order_with_sell(l_index, trade_file, close)
+                        delta = (close - average_open_price) * order_num
+                        average_open_price = 0
+                        total_revenue += delta
+                        trade_file = ''
+                        direction = ''
+                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))                        
+                    elif close <= ema_0 :
                         direction = '+' # may trigger close
                         # more greedy
                         if order_num < int(options.order_num):
@@ -473,8 +486,18 @@ def try_to_trade_close_ema(subpath):
                         trade_file = ''
                         direction = ''
                         print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                    else: # abnormal case
+                        print ('stay unchanged, neight to close nor to sell, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
                 elif direction == 'sell' :
-                    if close >= ema_0 :
+                    if old_delta != 0 and old_delta > delta: # return is decreasing
+                        signal_close_order_with_buy(l_index, trade_file, close)
+                        delta = (average_open_price - close) * order_num
+                        average_open_price = 0
+                        total_revenue += delta
+                        trade_file = ''
+                        direction = ''
+                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))                        
+                    elif close >= ema_0 :
                         direction = '-' # may trigger close
                         # more greedy
                         if order_num < int(options.order_num):
@@ -484,6 +507,7 @@ def try_to_trade_close_ema(subpath):
                             total_orders += 1
                 old_ema_0 = ema_0
                 old_close = close
+                old_delta = delta
         # used when do emulation
         if options.emulate:
             with open('%s.goon' % trade_notify, 'w') as f:
