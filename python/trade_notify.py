@@ -420,7 +420,7 @@ def try_to_trade_close_ema(subpath):
                         direction = '-' # should switch to 'sell'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema[0], close))
+                        print ('<%0.3f %0.3f\n' % (ema_0, close))
                 elif close > old_close: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -432,34 +432,47 @@ def try_to_trade_close_ema(subpath):
                         direction = '+' # should switch to 'buy'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema[0], close))
+                        print ('<%0.3f %0.3f\n' % (ema_0, close))
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
                     pass
+                elif direction == 'buy' :
+                    if close > ema_0 :
+                        pass
+                    else:
+                        direction = '+' # may trigger close
+                        # more greedy
+                        signal_open_order_with_buy(l_index, trade_file, close)
+                        
+                elif direction == 'sell':
+                    if close < ema_0 :
+                        pass
+                    else:
+                        direction = '-' # may trigger close
                 # close is touch upper
-                elif direction == '+' or direction == '-':
-                    if direction == '+': # close or ema_0 is increasing
+                elif direction == '+': # close or ema_0 is increasing
+                    if close > old_close or ema_0 > old_ema_0:
                         direction = 'buy'
-                        if close > old_close or ema_0 > old_ema_0:
-                            # force it goon 
-                            old_close = close / 2.0
-                            old_ema_0 = ema_0 / 2.0
-                        else: # force it closed
-                            old_close = close * 2
-                            old_ema_0 = ema_0 * 2
-                            close = min(close, ema_0) - 1.0 # close is below ema_0
-                    else: # must be '-', close or ema_0 is decreasing
+                        # force it goon 
+                        old_close = max(old_close, old_ema_0) - 1.0
+                        old_ema_0 = min(old_close, old_ema_0)
+                    else: # force it closed
+                        old_close = close * 2
+                        old_ema_0 = ema_0 * 2
+                        close = min(close, ema_0) - 1.0 # close is below ema_0
+                elif direction == '-' : # close or ema_0 is decreasing
+                    if close < old_close or ema_0 < old_ema_0:
                         direction = 'sell'
-                        if close < old_close or ema_0 < old_ema_0:
-                            # force it goon
-                            old_close = close * 2.0
-                            old_ema_0 = ema_0 * 2.0
-                        else:
-                            old_close = close / 2.0
-                            old_ema_0 = ema_0 / 2.0
-                            close = max(close, ema_0) + 1.0 # close is upper ema_0
-                
+                        # force it goon
+                        old_close = close * 2.0
+                        old_ema_0 = ema_0 * 2.0
+                    else:
+                        old_close = close / 2.0
+                        old_ema_0 = ema_0 / 2.0
+                        close = max(close, ema_0) + 1.0 # close is upper ema_0
+
+                    
                 if (ema_0 > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
@@ -477,21 +490,21 @@ def try_to_trade_close_ema(subpath):
                 elif (ema_0 < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if options.policy == 'ema_greedy':
-                        act = ema_greedy_policy('buy', [old_ema_0, ema[0]],
+                        act = ema_greedy_policy('buy', [old_ema_0, ema_0],
                                                 [old_close, close])
                         if act == 'open' and order_num < 5:
                             signal_open_order_with_buy(l_index, trade_file, close)
                             average_close_price = (average_close_price + close)/2.0
                             old_open_price = (old_open_price + close)/2.00
                             order_num += 1
-                            print (' %0.3f %0.3f\n' % (ema[0], close))
+                            print (' %0.3f %0.3f\n' % (ema_0, close))
                             pass
                         elif False and act == 'close' and abs(close - average_close_price) > 1:
                             signal_close_order_with_sell(l_index, trade_file, close)
                             print ('return %f\n' % ((close - average_close_price) * order_num))
                             total_revenue += (close - average_close_price) * order_num
                             trade_file = ''
-                            print ('%0.3f %0.3f>\n' % (ema[0], close))
+                            print ('%0.3f %0.3f>\n' % (ema_0, close))
                             # open trade again
                             try_to_trade(subpath)
                             pass
@@ -558,7 +571,7 @@ def try_to_trade_old(subpath):
                         direction = 'sell'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema[0], close))
+                        print ('<%0.3f %0.3f\n' % (ema_0, close))
                 elif ema_0 > old_ema_0 and close > old_close: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -570,7 +583,7 @@ def try_to_trade_old(subpath):
                         direction = 'buy'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema[0], close))
+                        print ('<%0.3f %0.3f\n' % (ema_0, close))
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -579,14 +592,14 @@ def try_to_trade_old(subpath):
                 elif (ema_0 > old_ema_0 or close > old_close) and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
                     if options.policy == 'ema_greedy':
-                        act = ema_greedy_policy('sell', [old_ema_0, ema[0]],
+                        act = ema_greedy_policy('sell', [old_ema_0, ema_0],
                                                 [old_close, close])
                         if act == 'open' and order_num < 2:
                             signal_open_order_with_sell(l_index, trade_file, close)
                             average_close_price = (average_close_price + close)/2.0
                             old_open_price = (old_open_price + close)/2.0
                             order_num += 1
-                            print (' %0.3f %0.3f\n' % (ema[0], close))
+                            print (' %0.3f %0.3f\n' % (ema_0, close))
                             pass
                         # igore close signal
                         elif False and act == 'close' and abs(average_close_price - close) > 1:
@@ -594,7 +607,7 @@ def try_to_trade_old(subpath):
                             print ('return %f\n' % ((average_close_price - close) * order_num))
                             total_revenue += (average_close_price - close) * order_num
                             trade_file = ''
-                            print ('%0.3f %0.3f>\n' % (ema[0], close))
+                            print ('%0.3f %0.3f>\n' % (ema_0, close))
                             # open trade again
                             try_to_trade(subpath)
                             pass
@@ -615,21 +628,21 @@ def try_to_trade_old(subpath):
                 elif (ema_0 < old_ema_0 or close < old_close) and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if options.policy == 'ema_greedy':
-                        act = ema_greedy_policy('buy', [old_ema_0, ema[0]],
+                        act = ema_greedy_policy('buy', [old_ema_0, ema_0],
                                                 [old_close, close])
                         if act == 'open' and order_num < 5:
                             signal_open_order_with_buy(l_index, trade_file, close)
                             average_close_price = (average_close_price + close)/2.0
                             old_open_price = (old_open_price + close)/2.00
                             order_num += 1
-                            print (' %0.3f %0.3f\n' % (ema[0], close))
+                            print (' %0.3f %0.3f\n' % (ema_0, close))
                             pass
                         elif False and act == 'close' and abs(close - average_close_price) > 1:
                             signal_close_order_with_sell(l_index, trade_file, close)
                             print ('return %f\n' % ((close - average_close_price) * order_num))
                             total_revenue += (close - average_close_price) * order_num
                             trade_file = ''
-                            print ('%0.3f %0.3f>\n' % (ema[0], close))
+                            print ('%0.3f %0.3f>\n' % (ema_0, close))
                             # open trade again
                             try_to_trade(subpath)
                             pass
