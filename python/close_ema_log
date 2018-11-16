@@ -1,0 +1,4 @@
+python3 trade_notify.py ../ok_sub_futureusd_btc_kline_quarter_5min --signal=ema --emulate=1 --policy=close_ema --which_ema=0 --order_num=3
+
+测试1个，3个或者5个单子，结果都不好。接下来看看监控盈利，一旦盈利回撤，就结束。
+
