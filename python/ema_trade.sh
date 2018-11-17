@@ -3,9 +3,9 @@
 set -ex
 
 target_coin=$1
-target_coin_amount=$1.amount
+target_coin_amount=$1.ema_amount
 
-amount=${2:-15}
+amount=${2:-1}
 
 test -d ${target_coin} || (echo "Invalid coin $1" && false)
 expr "$2" + "0" || (echo  "Invalid amount $2" && false)
@@ -21,7 +21,7 @@ fi
 echo "${amount}" > ${target_coin_amount}
 python3 monitor_me.py trade.py ${target_coin} --signal=ema &
 sleep 5
-python3 monitor_me.py trade_notify.py ${target_coin}  --signal=ema --which_ema=1 &
+python3 monitor_me.py trade_notify.py ${target_coin}  --signal=ema --which_ema=0 &
 sleep 5
 python3 monitor_me.py ema_notify.py ${target_coin} --signal=ema &
 sleep 5
