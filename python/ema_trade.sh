@@ -6,6 +6,7 @@ target_coin=$1
 target_coin_amount=$1.ema_amount
 
 amount=${2:-1}
+cur=$(pwd)
 
 test -d ${target_coin} || (echo "Invalid coin $1" && false)
 expr "$2" + "0" || (echo  "Invalid amount $2" && false)
@@ -14,7 +15,7 @@ if ps U $(whoami) | grep -q 'python3 price_notify.py';  then
     true
 else
     pushd $(dirname ${target_coin})
-    python3 monitor_me.py price_notify.py > /dev/null 2>&1 &
+    python3 ${cur}/monitor_me.py price_notify.py > /dev/null 2>&1 &
     popd
 fi	
 
