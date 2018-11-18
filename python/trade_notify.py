@@ -81,12 +81,15 @@ default_fee_threshold = 0.012# baesed on one order's fee
 fee_threshold = default_fee_threshold
 levage_rate = 20
 
+options = ''
 # if fee is bigger than lost, then delay it to next signal
 def check_close_sell_fee_threshold(open_price, current_price, amount=1):
-    return abs((current_price - open_price) / open_price) * amount > fee_threshold
+    l_amount = amount if options.fee_amount else 1
+    return abs((current_price - open_price) / open_price) * l_amount > fee_threshold
 
 def check_close_sell_half_fee_threshold(open_price, current_price, amount=1):
-    return abs((current_price - open_price) / open_price) * amount > (fee_threshold / 2.0)
+    l_amount = amount if options.fee_amount else 1
+    return abs((current_price - open_price) / open_price) * l_amount > (fee_threshold / 2.0)
 
 symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
@@ -108,7 +111,6 @@ def figure_out_symbol_info(path):
     # print (path[start:end])
     return path[start:end]
 
-options = ''
 # if current order is permit to issue
 def check_open_order_gate(symbol, direction, current_price):
     if options.emulate:
@@ -858,6 +860,9 @@ parser.add_option('', '--which_ema', dest='which_ema',
                   help='using with one of ema')
 parser.add_option('', '--order_num', dest='order_num',
                   help='how much orders')
+parser.add_option('', '--fee_amount', dest='fee_amount',
+                  action='store_true', default=False,
+                  help='take amount int account with fee')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
