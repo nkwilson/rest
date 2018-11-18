@@ -281,6 +281,8 @@ def do_trade_new(subpath):
                 for this_id in order_ids:
                     raw_order_info = quarter_orderinfo(symbol, this_id)
                     order_info = json.loads(raw_order_info)
+                    if order_info['result'] == False:
+                        continue
                     this_order = order_info['orders'][0]
                     if this_order['type'] < 3: # 1: buy, 2:sell
                         this_amount = int(this_order['amount'])
