@@ -340,6 +340,7 @@ def read_ema(filename):
 total_revenue = 0
 previous_close_price = 0
 total_orders = 0
+old_total_revenue = 0
 
 # emas[0] is old, emas[1] is new. The save to closes[2]
 def ema_greedy_policy(direction, emas, closes):
@@ -391,6 +392,7 @@ def try_to_trade_close_ema(subpath):
     global trade_notify
     global direction
     global average_open_price, order_num
+    global old_total_revenue
     global delta, old_delta
     #print (subpath)
     event_path=subpath
@@ -450,14 +452,17 @@ def try_to_trade_close_ema(subpath):
                 elif direction == '+': # close or ema_0 is increasing
                     if close > old_close : # just use close
                         direction = 'buy'
-                    elif close <= ema_0 : # force it closed
+                    elif close <= ema_0 or old_delta > delta: # force it closed
                         signal_close_order_with_sell(l_index, trade_file, close)
                         delta = (close - average_open_price) * order_num
                         average_open_price = 0
+                        old_total_revenue = total_revenue
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
                         print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                        delta = 0
+                        old_delta = 0
                     else: # abnormal case
                         print ('stay unchanged, neight to close nor to buy, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
                 elif direction == 'buy' :
@@ -480,14 +485,17 @@ def try_to_trade_close_ema(subpath):
                 elif direction == '-': # close or ema_0 is decreasing
                     if close < old_close : # just use close
                         direction = 'sell'
-                    elif close >= ema_0 : # force it closed
+                    elif close >= ema_0 or old_delta > delta: # force it closed
                         signal_close_order_with_buy(l_index, trade_file, close)
                         delta = (average_open_price - close) * order_num
                         average_open_price = 0
+                        old_total_revenue = total_revenue
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
                         print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                        delta = 0
+                        old_delta = 0
                     else: # abnormal case
                         print ('stay unchanged, neight to close nor to sell, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
                 elif direction == 'sell' :
