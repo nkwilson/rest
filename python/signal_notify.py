@@ -108,10 +108,10 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
     l_delta = datetime.datetime.now() - l_start                
     print (l_delta)
 
-def save_and_notify_signal(stock_price, filename, signal):
-    globals['save_%s_to_file' % signal](stock_price, filename)
+def save_and_notify_signal(stock_price, filename, signal, notify_file):
+    globals()['save_%s_to_file' % signal](stock_price, filename)
     # make signal
-    with open(globals['signal_notify'], 'w') as f:
+    with open(notify_file, 'w') as f:
         f.write(filename)
         f.close()
 
@@ -129,7 +129,7 @@ old_event_path = ''
 
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def callback_file_new(subpath):
+def callback_file_new(subpath, signal_notify):
     global l_index, old_l_index, event_path, old_event_path
     global close_prices
     event_path=subpath
@@ -176,7 +176,7 @@ def callback_file_new(subpath):
             print ('')
             filename = '%s.%s' % (old_event_path, l_signal)
             print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
-            save_and_notify_signal(close_prices, filename, l_signal)
+            save_and_notify_signal(close_prices, filename, l_signal, signal_notify)
         except Exception as ex:
             print (filename)
             print (traceback.format_exc())
@@ -328,12 +328,12 @@ def waiting_for_notify(l_dir, prefix):
                         #print (subpath)
                     if os.path.isfile(subpath) == True:
                         #print (subpath)
-                        callback_file_new(subpath)
+                        callback_file_new(subpath, signal_notify)
                         break
                     # for old version watch_poll_price.py
                     elif os.path.isfile(os.path.join(l_dir, subpath)) == True:
                         print (subpath)
-                        callback_file_new(os.path.join(l_dir, subpath))
+                        callback_file_new(os.path.join(l_dir, subpath), signal_notify)
                         break
         except Exception as ex:
             print (ex)
