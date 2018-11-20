@@ -185,7 +185,7 @@ def callback_file_new(subpath, signal_notify):
             return # re do
         old_l_index = l_index
         old_event_path = event_path
-        if close_prices.count() > 10 * latest_to_read:
+        if close_prices.count() > 2 * latest_to_read:
             close_prices = close_prices[-latest_to_read:]
             print ('Reduce data size to %d', close_lower.count())
     else: # Yes, things has happened: old_l_index  > l_index
