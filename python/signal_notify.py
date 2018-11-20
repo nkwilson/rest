@@ -154,35 +154,7 @@ def with_scandir_withskip(l_dir, skips):
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option("", "--signal_notify", dest="signal_notify",
-                  help="specify signal notifier")
-parser.add_option("", "--with_old_files", dest='with_old_files',
-                  action="store_true", default=False,
-                  help="do not processing stock files")
-parser.add_option('', '--signal', dest='signals', default=[],
-                  action='append',
-                  help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--latest', dest='latest_to_read', default='1000',
-                  help='only keep that much old values')
-parser.add_option('', '--dir', dest='dirs', default=[],
-                  action='append',
-                  help='target dir should processing')
-
-(options, args) = parser.parse_args()
-print (type(options), options, args)
-
-os.sys.exit(0)
-
-latest_to_read = 1000
-
-l_dir = sys.argv[1].rstrip('/')
-# switch default to with-old-files, disabled with explicit without-old-files
-if len(sys.argv) > 2 and sys.argv[2] == 'without-old-files': # disabled it now
-    print ('Skip processing old files\n')
-    pass
-else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old files in dir
+def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     start = dt.now()
     print ('Processing old files, begin at %s' % (start))
     # with os.scandir(sys.argv[1]) as it:
@@ -193,7 +165,7 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
     #                 close_prices[entry.name]=close
     try :
         read_saved = 0  # read boll data from saved file
-        files=with_scandir_withskip(l_dir, ('.ewma', '.boll', '.open', '.close', '.buy', '.sell', '.log'))
+        files=with_scandir_withskip(l_dir, skip_suffixes)
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
@@ -203,7 +175,7 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
                 close=eval(f.readline())[3]
                 close_prices[fname]=close
             # first check .ewma is exist
-            fpathboll='%s.ewma' % (fpath)
+            fpathboll='%s.%s' % (fpath, suffix)
             # print (fpathboll)
             if os.path.isfile(fpathboll) and os.path.getsize(fpathboll) > 0 :
                 with open(fpathboll, 'r') as fb:
@@ -228,8 +200,38 @@ else: # if len(sys.argv) >= 2 and sys.argv[2]=='with-old-files': # process old f
     stop = dt.now()
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
-print ('Waiting for process new coming file\n')
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--signal_notify", dest="signal_notify",
+                  help="specify signal notifier")
+parser.add_option("", "--with_old_files", dest='with_old_files',
+                  action="store_true", default=False,
+                  help="do not processing stock files")
+parser.add_option('', '--signal', dest='signals', default=[],
+                  action='append',
+                  help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--latest', dest='latest_to_read', default='1000',
+                  help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[],
+                  action='append',
+                  help='target dir should processing')
 
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+if len(args) != 0 : # unknows options, quit
+    print ('Unknown arguments: ', args)
+    os.sys.exit(0)
+
+latest_to_read = int(options.latest_to_read)
+default_skip_suffixes=('.open', '.close', '.buy', '.sell', '.log')
+
+if options.with_old_files == True:
+    processing_old_files(options.dirs)
+else:
+    print ('Skip processing old files\n')
+
+print ('Waiting for process new coming file\n')
 
 ewma_notify = '%s.ema_notify' % l_dir  # file used to notify boll finish signal
 
