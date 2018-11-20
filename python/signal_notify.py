@@ -161,11 +161,14 @@ parser.add_option("", "--signal_notify", dest="signal_notify",
 parser.add_option("", "--with_old_files", dest='with_old_files',
                   action="store_true", default=False,
                   help="do not processing stock files")
-parser.add_option('', '--signal', dest='signal', default=[],
+parser.add_option('', '--signal', dest='signals', default=[],
                   action='append',
                   help='use wich signal to generate trade notify and also as prefix')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[],
+                  action='append',
+                  help='target dir should processing')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
