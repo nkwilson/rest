@@ -19,6 +19,37 @@ from subprocess import PIPE, run
 # print (sys.modules.keys())  # too much infor
 print (sys.argv)
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--signal_notify", dest="signal_notify",
+                  help="specify signal notifier")
+parser.add_option("", "--with_old_files", dest='with_old_files',
+                  action="store_true", default=False,
+                  help="do not processing stock files")
+parser.add_option('', '--signal', dest='signals', default=[],
+                  action='append',
+                  help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--latest', dest='latest_to_read', default='1000',
+                  help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[],
+                  action='append',
+                  help='target dir should processing')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+if len(args) != 0 : # unknows options, quit
+    print ('Unknown arguments: ', args)
+    os.sys.exit(0)
+
+latest_to_read = int(options.latest_to_read)
+default_skip_suffixes=['.open', '.close', '.buy', '.sell', '.log']
+
+# only processing on signal a time
+l_signal = options.signals[0]
+l_prefix = '%s_' % l_signal
+l_dir = options.dirs[0]
+
 close_prices = pandas.Series()
 
 # parameters for bollinger band
@@ -144,6 +175,7 @@ def with_listdir(l_dir):
 # v2, fast than listdir
 def with_scandir_withskip(l_dir, skips):
     files = list()
+    #print (skips)
     with os.scandir(l_dir) as it:
         for entry in it:
             if skips != '' and entry.name.endswith(skips) == True:
@@ -151,6 +183,15 @@ def with_scandir_withskip(l_dir, skips):
             files.append(entry.name)
     return files
 
+def with_scandir_suffix(l_dir, suffix):
+    files = list()
+    #print (skips)
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            if suffix != '' and entry.name.endswith(suffix) == True:
+                files.append(entry.name)
+    return files
+    
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
@@ -165,12 +206,12 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     #                 close_prices[entry.name]=close
     try :
         read_saved = 0  # read boll data from saved file
-        files=with_scandir_withskip(l_dir, skip_suffixes)
+        files=with_scandir_suffix(l_dir, '.%s' % suffix)
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
             fpath = os.path.join(l_dir, fname)
-            #print (fpath)
+            print (fpath)
             with open(fpath, 'r') as f:
                 close=eval(f.readline())[3]
                 close_prices[fname]=close
@@ -200,86 +241,59 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     stop = dt.now()
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option("", "--signal_notify", dest="signal_notify",
-                  help="specify signal notifier")
-parser.add_option("", "--with_old_files", dest='with_old_files',
-                  action="store_true", default=False,
-                  help="do not processing stock files")
-parser.add_option('', '--signal', dest='signals', default=[],
-                  action='append',
-                  help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--latest', dest='latest_to_read', default='1000',
-                  help='only keep that much old values')
-parser.add_option('', '--dir', dest='dirs', default=[],
-                  action='append',
-                  help='target dir should processing')
+def waiting_for_notify(l_dir, prefix):
+    print ('Waiting for process new coming file\n')
 
-(options, args) = parser.parse_args()
-print (type(options), options, args)
+    signal_notify = '%s.%s_notify' % (l_dir, prefix)  # file used to notify boll finish signal
 
-if len(args) != 0 : # unknows options, quit
-    print ('Unknown arguments: ', args)
-    os.sys.exit(0)
+    logfile='%s.log' % signal_notify
+    saved_stdout = sys.stdout
+    sys.stdout = open(logfile, 'a')
+    print (dt.now())
+    print ('signal_notify: %s' % signal_notify, flush=True)
 
-latest_to_read = int(options.latest_to_read)
-default_skip_suffixes=('.open', '.close', '.buy', '.sell', '.log')
+    price_notify = '%s.price_notify' % l_dir
+    print ('price_notify: %s' % price_notify)
 
-if options.with_old_files == True:
-    processing_old_files(options.dirs)
-else:
-    print ('Skip processing old files\n')
+    pid_file = '%s.%s_notify.pid' % (l_dir, prefix)
+    # os.setsid() # privilge
+    #print (os.getpgrp(), os.getpgid(os.getpid()))
+    with open(pid_file, 'w') as f:
+        f.write('%d' % os.getpgrp())
+        print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
-print ('Waiting for process new coming file\n')
-
-ewma_notify = '%s.ema_notify' % l_dir  # file used to notify boll finish signal
-
-logfile='%s.log' % ewma_notify
-saved_stdout = sys.stdout
-sys.stdout = open(logfile, 'a')
-print (dt.now())
-print ('ewma_notify: %s' % ewma_notify, flush=True)
-
-price_notify = '%s.price_notify' % l_dir
-print ('price_notify: %s' % price_notify)
-
-pid_file = '%s.ema_notify.pid' % l_dir
-# os.setsid() # privilge
-#print (os.getpgrp(), os.getpgid(os.getpid()))
-with open(pid_file, 'w') as f:
-    f.write('%d' % os.getpgrp())
-print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
-
-while True:
-    print ('', end='', flush=True)
-    subpath = ''
-    price_notify = os.path.realpath(price_notify)
-    command = ['fswatch', '-1', price_notify]
-    try:
-        result = subprocess.run(command, stdout=PIPE) # wait file until rewrited
-        rawdata = result.stdout.decode().split('\n')
-        #print (rawdata)
-        for data in rawdata:
-            if len(data) > 7 and data == price_notify:
-                #print (data)
-                subpath = data
-                #print (subpath)
-                with open(subpath, 'r') as f:
-                    subpath = f.readline().rstrip('\n')
+    while True:
+        print ('', end='', flush=True)
+        subpath = ''
+        price_notify = os.path.realpath(price_notify)
+        command = ['fswatch', '-1', price_notify]
+        try:
+            result = subprocess.run(command, stdout=PIPE) # wait file until rewrited
+            rawdata = result.stdout.decode().split('\n')
+            #print (rawdata)
+            for data in rawdata:
+                if len(data) > 7 and data == price_notify:
+                    #print (data)
+                    subpath = data
                     #print (subpath)
-                if os.path.isfile(subpath) == True:
-                    #print (subpath)
-                    callback_file_new(subpath)
-                    break
-                # for old version watch_poll_price.py
-                elif os.path.isfile(os.path.join(l_dir, subpath)) == True:
-                    print (subpath)
-                    callback_file_new(os.path.join(l_dir, subpath))
-                    break
-    except Exception as ex:
-        print (ex)
-        continue
+                    with open(subpath, 'r') as f:
+                        subpath = f.readline().rstrip('\n')
+                        #print (subpath)
+                    if os.path.isfile(subpath) == True:
+                        #print (subpath)
+                        callback_file_new(subpath)
+                        break
+                    # for old version watch_poll_price.py
+                    elif os.path.isfile(os.path.join(l_dir, subpath)) == True:
+                        print (subpath)
+                        callback_file_new(os.path.join(l_dir, subpath))
+                        break
+        except Exception as ex:
+            print (ex)
+            continue
+print (default_skip_suffixes+ [ '.%s' % l_signal], l_signal)
 
+print ('Skip processing old files\n') if options.with_old_files == False \
+    else processing_old_files(l_dir, latest_to_read, tuple(default_skip_suffixes + ['.%s' % l_signal]), l_signal)
 
-    
+waiting_for_notify(l_dir, l_signal)
