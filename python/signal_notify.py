@@ -208,6 +208,15 @@ def with_scandir_withskip(l_dir, skips):
             files.append(entry.name)
     return files
 
+def with_scandir_suffix(l_dir, suffix):
+    files = list()
+    #print (skips)
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            if suffix != '' and entry.name.endswith(suffix) == True:
+                files.append(entry.name)
+    return files
+    
 def with_scandir(l_dir):
     return with_scandir_withskip(l_dir, skips='')
 
@@ -241,14 +250,22 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     #                 close_prices[entry.name]=close
     try :
         read_saved = 0  # read boll data from saved file
+<<<<<<< HEAD
         files=with_scandir_nosuffix(l_dir)
+=======
+        files=with_scandir_suffix(l_dir, '.%s' % suffix)
+>>>>>>> 01e2a869d1acd42e34cb166f13219e68c82868b0
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
             fpath = os.path.join(l_dir, fname)
+<<<<<<< HEAD
             if os.path.getsize(fpath) == 0:
                 continue
             # print (fpath)
+=======
+            print (fpath)
+>>>>>>> 01e2a869d1acd42e34cb166f13219e68c82868b0
             with open(fpath, 'r') as f:
                 close=eval(f.readline())[3]
                 close_prices[fname]=close
@@ -279,8 +296,12 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
 def waiting_for_notify(l_dir, prefix):
+<<<<<<< HEAD
     print ('')
     print ('Waiting for process new coming file')
+=======
+    print ('Waiting for process new coming file\n')
+>>>>>>> 01e2a869d1acd42e34cb166f13219e68c82868b0
 
     signal_notify = '%s.%s_notify' % (l_dir, prefix)  # file used to notify boll finish signal
 
@@ -329,6 +350,8 @@ def waiting_for_notify(l_dir, prefix):
         except Exception as ex:
             print (ex)
             continue
+
+print (default_skip_suffixes+ [ '.%s' % l_signal], l_signal)
 
 print ('Skip processing old files\n') if options.with_old_files == False \
     else processing_old_files(l_dir, latest_to_read, tuple(default_skip_suffixes + ['.%s' % l_signal]), l_signal)
