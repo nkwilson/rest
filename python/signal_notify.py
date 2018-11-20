@@ -339,8 +339,6 @@ def waiting_for_notify(l_dir, prefix):
             print (ex)
             continue
 
-print (default_skip_suffixes+ [ '.%s' % l_signal], l_signal)
-
 print ('Skip processing old files\n') if options.with_old_files == False \
     else processing_old_files(l_dir, latest_to_read, tuple(default_skip_suffixes + ['.%s' % l_signal]), l_signal)
 
