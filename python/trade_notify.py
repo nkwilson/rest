@@ -603,7 +603,7 @@ def try_to_trade_old(subpath):
                             trade_file = ''
                             print ('%0.3f %0.3f>\n' % (ema_0, close))
                             # open trade again
-                            try_to_trade(subpath)
+                            try_to_trade_old(subpath)
                             pass
                         elif act == 'keep':
                             pass
@@ -638,7 +638,7 @@ def try_to_trade_old(subpath):
                             trade_file = ''
                             print ('%0.3f %0.3f>\n' % (ema_0, close))
                             # open trade again
-                            try_to_trade(subpath)
+                            try_to_trade_old(subpath)
                             pass
                         elif act == 'keep':
                             pass
@@ -661,7 +661,7 @@ def try_to_trade_old(subpath):
                 f.write('goon')
                 f.close()
 
-def try_to_trade(subpath):
+def try_to_trade_ewma(subpath):
     if options.policy == 'close_ema':
         try_to_trade_close_ema(subpath)
     else:
@@ -823,7 +823,7 @@ def wait_ewma_notify(notify):
         print ('', end='', flush=True)
         try:
             if options.emulate:
-                try_to_trade(notify)
+                try_to_trade_ewma(notify)
                 break
             
             result = subprocess.run(command, stdout=PIPE) # wait file modified
@@ -831,7 +831,7 @@ def wait_ewma_notify(notify):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 # print (subpath)
-                try_to_trade(subpath)
+                try_to_trade_ewma(subpath)
             fence_count = 0
         except FileNotFoundError as fnfe:
             print (fnfe)
