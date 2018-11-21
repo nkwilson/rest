@@ -326,12 +326,12 @@ def waiting_for_notify(l_dir, prefix):
                     with open(subpath, 'r') as f:
                         subpath = f.readline().rstrip('\n')
                         #print (subpath)
-                    if os.path.isfile(subpath) == True:
+                    if os.path.isfile(subpath) == True and os.path.getsize(subpath) > 0:
                         #print (subpath)
                         callback_file_new(subpath, signal_notify)
                         break
                     # for old version watch_poll_price.py
-                    elif os.path.isfile(os.path.join(l_dir, subpath)) == True:
+                    elif os.path.isfile(os.path.join(l_dir, subpath)) == True and os.path.getsize(os.path.join(l_dir, subpath)) > 0:
                         print (subpath)
                         callback_file_new(os.path.join(l_dir, subpath), signal_notify)
                         break
