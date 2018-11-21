@@ -418,9 +418,7 @@ l_dir = args[0].rstrip('/')
 #print (l_dir, os.path.basename(l_dir))
 
 l_signal = options.signal
-l_prefix = ''
-if l_signal != 'boll': # new scheme
-    l_prefix = '%s_' % l_signal
+l_prefix = '%s_' % l_signal
 
 logfile='%s.%strade.log' % (l_dir, l_prefix)
 saved_stdout = sys.stdout
