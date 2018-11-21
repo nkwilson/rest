@@ -796,7 +796,7 @@ def wait_boll_notify(notify):
             continue
 
 # wait on ema_notify for signal
-def wait_ema_notify(notify):
+def wait_ewma_notify(notify):
     global fee_threshold, fee_file, amount_file
     global fence_count
     global amount
@@ -845,11 +845,8 @@ def wait_ema_notify(notify):
                 break
             continue
 
-def wait_signal_notify(notify):
-    if l_signal == 'boll':
-        wait_boll_notify(notify)
-    elif l_signal == 'ema':
-        wait_ema_notify(notify)
+def wait_signal_notify(notify, signal):
+    globals()['wait_%s_notify' % signal](notify)
     
 from optparse import OptionParser
 parser = OptionParser()
@@ -933,7 +930,7 @@ if options.emulate:
     os.sys.exit(0)
 
 print ('Waiting for process new coming file\n', flush=True)
-wait_signal_notify(signal_notify)
+wait_signal_notify(signal_notify, l_signal)
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
