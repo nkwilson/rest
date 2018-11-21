@@ -75,7 +75,6 @@ close_lower = pandas.Series()
 
 old_open_price = 0
 old_close_mean = 0
-window_size = 20
 trade_file = ''
 default_fee_threshold = 0.012# baesed on one order's fee
 fee_threshold = default_fee_threshold
@@ -269,7 +268,7 @@ def try_to_pick_old_order():
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def plot_living_price_new(subpath):
-    global window_size, trade_file, old_close_mean
+    global trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
     #print (subpath)
@@ -386,7 +385,7 @@ average_open_price = 0
 old_delta = 0
 delta = 0
 def try_to_trade_close_ema(subpath):
-    global window_size, trade_file, old_close_mean
+    global trade_file, old_close_mean
     global total_revenue, previous_close_price, total_orders
     global old_open_price, old_ema_0, old_close
     global trade_notify
@@ -525,7 +524,7 @@ def try_to_trade_close_ema(subpath):
                 f.close()
     
 def try_to_trade_old(subpath):
-    global window_size, trade_file, old_close_mean
+    global trade_file, old_close_mean
     global total_revenue, previous_close_price, total_orders
     global old_open_price, old_ema_0, old_close
     global trade_notify
