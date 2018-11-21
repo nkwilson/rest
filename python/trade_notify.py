@@ -319,7 +319,7 @@ def try_to_trade_boll(subpath):
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
-                elif close_lower.count() > 10 * latest_to_read:
+                elif close_lower.count() > 2 * latest_to_read:
                     close_lower = close_lower[-latest_to_read:]
                     close_mean = close_mean[-latest_to_read:]
                     close_upper = close_upper[-latest_to_read:]
