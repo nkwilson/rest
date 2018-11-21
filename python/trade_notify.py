@@ -876,15 +876,7 @@ pick_old_order = options.pick_old_order
 l_dir = args[0].rstrip('/')
 
 l_signal = options.signal
-l_prefix = ''
-if l_signal == 'boll': # old scheme
-    print ('Begin at %s' % (dt.now()))
-    #print (l_dir, os.path.basename(l_dir))
-    plot_saved_price(l_dir)
-    print ('Stop at %s' % (dt.now()))
-    pass
-else: # new scheme
-    l_prefix = '%s_' % l_signal
+l_prefix = '%s_' % l_signal
 
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
@@ -904,7 +896,7 @@ print ('using amount file: %s' % amount_file)
 if options.signal_notify :
     signal_notify = options.signal_notify
 else:
-    signal_notify = '%s.%s_notify' % (l_dir, l_signal)
+    signal_notify = '%s.%snotify' % (l_dir, l_prefix)
 #logging.info ('signal_notify: %s' % signal_notify)
 print ('signal_notify: %s' % signal_notify)
 
