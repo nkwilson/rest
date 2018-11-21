@@ -267,7 +267,7 @@ def try_to_pick_old_order():
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def plot_living_price_new(subpath):
+def try_to_trade_boll(subpath):
     global trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
@@ -781,7 +781,7 @@ def wait_boll_notify(notify):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 #print (subpath)
-                plot_living_price_new(subpath)
+                try_to_trade_boll(subpath)
             fence_count = 0
         except FileNotFoundError as fnfe:
             print (fnfe)
