@@ -253,6 +253,7 @@ def queue_trade_order(subpath):
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 def do_trade_new(subpath):
     global amount, last_balance, last_bond
+    global startup_notify, shutdown_notify
     #print (subpath)
     # only process file event of .boll.log
     raw_symbol = figure_out_symbol_info(subpath)
@@ -310,10 +311,20 @@ def do_trade_new(subpath):
         order_info = json.loads(quarter_orderinfo(symbol, order_id))
         print (order_info)
         if action == 'open': # figure bond info
+            # only generate startup notify for the first order
+            if os.path.isfile(subsubpath) and os.path.getsize(subsubpath) == 0:
+                with open(startup_notify, 'w') as f:
+                    f.write('%s' % order_info)
+                    f.close()
             # append amount info to subsubpath
             with open(subsubpath, 'a') as f:
                 f.write(',%s' % order_id)
+                f.close()
         elif action == 'close': # figure balance info
+            # generate shutdown notify
+            with open(shutdown_notify, 'w') as f:
+                f.write('%s' % order_info)
+                f.close()
             # only update when no holdings, check with bond
             balance = 0
             if quarter_auto_bond(symbol) == 0:
@@ -437,6 +448,11 @@ print ('amount will read from %s if exist, default is %d' % (amount_file, amount
 
 stop_notify = '%s.%strade.stop_notify' % (l_dir, l_prefix) # file indicate trade should stop
 print ('stop_notify: %s' % stop_notify)
+
+startup_notify = '%s.%strade.startup' % (l_dir, l_prefix)
+shutdown_notify = '%s.%strade.shutdown' % (l_dir, l_prefix)
+print ('startup_notify: %s' % startup_notify)
+print ('shutdown_notify: %s' % shutdown_notify)
 
 pid_file = '%s.%strade.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
