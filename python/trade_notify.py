@@ -69,6 +69,44 @@ def main(argv):
     else:
             print ("Usage: program [one_stock [stock [start [end]]]]")
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--signal_notify", dest="signal_notify",
+                  help="specify signal notifier")
+parser.add_option("", "--pick_old_order", dest='pick_old_order',
+                  action="store_true", default=False,
+                  help="do not pick old order")
+parser.add_option('', '--emulate', dest='emulate',
+                  help="try to emulate trade notify")
+parser.add_option('', '--policy', dest='policy',
+                  help="use specified trade policy, ema_greedy/close_ema")
+parser.add_option('', '--which_ema', dest='which_ema',
+                  help='using with one of ema')
+parser.add_option('', '--order_num', dest='order_num',
+                  help='how much orders')
+parser.add_option('', '--fee_amount', dest='fee_amount',
+                  action='store_true', default=False,
+                  help='take amount int account with fee')
+parser.add_option('', '--signal', dest='signals', default=[],
+                  action='append',
+                  help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--latest', dest='latest_to_read', default='1000',
+                  help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[],
+                  action='append',
+                  help='target dir should processing')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+latest_to_read = int(options.latest_to_read)
+
+pick_old_order = options.pick_old_order
+
+l_signal = options.signals[0]
+l_prefix = '%s_' % l_signal
+l_dir = options.dirs[0]
+
 close_mean = pandas.Series()
 close_upper = pandas.Series()
 close_lower = pandas.Series()
@@ -80,7 +118,6 @@ default_fee_threshold = 0.012# baesed on one order's fee
 fee_threshold = default_fee_threshold
 levage_rate = 20
 
-options = ''
 # if fee is bigger than lost, then delay it to next signal
 def check_close_sell_fee_threshold(open_price, current_price, amount=1):
     l_amount = amount if options.fee_amount else 1
@@ -101,7 +138,6 @@ reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, curre
                  'sell': {'reverse_dir':'buy', 'gate': lambda order_price, current_price, amount:
                         (order_price < current_price) and check_close_sell_half_fee_threshold(current_price, order_price, amount)}}
 
-options = ''
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
     end_pattern = '_kline_'
@@ -239,13 +275,8 @@ def read_close(filename):
     # print (close)
     return close
 
-import random
-
-random.seed()
-latest_to_read = int(150000 * random.random())
 new_trade_file = True
 
-pick_old_order = True # try to pick old order
 def try_to_pick_old_order():
     global trade_notify, trade_file
     global old_open_price
@@ -846,36 +877,6 @@ def wait_ewma_notify(notify):
 
 def wait_signal_notify(notify, signal):
     globals()['wait_%s_notify' % signal](notify)
-    
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option("", "--signal_notify", dest="signal_notify",
-                  help="specify signal notifier")
-parser.add_option("", "--pick_old_order", dest='pick_old_order',
-                  action="store_true", default=False,
-                  help="do not pick old order")
-parser.add_option('', '--signal', dest='signal', default='boll',
-                  help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--emulate', dest='emulate',
-                  help="try to emulate trade notify")
-parser.add_option('', '--policy', dest='policy',
-                  help="use specified trade policy, ema_greedy/close_ema")
-parser.add_option('', '--which_ema', dest='which_ema',
-                  help='using with one of ema')
-parser.add_option('', '--order_num', dest='order_num',
-                  help='how much orders')
-parser.add_option('', '--fee_amount', dest='fee_amount',
-                  action='store_true', default=False,
-                  help='take amount int account with fee')
-
-(options, args) = parser.parse_args()
-print (type(options), options, args)
-
-pick_old_order = options.pick_old_order
-l_dir = args[0].rstrip('/')
-
-l_signal = options.signal
-l_prefix = '%s_' % l_signal
 
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
@@ -892,7 +893,7 @@ print ('trade_notify: %s' % trade_notify)
 
 print ('using amount file: %s' % amount_file)
 
-if options.signal_notify :
+if options.signal_notify != None:
     signal_notify = options.signal_notify
 else:
     signal_notify = '%s.%snotify' % (l_dir, l_prefix)
