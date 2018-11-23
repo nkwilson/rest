@@ -23,7 +23,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
                   help="specify signal notifier")
-parser.add_option("", "--with_old_files", dest='with_old_files',
+parser.add_option("", "--without_old_files", dest='without_old_files',
                   action="store_true", default=False,
                   help="do not processing stock files")
 parser.add_option('', '--signal', dest='signals', default=[],
@@ -75,12 +75,12 @@ def save_boll_to_file(stock_price, filename, window_size=default_window_size, nu
     mean, upper, lower = boll(stock_price, window_size, num_of_std)
     l_delta = dt.now() - l_start
     l_start = dt.now()
-    print (l_delta, end=' ', flush=True)
+    print (l_delta, end=' ')
     with open(filename, 'w') as f:
         f.write('%0.3f, %0.3f, %0.3f\n' % (mean, upper, lower))
         f.close()
     l_delta = dt.now() - l_start
-    print (l_delta)
+    print (l_delta, flush=True)
 
 # refer to: http://pandas.pydata.org/pandas-docs/stable/computation.html#exponentially-weighted-windows
 def ewma(stock_price, w1=3, w2=10, w3=20, w4=60):
@@ -101,15 +101,17 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
     w1, w2, w3, w4 = ewma(stock_price, w1, w3, w3, w4)
     l_delta = datetime.datetime.now() - l_start
     l_start = datetime.datetime.now()
-    print (l_delta, end=' ', flush=True)
+    print (l_delta, end=' ')
     with open(filename, 'w') as f:
         f.write('%0.3f, %0.3f, %0.3f, %0.3f\n' % (w1, w2, w3, w4))
         f.close()
     l_delta = datetime.datetime.now() - l_start                
-    print (l_delta)
+    print (l_delta, flush=True)
 
-def save_and_notify_signal(stock_price, filename, signal, notify_file):
+def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
     globals()['save_%s_to_file' % signal](stock_price, filename)
+    if notify_file == '':
+        return
     # make signal
     with open(notify_file, 'w') as f:
         f.write(filename)
@@ -239,7 +241,7 @@ def with_scandir_nosuffix(l_dir):
         it.close()
     return files
     
-def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
+def processing_old_files(l_dir, latest_to_read, signal):
     start = dt.now()
     print ('Processing old files, begin at %s' % (start))
     # with os.scandir(sys.argv[1]) as it:
@@ -260,25 +262,10 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
             # print (fpath)
             with open(fpath, 'r') as f:
                 close=eval(f.readline())[3]
+                # print (close)
                 close_prices[fname]=close
-            # first check .ewma is exist
-            fpathboll='%s.%s' % (fpath, suffix)
-            # print (fpathboll)
-            if os.path.isfile(fpathboll) and os.path.getsize(fpathboll) > 0 :
-                with open(fpathboll, 'r') as fb:
-                    read_saved+=1
-                    l_line = fb.readline().rstrip('\n')
-                    # print (l_line, type(l_line))
-                    boll = l_line.split(',')
-                    # print (boll)
-                    boll = [float(x) for x in boll]
-                    # print (boll)
-            else:
-                w1, w2, w3, w4 = ewma(close_prices)
-                # print (w1, w2, w3, w4)
-                with open(fpathboll, 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.3f, %0.3f, %0.3f, %0.3f\n' % (w1, w2, w3, w4))
-                    fb.close()
+            fpathboll='%s.%s' % (fpath, signal)
+            save_and_notify_signal(close_prices, fpathboll, signal)
         print ('Processed total %d(%d saved) old files' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
@@ -288,9 +275,6 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
 def waiting_for_notify(l_dir, prefix):
-    print ('')
-    print ('Waiting for process new coming file')
-
     signal_notify = '%s.%s_notify' % (l_dir, prefix)  # file used to notify boll finish signal
 
     logfile='%s.log' % signal_notify
@@ -309,6 +293,12 @@ def waiting_for_notify(l_dir, prefix):
         f.write('%d' % os.getpgrp())
         print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
+    print ('Skip processing old files') if options.without_old_files == True \
+        else processing_old_files(l_dir, latest_to_read, prefix)
+
+    print ('')
+    print ('Waiting for process new coming file')
+        
     while True:
         print ('', end='', flush=True)
         subpath = ''
@@ -338,8 +328,5 @@ def waiting_for_notify(l_dir, prefix):
         except Exception as ex:
             print (ex)
             continue
-
-print ('Skip processing old files\n') if options.with_old_files == False \
-    else processing_old_files(l_dir, latest_to_read, tuple(default_skip_suffixes + ['.%s' % l_signal]), l_signal)
 
 waiting_for_notify(l_dir, l_signal)
