@@ -316,6 +316,7 @@ def do_trade_new(subpath):
                 with open(startup_notify, 'w') as f:
                     f.write('%s' % order_info)
                     f.close()
+                    print ('%s startup signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             # append amount info to subsubpath
             with open(subsubpath, 'a') as f:
                 f.write(',%s' % order_id)
@@ -325,6 +326,7 @@ def do_trade_new(subpath):
             with open(shutdown_notify, 'w') as f:
                 f.write('%s' % order_info)
                 f.close()
+                print ('%s shutdown signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             # only update when no holdings, check with bond
             balance = 0
             if quarter_auto_bond(symbol) == 0:
