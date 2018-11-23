@@ -23,7 +23,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
                   help="specify signal notifier")
-parser.add_option("", "--without_old_files", dest='without_old_files',
+parser.add_option("", "--with_old_files", dest='with_old_files',
                   action="store_true", default=False,
                   help="do not processing stock files")
 parser.add_option('', '--signal', dest='signals', default=[],
@@ -339,7 +339,7 @@ def waiting_for_notify(l_dir, prefix):
             print (ex)
             continue
 
-print ('Skip processing old files\n') if options.without_old_files == True \
+print ('Skip processing old files\n') if options.with_old_files == False \
     else processing_old_files(l_dir, latest_to_read, tuple(default_skip_suffixes + ['.%s' % l_signal]), l_signal)
 
 waiting_for_notify(l_dir, l_signal)
