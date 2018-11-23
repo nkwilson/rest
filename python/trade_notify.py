@@ -958,6 +958,7 @@ if options.emulate:
     os.sys.exit(0)
 
 if startup_notify != '':
+    print ('Waiting for startup signal', flush=True)    
     command = ['fswatch', '-1', startup_notify]
     result = subprocess.run(command, stdout=PIPE) # wait file modified
     if result.returncode < 0: # means run failed
