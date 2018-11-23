@@ -77,7 +77,7 @@ def save_boll_to_file(stock_price, filename, window_size=default_window_size, nu
     l_start = dt.now()
     print (l_delta, end=' ', flush=True)
     with open(filename, 'w') as f:
-        f.write('%0.7f, %0.7f, %0.7f\n' % (mean, upper, lower))
+        f.write('%0.3f, %0.3f, %0.3f\n' % (mean, upper, lower))
         f.close()
     l_delta = dt.now() - l_start
     print (l_delta)
@@ -103,7 +103,7 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
     l_start = datetime.datetime.now()
     print (l_delta, end=' ', flush=True)
     with open(filename, 'w') as f:
-        f.write('%0.7f, %0.7f, %0.7f, %0.7f\n' % (w1, w2, w3, w4))
+        f.write('%0.3f, %0.3f, %0.3f, %0.3f\n' % (w1, w2, w3, w4))
         f.close()
     l_delta = datetime.datetime.now() - l_start                
     print (l_delta)
@@ -277,7 +277,7 @@ def processing_old_files(l_dir, latest_to_read, skip_suffixes, suffix):
                 w1, w2, w3, w4 = ewma(close_prices)
                 # print (w1, w2, w3, w4)
                 with open(fpathboll, 'w') as fb: # write bull result to file with suffix of '.boll'
-                    fb.write('%0.7f, %0.7f, %0.7f, %0.7f\n' % (w1, w2, w3, w4))
+                    fb.write('%0.3f, %0.3f, %0.3f, %0.3f\n' % (w1, w2, w3, w4))
                     fb.close()
         print ('Processed total %d(%d saved) old files' % (len(files), read_saved))
     except Exception as ex:
