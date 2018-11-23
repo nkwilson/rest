@@ -27,6 +27,12 @@ from subprocess import PIPE, run
 import json
 import logging
 
+import locale
+default_encoding = locale.getpreferredencoding(False)
+
+startup_notify = ''
+shutdown_notify = ''
+
 apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
 secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
 okcoinRESTURL = 'www.okex.com'
@@ -73,6 +79,10 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
                   help="specify signal notifier")
+parser.add_option("", "--startup_notify", dest="startup_notify",
+                  help="specify startup notifier")
+parser.add_option("", "--shutdown_notify", dest="shutdown_notify",
+                  help="specify shutdown notifier")
 parser.add_option("", "--pick_old_order", dest='pick_old_order',
                   action="store_true", default=False,
                   help="do not pick old order")
@@ -780,12 +790,14 @@ def emul_signal_notify(l_dir):
 
 fence_count = 0
 # wait on boll_notify for signal
-def wait_boll_notify(notify):
+def wait_boll_notify(notify, shutdown):
     global fee_threshold, fee_file, amount_file
     global fence_count
     global amount
+    global trade_file
+    shutdown_on_close = False
     while True:
-        command = ['fswatch', '-1', notify]
+        command = ['fswatch', '-1', notify, shutdown]
         try:
             # check if should read fee from file
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
@@ -807,13 +819,21 @@ def wait_boll_notify(notify):
             print ('fee_threshold reset to %f' % fee_threshold)
         print ('', end='', flush=True)
         try:
-            result = subprocess.run(command, stdout=PIPE) # wait file modified
+            result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
+            # if received shutdown notify, close all order
+            if shutdown in result.stdout:
+                shutdown_on_close = True
+                print ('shutdown triggered, shutdown when closed')
+            if shutdown_on_close and trade_file == '':
+                break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 #print (subpath)
                 try_to_trade_boll(subpath)
             fence_count = 0
+            if shutdown_on_close and trade_file == '':
+                break
         except FileNotFoundError as fnfe:
             print (fnfe)
             break
@@ -826,12 +846,14 @@ def wait_boll_notify(notify):
             continue
 
 # wait on ema_notify for signal
-def wait_ewma_notify(notify):
+def wait_ewma_notify(notify, shutdown):
     global fee_threshold, fee_file, amount_file
     global fence_count
     global amount
+    global trade_file
+    shutdown_on_close = False
     while True:
-        command = ['fswatch', '-1', notify]
+        command = ['fswatch', '-1', notify, shutdown]
         try:
             # check if should read fee from file
             if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
@@ -857,13 +879,20 @@ def wait_ewma_notify(notify):
                 try_to_trade_ewma(notify)
                 break
             
-            result = subprocess.run(command, stdout=PIPE) # wait file modified
+            result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
+            if shutdown in result.stdout:
+                shutdown_on_close = True
+                print ('shutdown triggered, shutdown when closed')
+            if shutdown_on_close and trade_file == '':
+                break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 # print (subpath)
                 try_to_trade_ewma(subpath)
             fence_count = 0
+            if shutdown_on_close and trade_file == '':
+                break
         except FileNotFoundError as fnfe:
             print (fnfe)
             break
@@ -875,8 +904,8 @@ def wait_ewma_notify(notify):
                 break
             continue
 
-def wait_signal_notify(notify, signal):
-    globals()['wait_%s_notify' % signal](notify)
+def wait_signal_notify(notify, signal, shutdown):
+    globals()['wait_%s_notify' % signal](notify, shutdown)
 
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
@@ -917,12 +946,26 @@ if pick_old_order == True:
     if trade_file != '': # yes, old pending order exists
         print ('### pick old order: %s, open price %f\n' % (trade_file, old_open_price))
 
+if options.startup_notify != None:
+    startup_notify = options.startup_notify
+    print ('startup_notify: %s' % startup_notify)
+if options.shutdown_notify != None:
+    shutdown_notify = options.shutdown_notify
+    print ('shutdown_notify: %s' % shutdown_notify)
+        
 if options.emulate:
     emul_signal_notify(l_dir)
     os.sys.exit(0)
 
+if startup_notify != '':
+    command = ['fswatch', '-1', startup_notify]
+    result = subprocess.run(command, stdout=PIPE) # wait file modified
+    if result.returncode < 0: # means run failed
+        os.sys.exit(result.returncode)
+    print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
+
 print ('Waiting for process new coming file\n', flush=True)
-wait_signal_notify(signal_notify, l_signal)
+wait_signal_notify(signal_notify, l_signal, shutdown_notify)
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
