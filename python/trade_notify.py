@@ -821,7 +821,7 @@ def wait_boll_notify(notify, shutdown):
         try:
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
             # if received shutdown notify, close all order
-            if shutdown in result.stdout:
+            if shutdown != '' and shutdown in result.stdout:
                 shutdown_on_close = True
                 print ('shutdown triggered, shutdown when closed')
             if shutdown_on_close and trade_file == '':
@@ -880,7 +880,7 @@ def wait_ewma_notify(notify, shutdown):
                 break
             
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
-            if shutdown in result.stdout:
+            if shutdown != '' and shutdown in result.stdout:
                 shutdown_on_close = True
                 print ('shutdown triggered, shutdown when closed')
             if shutdown_on_close and trade_file == '':
