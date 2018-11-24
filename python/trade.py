@@ -311,12 +311,11 @@ def do_trade_new(subpath):
         order_info = json.loads(quarter_orderinfo(symbol, order_id))
         print (order_info)
         if action == 'open': # figure bond info
-            # only generate startup notify for the first order
-            if os.path.isfile(subsubpath) and os.path.getsize(subsubpath) == 0:
-                with open(startup_notify, 'w') as f:
-                    f.write('%s' % order_info)
-                    f.close()
-                    print ('%s startup signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            # generate startup notify
+            with open(startup_notify, 'w') as f:
+                f.write('%s' % order_info)
+                f.close()
+                print ('%s startup signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             # append amount info to subsubpath
             with open(subsubpath, 'a') as f:
                 f.write(',%s' % order_id)
@@ -327,6 +326,9 @@ def do_trade_new(subpath):
                 f.write('%s' % order_info)
                 f.close()
                 print ('%s shutdown signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            # clean up startup notify
+            with open(startup_notify, 'w') as f:
+                f.close()
             # only update when no holdings, check with bond
             balance = 0
             if quarter_auto_bond(symbol) == 0:
