@@ -90,7 +90,7 @@ parser.add_option('', '--emulate', dest='emulate',
                   help="try to emulate trade notify")
 parser.add_option('', '--policy', dest='policy',
                   help="use specified trade policy, ema_greedy/close_ema")
-parser.add_option('', '--which_ema', dest='which_ema',
+parser.add_option('', '--which_ema', dest='which_ema', default=0, 
                   help='using with one of ema')
 parser.add_option('', '--order_num', dest='order_num',
                   help='how much orders')
@@ -964,8 +964,20 @@ while True:
         result = subprocess.run(command, stdout=PIPE) # wait file modified
         if result.returncode < 0: # means run failed
             os.sys.exit(result.returncode)
-            print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
-
+        print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
+        limit_direction = ''
+        limit_price = 0
+        limit_symbol = ''
+        limit_amount = 0
+        with open(startup_notify, 'r') as f:
+            order_info = json.loads(f.readline())
+            f.close()
+            dirs = ['', 'buy', 'sell']
+            if order_info['result'] == True:
+                limit_direction = dirs[order_info['orders'][0]['type']]
+                limit_price = order_info['orders'][0]['price']
+                limit_symbol = order_info['orders'][0]['symbol']
+                limit_amount = order_info['orders'][0]['amount']
     print ('Waiting for process new coming file\n', flush=True)
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
 
