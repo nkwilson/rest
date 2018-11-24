@@ -957,16 +957,20 @@ if options.emulate:
     emul_signal_notify(l_dir)
     os.sys.exit(0)
 
-if startup_notify != '':
-    print ('Waiting for startup signal', flush=True)    
-    command = ['fswatch', '-1', startup_notify]
-    result = subprocess.run(command, stdout=PIPE) # wait file modified
-    if result.returncode < 0: # means run failed
-        os.sys.exit(result.returncode)
-    print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
+while True:
+    if startup_notify != '':
+        print ('Waiting for startup signal', flush=True)
+        command = ['fswatch', '-1', startup_notify]
+        result = subprocess.run(command, stdout=PIPE) # wait file modified
+        if result.returncode < 0: # means run failed
+            os.sys.exit(result.returncode)
+            print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
 
-print ('Waiting for process new coming file\n', flush=True)
-wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+    print ('Waiting for process new coming file\n', flush=True)
+    wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+
+    if startup_notify == '':
+        break;
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
