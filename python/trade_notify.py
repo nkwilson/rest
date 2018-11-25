@@ -33,6 +33,13 @@ default_encoding = locale.getpreferredencoding(False)
 startup_notify = ''
 shutdown_notify = ''
 
+limit_direction = ''  # 'buy'/'sell'
+def check_limit_direction(direction):
+    return limit_direction == '' or limit_direction == direction
+limit_price = 0
+limit_symbol = ''
+limit_amount = 0
+
 apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
 secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
 okcoinRESTURL = 'www.okex.com'
@@ -571,6 +578,7 @@ def try_to_trade_old(subpath):
     global trade_notify
     global direction
     global average_close_price, order_num
+    global limit_direction, limit_amount, limit_price, limit_symbol
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -596,7 +604,7 @@ def try_to_trade_old(subpath):
                 if old_ema_0 == 0:
                     old_ema_0 = ema_0
                 if ema_0 < old_ema_0 and close < old_close : # open sell order
-                    if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
+                    if trade_file == '' and check_limit_direction('sell') and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         #print (trade_file)
                         # print (previous_close_price, close)
@@ -608,7 +616,7 @@ def try_to_trade_old(subpath):
                         order_num = 1
                         print ('<%0.3f %0.3f\n' % (ema_0, close))
                 elif ema_0 > old_ema_0 and close > old_close: # open buy order
-                    if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
+                    if trade_file == '' and check_limit_direction('buy') and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
                         #print (previous_close_price, close)
@@ -972,7 +980,7 @@ while True:
         with open(startup_notify, 'r') as f:
             order_info = json.loads(f.readline())
             f.close()
-            dirs = ['', 'buy', 'sell']
+            dirs = ['', 'buy', 'sell', '', ''] # 1:buy, 2:sell
             if order_info['result'] == True:
                 limit_direction = dirs[order_info['orders'][0]['type']]
                 limit_price = order_info['orders'][0]['price']
