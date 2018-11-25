@@ -31,10 +31,10 @@ case ${COIN} in
 	 ;;
 esac
 	 
-echo python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL} &
-echo python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL} &
-echo python3 monitor_me.py trade.py --signal=boll ${SYMBOL} &
+python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL} &
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL} &
+python3 monitor_me.py trade.py --signal=boll ${SYMBOL} &
 
-echo python3 monitor_me.py signal_notify.py --signal=ewma --dir=${SYMBOL} &
-echo python3 monitor_me.py trade_notify.py --signal=ewma --dir=${SYMBOL} --startup_notify=${SYMBOL}.boll_trade.startup --shutdown_notify=${SYMBOL}.boll_trade.shutdown &
-echo python3 monitor_me.py trade.py --signal=ewma ${SYMBOL} &
+python3 monitor_me.py signal_notify.py --signal=ewma --dir=${SYMBOL} &
+python3 monitor_me.py trade_notify.py --signal=ewma --dir=${SYMBOL} --startup_notify=${SYMBOL}.boll_trade.startup --shutdown_notify=${SYMBOL}.boll_trade.shutdown &
+python3 monitor_me.py trade.py --signal=ewma ${SYMBOL} &
