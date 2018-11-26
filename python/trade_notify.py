@@ -929,6 +929,7 @@ logging.basicConfig(filename=logfile,
 #logging.info('trade_notify: %s' % trade_notify)
 saved_stdout = sys.stdout
 sys.stdout = open(logfile, 'a')
+sys.stderr = sys.stdout
 print (dt.now())
 print ('trade_notify: %s' % trade_notify)
 
@@ -982,7 +983,10 @@ while True:
         limit_symbol = ''
         limit_amount = 0
         with open(startup_notify, 'r') as f:
-            order_info = json.loads(f.readline())
+            # f is a formated map type,just eval it
+            line=f.readline()
+            print ('order_info: %s', line)
+            order_info = eval(line)
             f.close()
             dirs = ['', 'buy', 'sell', '', ''] # 1:buy, 2:sell
             if order_info['result'] == True:
