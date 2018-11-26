@@ -980,7 +980,9 @@ while True:
         limit_amount = 0
         with open(startup_notify, 'r') as f:
             # f is a formated map type,just eval it
-            order_info = eval(f.readline())
+            line=f.readline()
+            print ('order_info: %s', line)
+            order_info = eval(line)
             f.close()
             dirs = ['', 'buy', 'sell', '', ''] # 1:buy, 2:sell
             if order_info['result'] == True:
