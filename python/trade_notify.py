@@ -888,10 +888,13 @@ def wait_ewma_notify(notify, shutdown):
                 break
             
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
-            if shutdown != '' and shutdown in result.stdout:
+            if shutdown != '' and os.path.isfile(shutdown) and os.path.getsize(shutdown) > 0:
                 shutdown_on_close = True
-                print ('shutdown triggered, shutdown when closed')
+                print (trade_timestamp(), 'shutdown triggered, shutdown when closed')
+                with open(shutdown, 'w') as f:
+                    f.close()
             if shutdown_on_close and trade_file == '':
+                print (trade_timestamp(), 'shutdown now')
                 break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
@@ -900,6 +903,7 @@ def wait_ewma_notify(notify, shutdown):
                 try_to_trade_ewma(subpath)
             fence_count = 0
             if shutdown_on_close and trade_file == '':
+                print (trade_timestamp(), 'shutdown now')
                 break
         except FileNotFoundError as fnfe:
             print (fnfe)
