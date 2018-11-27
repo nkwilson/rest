@@ -244,6 +244,9 @@ def queue_trade_order(subpath):
         with open(trade_queue, 'a') as f:
             f.write(subpath)
 
+def trade_timestamp():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 #print (quarter_orderinfo('bch_usd', '1460633310147580'))
 #print (quarter_orderinfo('bch_usd', '1426230836341760'))
 #os.sys.exit()
@@ -266,8 +269,7 @@ def do_trade_new(subpath):
     direction = os.path.splitext(subsubpath)[1][1:]
     # print (direction, action)
     symbol = order_infos[raw_symbol]
-    print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-           (symbol, order_infos[direction][action]))
+    print (trade_timestamp(), symbol, order_infos[direction][action])
     msg = 'failed' # means failed
     try:
         l_amount = amount
@@ -315,7 +317,7 @@ def do_trade_new(subpath):
             with open(startup_notify, 'w') as f:
                 f.write('%s' % order_info)
                 f.close()
-                print ('%s startup signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                print ('%s startup signal generated' % trade_timestamp())
             # append amount info to subsubpath
             with open(subsubpath, 'a') as f:
                 f.write(',%s' % order_id)
@@ -325,10 +327,7 @@ def do_trade_new(subpath):
             with open(shutdown_notify, 'w') as f:
                 f.write('%s' % order_info)
                 f.close()
-                print ('%s shutdown signal generated' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            # clean up startup notify
-            with open(startup_notify, 'w') as f:
-                f.close()
+                print ('%s shutdown signal generated' % trade_timestamp())
             # only update when no holdings, check with bond
             balance = 0
             if quarter_auto_bond(symbol) == 0:
