@@ -797,8 +797,8 @@ def emul_signal_notify(l_dir):
 # ['Change', '54052560', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000,', 'flags', '70912Change', '54052563', 'in', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1535123280000.lock,', 'flags', '66304', '-', 'matched', 'directory,', 'notifying\n']
 
 fence_count = 0
-# wait on boll_notify for signal
-def wait_boll_notify(notify, shutdown):
+
+def wait_signal_notify(notify, signal, shutdown):
     global fee_threshold, fee_file, amount_file
     global fence_count
     global amount
@@ -827,6 +827,10 @@ def wait_boll_notify(notify, shutdown):
             print ('fee_threshold reset to %f' % fee_threshold)
         print ('', end='', flush=True)
         try:
+            if options.emulate:
+                globals()['try_to_trade_%s' % signal](notify)
+                break
+
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
             # if received shutdown notify, close all order
             if shutdown != '' and shutdown in result.stdout:
@@ -841,7 +845,7 @@ def wait_boll_notify(notify, shutdown):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 #print (subpath)
-                try_to_trade_boll(subpath)
+                globals()['try_to_trade_%s' % signal](subpath)
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
@@ -888,7 +892,7 @@ def wait_ewma_notify(notify, shutdown):
         print ('', end='', flush=True)
         try:
             if options.emulate:
-                try_to_trade_ewma(notify)
+                globals()['try_to_trade_%s' % signal](notify)
                 break
             
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
@@ -904,7 +908,7 @@ def wait_ewma_notify(notify, shutdown):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 # print (subpath)
-                try_to_trade_ewma(subpath)
+                globals()['try_to_trade_%s' % signal](subpath)
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
@@ -919,9 +923,6 @@ def wait_ewma_notify(notify, shutdown):
             if fence_count > 20:
                 break
             continue
-
-def wait_signal_notify(notify, signal, shutdown):
-    globals()['wait_%s_notify' % signal](notify, shutdown)
 
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
@@ -982,6 +983,9 @@ while True:
         if result.returncode < 0: # means run failed
             os.sys.exit(result.returncode)
         print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
+        # try to clean startup notify
+        with open(startup_notify, 'w') as f:
+            f.close()
         limit_direction = ''
         limit_price = 0
         limit_symbol = ''
