@@ -832,7 +832,10 @@ def wait_boll_notify(notify, shutdown):
             if shutdown != '' and shutdown in result.stdout:
                 shutdown_on_close = True
                 print ('shutdown triggered, shutdown when closed')
+                with open(shutdown, 'w') as f:
+                    f.close()
             if shutdown_on_close and trade_file == '':
+                print (trade_timestamp(), 'shutdown now')
                 break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
@@ -841,6 +844,7 @@ def wait_boll_notify(notify, shutdown):
                 try_to_trade_boll(subpath)
             fence_count = 0
             if shutdown_on_close and trade_file == '':
+                print (trade_timestamp(), 'shutdown now')
                 break
         except FileNotFoundError as fnfe:
             print (fnfe)
