@@ -977,7 +977,7 @@ if options.emulate:
 
 while True:
     if startup_notify != '':
-        print ('Waiting for startup signal', flush=True)
+        print (trade_timestamp(), 'Waiting for startup signal', flush=True)
         command = ['fswatch', '-1', startup_notify]
         result = subprocess.run(command, stdout=PIPE) # wait file modified
         if result.returncode < 0: # means run failed
@@ -1004,6 +1004,7 @@ while True:
                 limit_amount = order_info['orders'][0]['amount']
     print ('Waiting for process new coming file\n', flush=True)
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+    print (trade_timestamp(), 'shutdown signal processed')
 
     if startup_notify == '':
         break;
