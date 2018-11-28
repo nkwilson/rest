@@ -983,9 +983,6 @@ while True:
         if result.returncode < 0: # means run failed
             os.sys.exit(result.returncode)
         print ('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
-        # try to clean startup notify
-        with open(startup_notify, 'w') as f:
-            f.close()
         limit_direction = ''
         limit_price = 0
         limit_symbol = ''
@@ -1002,6 +999,9 @@ while True:
                 limit_price = order_info['orders'][0]['price']
                 limit_symbol = order_info['orders'][0]['symbol']
                 limit_amount = order_info['orders'][0]['amount']
+        with open(startup_notify, 'w') as f:
+            # try to clean startup notify
+            f.close()
     print ('Waiting for process new coming file\n', flush=True)
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
     print (trade_timestamp(), 'shutdown signal processed')
