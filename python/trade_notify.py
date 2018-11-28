@@ -1002,7 +1002,7 @@ while True:
         with open(startup_notify, 'w') as f:
             # try to clean startup notify
             f.close()
-    print ('Waiting for process new coming file\n', flush=True)
+    print (trade_timestamp(), 'Waiting for process new coming file\n', flush=True)
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
     print (trade_timestamp(), 'shutdown signal processed')
 
