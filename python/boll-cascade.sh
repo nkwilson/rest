@@ -40,13 +40,14 @@ case ${COIN} in
 	 echo '0.012' > ${SYMBOL}.ewma_fee
 	 ;;
      ltc)
-	 echo 'need rewrite'
-	 exit
-	 echo $(expr '40' '*' "${TIMES}") > ${SYMBOL}.boll_amount
-	 echo '0.012' > ${SYMBOL}.boll_fee
+	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
+	 echo '0.012' > ${SYMBOL1}.boll_fee
 
-	 echo $(expr '40' '*' "${TIMES}") > ${SYMBOL}.ewma_amount
-	 echo '0.012' > ${SYMBOL}.ewma_fee
+	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
+	 echo '0.012' > ${SYMBOL2}.boll_fee
+
+	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
+	 echo '0.012' > ${SYMBOL3}.boll_fee
 	 ;;
 esac
 	 
