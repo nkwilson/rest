@@ -457,7 +457,7 @@ def try_to_trade_close_ema(subpath):
             else:
                 delta = 0
             if delta != 0:
-                print ('%0.3f %0.3f %0.3f #%0.2f=>%0.2f' % (ema_0, close, average_open_price, old_delta, delta))
+                print ('%9.3f %9.3f %9.3f #%9.3f=>%9.3f' % (ema_0, close, average_open_price, old_delta, delta))
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema_0) == False:
@@ -479,7 +479,7 @@ def try_to_trade_close_ema(subpath):
                         average_open_price = close
                         order_num = 1
                         total_orders += 1
-                        print ('<%0.3f %0.3f' % (ema_0, close))
+                        print ('<%9.3f %9.3f' % (ema_0, close))
                 elif direction == '' and close > old_close: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -491,7 +491,7 @@ def try_to_trade_close_ema(subpath):
                         average_open_price = close
                         order_num = 1
                         total_orders += 1
-                        print ('<%0.3f %0.3f' % (ema_0, close))
+                        print ('<%9.3f %9.3f' % (ema_0, close))
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -507,11 +507,11 @@ def try_to_trade_close_ema(subpath):
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
-                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                        print ('%9.3f %9.3f> return %f' % (ema_0, close, delta))
                         delta = 0
                         old_delta = 0
                     else: # abnormal case
-                        print ('stay unchanged, neight to close nor to buy, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
+                        print ('stay unchanged, neight to close nor to buy, %9.3f~%9.3f %9.3f' % (close, old_close, ema_0))
                 elif direction == 'buy' :
                     if old_delta !=0 and old_delta > delta : # return is decreasing
                         signal_close_order_with_sell(l_index, trade_file, close)
@@ -520,7 +520,7 @@ def try_to_trade_close_ema(subpath):
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
-                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))                        
+                        print ('%9.3f %9.3f> return %f' % (ema_0, close, delta))                        
                     elif close <= ema_0 :
                         direction = '+' # may trigger close
                         # more greedy
@@ -540,11 +540,11 @@ def try_to_trade_close_ema(subpath):
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
-                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))
+                        print ('%9.3f %9.3f> return %f' % (ema_0, close, delta))
                         delta = 0
                         old_delta = 0
                     else: # abnormal case
-                        print ('stay unchanged, neight to close nor to sell, %0.3f~%0.3f %0.3f' % (close, old_close, ema_0))
+                        print ('stay unchanged, neight to close nor to sell, %9.3f~%9.3f %9.3f' % (close, old_close, ema_0))
                 elif direction == 'sell' :
                     if old_delta != 0 and old_delta > delta: # return is decreasing
                         signal_close_order_with_buy(l_index, trade_file, close)
@@ -553,7 +553,7 @@ def try_to_trade_close_ema(subpath):
                         total_revenue += delta
                         trade_file = ''
                         direction = ''
-                        print ('%0.3f %0.3f> return %f' % (ema_0, close, delta))                        
+                        print ('%9.3f %9.3f> return %f' % (ema_0, close, delta))                        
                     elif close >= ema_0 :
                         direction = '-' # may trigger close
                         # more greedy
@@ -594,7 +594,7 @@ def try_to_trade_old(subpath):
                 delta = close - old_open_price
             else:
                 delta = 0
-            print (ema_0, close, old_open_price, '#%0.2f' % delta)
+            print (ema_0, close, old_open_price, '#%9.3f' % delta)
         if ema == 0 or close == 0: # in case read failed
             return
         if math.isnan(ema_0) == False:
@@ -614,7 +614,7 @@ def try_to_trade_old(subpath):
                         direction = 'sell'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema_0, close))
+                        print ('<%9.3f %9.3f\n' % (ema_0, close))
                 elif ema_0 > old_ema_0 and close > old_close: # open buy order
                     if trade_file == '' and check_limit_direction('buy') and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -626,7 +626,7 @@ def try_to_trade_old(subpath):
                         direction = 'buy'
                         average_close_price = close
                         order_num = 1
-                        print ('<%0.3f %0.3f\n' % (ema_0, close))
+                        print ('<%9.3f %9.3f\n' % (ema_0, close))
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -642,7 +642,7 @@ def try_to_trade_old(subpath):
                             average_close_price = (average_close_price + close)/2.0
                             old_open_price = (old_open_price + close)/2.0
                             order_num += 1
-                            print (' %0.3f %0.3f\n' % (ema_0, close))
+                            print (' %9.3f %9.3f\n' % (ema_0, close))
                             pass
                         # igore close signal
                         elif False and act == 'close' and abs(average_close_price - close) > 1:
@@ -650,7 +650,7 @@ def try_to_trade_old(subpath):
                             print ('return %f\n' % ((average_close_price - close) * order_num))
                             total_revenue += (average_close_price - close) * order_num
                             trade_file = ''
-                            print ('%0.3f %0.3f>\n' % (ema_0, close))
+                            print ('%9.3f %9.3f>\n' % (ema_0, close))
                             # open trade again
                             try_to_trade_old(subpath)
                             pass
@@ -678,14 +678,14 @@ def try_to_trade_old(subpath):
                             average_close_price = (average_close_price + close)/2.0
                             old_open_price = (old_open_price + close)/2.00
                             order_num += 1
-                            print (' %0.3f %0.3f\n' % (ema_0, close))
+                            print (' %9.3f %9.3f\n' % (ema_0, close))
                             pass
                         elif False and act == 'close' and abs(close - average_close_price) > 1:
                             signal_close_order_with_sell(l_index, trade_file, close)
                             print ('return %f\n' % ((close - average_close_price) * order_num))
                             total_revenue += (close - average_close_price) * order_num
                             trade_file = ''
-                            print ('%0.3f %0.3f>\n' % (ema_0, close))
+                            print ('%9.3f %9.3f>\n' % (ema_0, close))
                             # open trade again
                             try_to_trade_old(subpath)
                             pass
