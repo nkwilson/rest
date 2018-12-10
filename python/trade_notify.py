@@ -336,33 +336,33 @@ def try_to_trade_boll(subpath):
                 fresh_trade = False
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
                 # print (symbol)
-                if boll[0] < old_close_mean: # open sell order
+                now_close_mean = int(boll[0])
+                if now_close_mean < old_close_mean: # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         # print (trade_file)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                elif boll[0] > old_close_mean: # open buy order
+                elif now_close_mean > old_close_mean: # open buy order
                     if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                old_close_mean = boll[0] # update unconditiionally
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
                     pass
                 # close is touch upper
-                elif close > boll[1] and trade_file.endswith('.sell') == True :
+                elif old_close_mean < now_close_mean and trade_file.endswith('.sell') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_buy(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                 # close is touch lower
-                elif close < boll[2] and trade_file.endswith('.buy') == True :
+                elif old_close_mean > now_close_mean and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
                     if check_close_sell_fee_threshold(old_open_price, close, amount) == True:
                         signal_close_order_with_sell(l_index, trade_file, close)
@@ -372,6 +372,7 @@ def try_to_trade_boll(subpath):
                     close_mean = close_mean[-latest_to_read:]
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
+                old_close_mean = now_close_mean
 
 def read_ema(filename):
     ema = 0
