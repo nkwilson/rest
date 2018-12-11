@@ -44,7 +44,7 @@ case ${COIN} in
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
-	 SCALE3=1000
+	 SCALE3=100
 	 
 	 ;;
      ltc)
@@ -58,7 +58,7 @@ case ${COIN} in
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
-	 SCALE3=1000
+	 SCALE3=100
 	 ;;
 esac
 	 
