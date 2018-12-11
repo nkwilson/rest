@@ -98,6 +98,8 @@ parser.add_option('', '--emulate', dest='emulate',
 parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
                   action="store_false", default=True,
                   help="Should skip checking gate when open trade")
+parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
+                  help='Should multple it before do compare')
 parser.add_option('', '--policy', dest='policy',
                   help="use specified trade policy, ema_greedy/close_ema")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
@@ -341,7 +343,9 @@ def try_to_trade_boll(subpath):
                 fresh_trade = False
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
                 # print (symbol)
-                now_close_mean = int(boll[0])
+                now_close_mean = int(boll[0] * float(options.cmp_scale))
+                if old_close_mean == 0:
+                    old_close_mean = now_close_mean
                 if now_close_mean < old_close_mean: # open sell order
                     if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
