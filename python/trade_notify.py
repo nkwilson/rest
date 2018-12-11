@@ -95,6 +95,9 @@ parser.add_option("", "--pick_old_order", dest='pick_old_order',
                   help="do not pick old order")
 parser.add_option('', '--emulate', dest='emulate',
                   help="try to emulate trade notify")
+parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
+                  action="store_false", default=True,
+                  help="Should skip checking gate when open trade")
 parser.add_option('', '--policy', dest='policy',
                   help="use specified trade policy, ema_greedy/close_ema")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
@@ -166,6 +169,8 @@ def figure_out_symbol_info(path):
 # if current order is permit to issue
 def check_open_order_gate(symbol, direction, current_price):
     if options.emulate:
+        return True
+    if options.skip_gate_check:
         return True
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
