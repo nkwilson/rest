@@ -1,21 +1,25 @@
 set -e
 
 COIN=${1:-btc}
-TOTAL=${2:-7} # 1:2:4 ratio
+TOTAL=${2:-8} # 4:2:1:1 ratio
 KEY1=${3:-12hour}
 KEY2=${4:-1hour}
 KEY3=${5:-5min}
+KEY4=${6:-1min}
 SYMBOL1=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY1}
 SYMBOL2=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY2}
 SYMBOL3=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY3}
+SYMBOL4=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY4}
 RATE1=4
 RATE2=2
 RATE3=1
-DIVID=7
+RATE4=1
+DIVID=8
 echo "start trade on symbol"
 echo "  ${SYMBOL1}"
 echo "  ${SYMBOL2}"
 echo "  ${SYMBOL3}"
+echo "  ${SYMBOL4}"
 
 TIMES=1
 
@@ -32,6 +36,10 @@ case ${COIN} in
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
 	 SCALE3=1
+
+	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount	 
+	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 SCALE4=1
 	 ;;
      eth)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
@@ -46,6 +54,9 @@ case ${COIN} in
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
 	 SCALE3=100
 	 
+	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount
+	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 SCALE4=100
 	 ;;
      ltc)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
@@ -59,6 +70,10 @@ case ${COIN} in
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
 	 SCALE3=100
+
+	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount	 
+	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 SCALE4=100
 	 ;;
 esac
 	 
