@@ -191,7 +191,10 @@ def check_open_order_gate(symbol, direction, current_price):
     return False
 
 # check if close is in the ratio of boll std
-def check_close_to_mean(bolls, close, ratio=0.3):
+def check_close_to_mean(bolls, close, ratio=0.3, threshold=0.01):
+    v0 = abs(bolls[0] - close) / bolls[0]
+    if v0 <= threshold : # less than threshold is ok
+        return True
     v1 = abs(bolls[1] - bolls[0]) * ratio # boll[0] is mean, bolls[1] is upper
     v2 = abs(close - bolls[0])
     return (v1 > v2)
