@@ -190,6 +190,12 @@ def check_open_order_gate(symbol, direction, current_price):
                 return dirs['gate'](data['%s_price_avg' % dirs['reverse_dir']], current_price, amount)
     return False
 
+# check if close is in the ratio of boll std
+def check_close_to_mean(bolls, close, ratio=0.3):
+    v1 = abs(bolls[1] - bolls[0]) * ratio # boll[0] is mean, bolls[1] is upper
+    v2 = abs(close - bolls[0])
+    return (v1 > v2)
+    
 def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -347,14 +353,14 @@ def try_to_trade_boll(subpath):
                 if old_close_mean == 0:
                     old_close_mean = now_close_mean
                 if now_close_mean < old_close_mean: # open sell order
-                    if trade_file == '' and check_open_order_gate(symbol, 'sell', close):
+                    if trade_file == '' and check_close_to_mean(boll, close) and check_open_order_gate(symbol, 'sell', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
                         # print (trade_file)
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
                 elif now_close_mean > old_close_mean: # open buy order
-                    if trade_file == '' and check_open_order_gate(symbol, 'buy', close):
+                    if trade_file == '' and check_close_to_mean(boll, close) and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
                         # print (trade_file)
                         signal_open_order_with_buy(l_index, trade_file, close)
