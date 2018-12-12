@@ -339,7 +339,7 @@ def try_to_trade_boll(subpath):
     if True: # type 256, new file event
         boll = read_boll(event_path)
         close = read_close(event_path)
-        print (boll, '%9.3f' % close, '%9.3f' % old_open_price)
+        print (''.join('%9.3f'.format(k) for k in boll), '%9.3f' % close, '%9.3f' % old_open_price)
         if boll == 0 or close == 0: # in case read failed
             return
         if math.isnan(boll[0]) == False:
