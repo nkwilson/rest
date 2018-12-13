@@ -44,19 +44,19 @@ case ${COIN} in
      eth)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
 	 echo '0.00012' > ${SYMBOL1}.boll_fee
-	 SCALE1=10
+	 SCALE1=100
 	 
 	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
 	 echo '0.00012' > ${SYMBOL2}.boll_fee
-	 SCALE2=10
+	 SCALE2=100
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount
 	 echo '0.00012' > ${SYMBOL3}.boll_fee
-	 SCALE3=10
+	 SCALE3=100
 	 
 	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount
 	 echo '0.00012' > ${SYMBOL4}.boll_fee
-	 SCALE4=10
+	 SCALE4=100
 	 ;;
      ltc)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
