@@ -131,7 +131,7 @@ old_event_path = ''
 
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def callback_file_new(subpath, signal_notify):
+def callback_file_new(subpath, signal_notify, v_signal):
     global l_index, old_l_index, event_path, old_event_path
     global close_prices
     event_path=subpath
@@ -176,9 +176,9 @@ def callback_file_new(subpath, signal_notify):
     elif l_index > old_l_index: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
         try:
             print ('')
-            filename = '%s.%s' % (old_event_path, l_signal)
+            filename = '%s.%s' % (old_event_path, v_signal)
             print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
-            save_and_notify_signal(close_prices, filename, l_signal, signal_notify)
+            save_and_notify_signal(close_prices, filename, v_signal, signal_notify)
         except Exception as ex:
             print (filename)
             print (traceback.format_exc())
@@ -196,44 +196,44 @@ def callback_file_new(subpath, signal_notify):
         print ('*', end=' ', flush=True)
 
 # generate file list
-def with_listdir(l_dir):
-    return os.listdir(l_dir)
+def with_listdir(v_dir):
+    return os.listdir(v_dir)
 
 # v2, fast than listdir
-def with_scandir_withskip(l_dir, skips):
+def with_scandir_withskip(v_dir, skips):
     files = list()
     #print (skips)
-    with os.scandir(l_dir) as it:
+    with os.scandir(v_dir) as it:
         for entry in it:
             if skips != '' and entry.name.endswith(skips) == True:
                 continue
             files.append(entry.name)
     return files
 
-def with_scandir_suffix(l_dir, suffix):
+def with_scandir_suffix(v_dir, suffix):
     files = list()
     #print (skips)
-    with os.scandir(l_dir) as it:
+    with os.scandir(v_dir) as it:
         for entry in it:
             if suffix != '' and entry.name.endswith(suffix) == True:
                 files.append(entry.name)
     return files
     
-def with_scandir(l_dir):
-    return with_scandir_withskip(l_dir, skips='')
+def with_scandir(v_dir):
+    return with_scandir_withskip(v_dir, skips='')
 
-def with_scandir_suffix(l_dir, suffix):
+def with_scandir_suffix(v_dir, suffix):
     files = list()
     #print (skips)
-    with os.scandir(l_dir) as it:
+    with os.scandir(v_dir) as it:
         for entry in it:
             if suffix != '' and entry.name.endswith(suffix) == True:
                 files.append(entry.name)
     return files
 
-def with_scandir_nosuffix(l_dir):
+def with_scandir_nosuffix(v_dir):
     files = list()
-    with os.scandir(l_dir) as it:
+    with os.scandir(v_dir) as it:
         for entry in it:
             # drop any '.*' suffix            
             if os.path.splitext(entry)[1] == '':
@@ -241,7 +241,7 @@ def with_scandir_nosuffix(l_dir):
         it.close()
     return files
     
-def processing_old_files(l_dir, latest_to_read, signal):
+def processing_old_files(v_dir, latest_to_read, signal):
     start = dt.now()
     print ('Processing old files, begin at %s' % (start))
     # with os.scandir(sys.argv[1]) as it:
@@ -252,11 +252,11 @@ def processing_old_files(l_dir, latest_to_read, signal):
     #                 close_prices[entry.name]=close
     try :
         read_saved = 0  # read boll data from saved file
-        files=with_scandir_nosuffix(l_dir)
+        files=with_scandir_nosuffix(v_dir)
         files.sort()
         print ('Total %d files, read latest %d' % (len(files), latest_to_read))
         for fname in files[-latest_to_read:]:
-            fpath = os.path.join(l_dir, fname)
+            fpath = os.path.join(v_dir, fname)
             if os.path.getsize(fpath) == 0:
                 continue
             # print (fpath)
@@ -274,8 +274,8 @@ def processing_old_files(l_dir, latest_to_read, signal):
     stop = dt.now()
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
-def waiting_for_notify(l_dir, prefix):
-    signal_notify = '%s.%s_notify' % (l_dir, prefix)  # file used to notify boll finish signal
+def waiting_for_notify(v_dir, v_signal):
+    signal_notify = '%s.%s_notify' % (v_dir, v_signal)  # file used to notify boll finish signal
 
     logfile='%s.log' % signal_notify
     saved_stdout = sys.stdout
@@ -283,10 +283,10 @@ def waiting_for_notify(l_dir, prefix):
     print (dt.now())
     print ('signal_notify: %s' % signal_notify, flush=True)
 
-    price_notify = '%s.price_notify' % l_dir
+    price_notify = '%s.price_notify' % v_dir
     print ('price_notify: %s' % price_notify)
 
-    pid_file = '%s.%s_notify.pid' % (l_dir, prefix)
+    pid_file = '%s.%s_notify.pid' % (v_dir, v_signal)
     # os.setsid() # privilge
     #print (os.getpgrp(), os.getpgid(os.getpid()))
     with open(pid_file, 'w') as f:
@@ -294,7 +294,7 @@ def waiting_for_notify(l_dir, prefix):
         print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
     print ('Skip processing old files') if options.without_old_files == True \
-        else processing_old_files(l_dir, latest_to_read, prefix)
+        else processing_old_files(v_dir, latest_to_read, v_signal)
 
     print ('')
     print ('Waiting for process new coming file')
@@ -318,15 +318,15 @@ def waiting_for_notify(l_dir, prefix):
                         #print (subpath)
                     if os.path.isfile(subpath) == True and os.path.getsize(subpath) > 0:
                         #print (subpath)
-                        callback_file_new(subpath, signal_notify)
+                        callback_file_new(subpath, signal_notify, v_signal)
                         break
                     # for old version watch_poll_price.py
-                    elif os.path.isfile(os.path.join(l_dir, subpath)) == True and os.path.getsize(os.path.join(l_dir, subpath)) > 0:
+                    elif os.path.isfile(os.path.join(v_dir, subpath)) == True and os.path.getsize(os.path.join(v_dir, subpath)) > 0:
                         print (subpath)
-                        callback_file_new(os.path.join(l_dir, subpath), signal_notify)
+                        callback_file_new(os.path.join(v_dir, subpath), signal_notify, v_signal)
                         break
         except Exception as ex:
             print (ex)
             continue
 
-waiting_for_notify(l_dir, l_signal)
+waiting_for_notify(v_dir, v_signal)
