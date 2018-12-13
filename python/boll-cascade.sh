@@ -1,7 +1,7 @@
 set -e
 
 COIN=${1:-btc}
-TOTAL=${2:-8} # 4:2:1:1 ratio
+TOTAL=${2:-10} # 4:3:2:1 ratio
 KEY1=${3:-12hour}
 KEY2=${4:-1hour}
 KEY3=${5:-5min}
@@ -11,10 +11,10 @@ SYMBOL2=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY2}
 SYMBOL3=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY3}
 SYMBOL4=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY4}
 RATE1=4
-RATE2=2
-RATE3=1
+RATE2=3
+RATE3=2
 RATE4=1
-DIVID=8
+DIVID=10
 echo "start trade on symbol"
 echo "  ${SYMBOL1}"
 echo "  ${SYMBOL2}"
@@ -86,14 +86,21 @@ sleep 2
 
 python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL2} &
 sleep 2
-python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL2} --cmp_scale=${SCALE2} --startup_notify=${SYMBOL1}.boll_trade.startup --shutdown_notify=${SYMBOL1}.boll_trade.shutdown &
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL2} --cmp_scale=${SCALE2}
 sleep 2
 python3 monitor_me.py trade.py --signal=boll ${SYMBOL2} &
 sleep 2
 
 python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL3} &
 sleep 2
-python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL3} --cmp_scale=${SCALE3} --startup_notify=${SYMBOL2}.boll_trade.startup --shutdown_notify=${SYMBOL2}.boll_trade.shutdown &
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL3} --cmp_scale=${SCALE3}
 sleep 2
 python3 monitor_me.py trade.py --signal=boll ${SYMBOL3} &
+sleep 2
+
+python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL4} &
+sleep 2
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL4} --cmp_scale=${SCALE4}
+sleep 2
+python3 monitor_me.py trade.py --signal=boll ${SYMBOL4} &
 sleep 2
