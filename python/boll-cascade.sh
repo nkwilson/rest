@@ -86,21 +86,21 @@ sleep 2
 
 python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL2} &
 sleep 2
-python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL2} --cmp_scale=${SCALE2}
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL2} --cmp_scale=${SCALE2} &
 sleep 2
 python3 monitor_me.py trade.py --signal=boll ${SYMBOL2} &
 sleep 2
 
 python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL3} &
 sleep 2
-python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL3} --cmp_scale=${SCALE3}
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL3} --cmp_scale=${SCALE3} &
 sleep 2
 python3 monitor_me.py trade.py --signal=boll ${SYMBOL3} &
 sleep 2
 
 python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL4} &
 sleep 2
-python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL4} --cmp_scale=${SCALE4}
+python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL4} --cmp_scale=${SCALE4} &
 sleep 2
 python3 monitor_me.py trade.py --signal=boll ${SYMBOL4} &
 sleep 2
