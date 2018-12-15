@@ -46,9 +46,9 @@ latest_to_read = int(options.latest_to_read)
 default_skip_suffixes=['.open', '.close', '.buy', '.sell', '.log']
 
 # only processing on signal a time
-l_signal = options.signals[0]
+v_signal = options.signals[0]
 l_prefix = '%s_' % l_signal
-l_dir = options.dirs[0]
+v_dir = options.dirs[0]
 
 close_prices = pandas.Series()
 
