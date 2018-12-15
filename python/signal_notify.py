@@ -47,7 +47,7 @@ default_skip_suffixes=['.open', '.close', '.buy', '.sell', '.log']
 
 # only processing on signal a time
 v_signal = options.signals[0]
-l_prefix = '%s_' % l_signal
+l_prefix = '%s_' % v_signal
 v_dir = options.dirs[0]
 
 close_prices = pandas.Series()
