@@ -1,7 +1,7 @@
 set -e
 
 COIN=${1:-btc}
-TOTAL=${2:-10} # 4:3:2:1 ratio
+TOTAL=${2:-10} # 3:3:3:3 ratio
 KEY1=${3:-12hour}
 KEY2=${4:-1hour}
 KEY3=${5:-5min}
@@ -10,11 +10,11 @@ SYMBOL1=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY1}
 SYMBOL2=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY2}
 SYMBOL3=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY3}
 SYMBOL4=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY4}
-RATE1=4
+RATE1=3
 RATE2=3
-RATE3=2
-RATE4=1
-DIVID=10
+RATE3=3
+RATE4=3
+DIVID=12
 echo "start trade on symbol"
 echo "  ${SYMBOL1}"
 echo "  ${SYMBOL2}"
