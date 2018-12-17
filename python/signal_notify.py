@@ -34,6 +34,11 @@ parser.add_option('', '--latest', dest='latest_to_read', default='1000',
 parser.add_option('', '--dir', dest='dirs', default=[],
                   action='append',
                   help='target dir should processing')
+parser.add_option('', '--boll_window', dest='boll_window_size', default='120',
+                  help='config boll window size')
+parser.add_option('', '--boll_std', dest='boll_std', default='2',
+                  help='config boll std')
+
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -53,8 +58,8 @@ v_dir = options.dirs[0]
 close_prices = pandas.Series()
 
 # parameters for bollinger band
-default_window_size=60
-default_num_of_std=2
+default_window_size=int(options.boll_window_size)
+default_num_of_std=int(options.boll_std)
 
 def Bolinger_Bands(stock_price, window_size, num_of_std):
     rolling_mean = stock_price.rolling(window=window_size).mean()
@@ -292,6 +297,9 @@ def waiting_for_notify(v_dir, v_signal):
     with open(pid_file, 'w') as f:
         f.write('%d' % os.getpgrp())
         print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
+    if v_signal == 'boll':
+        print ('(window_size, std) is (%d, %d)' % (default_window_size, default_num_of_std))
 
     print ('Skip processing old files') if options.without_old_files == True \
         else processing_old_files(v_dir, latest_to_read, v_signal)
