@@ -2,8 +2,8 @@ set -e
 
 COIN=${1:-btc}
 TOTAL=${2:-10} # 3:3:3:3 ratio
-KEY1=${3:-12hour}
-KEY2=${4:-1hour}
+KEY1=${3:-1hour}
+KEY2=${4:-30min}
 KEY3=${5:-5min}
 KEY4=${6:-1min}
 SYMBOL1=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY1}
