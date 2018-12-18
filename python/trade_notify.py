@@ -151,7 +151,8 @@ def check_close_sell_half_fee_threshold(open_price, current_price, amount=1):
 
 symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
-                    'usd_eth': 'eth_usd',                    
+                    'usd_eth': 'eth_usd',
+                    'usd_eos': 'eos_usd',                     
                     'usd_bch': 'bch_usd'}
 
 reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price, amount:
