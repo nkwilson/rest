@@ -123,12 +123,12 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['asks'])
-    return data['asks'][0][0] * (1 + 0.001) # the biggest ask
+    return data['asks'][0][0] * (1 + 0.003) # the biggest ask
 
 def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['bids'])
-    return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
+    return data['bids'][int(depth) - 1][0] * (1 - 0.003) # the smallest bid
 
 def check_match_price_and_lever_rate(price, lever_rate):
     if price == '':
@@ -389,7 +389,7 @@ def wait_trade_notify(notify):
                         pass
                 # print ('unlocked with %d orders' % len(orders))
                 #wait for 10s
-                time.sleep(10)
+                #time.sleep(1)
                 last_subpath = ''
                 redo = 0
                 for subpath in orders:
@@ -397,7 +397,7 @@ def wait_trade_notify(notify):
                     try:
                         # print ('order: %s' % subpath)
                         result = do_trade_new(subpath)
-                        time.sleep(5)
+                        time.sleep(1)
                         if result.index('go'):
                             continue
                     except Exception as ex:
