@@ -1,7 +1,7 @@
 set -e
 
 COIN=${1:-btc}
-TOTAL=${2:-48} # 3:5:9:15 ratio
+TOTAL=${2:-18} # 3:3:3:3 ratio
 KEY1=${3:-1hour}
 KEY2=${4:-30min}
 KEY3=${5:-5min}
@@ -11,10 +11,10 @@ SYMBOL2=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY2}
 SYMBOL3=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY3}
 SYMBOL4=../../websocket/python/ok_sub_futureusd_${COIN}_kline_quarter_${KEY4}
 RATE1=3
-RATE2=5
-RATE3=9
-RATE4=15
-DIVID=48  # first is 10/15 in trading
+RATE2=3
+RATE3=3
+RATE4=3
+DIVID=18  # first is 10/15 in trading
 FEE_RATE1=0.001
 FEE_RATE2=0.001
 FEE_RATE3=0.001
