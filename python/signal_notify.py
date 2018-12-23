@@ -87,6 +87,30 @@ def save_boll_to_file(stock_price, filename, window_size=default_window_size, nu
     l_delta = dt.now() - l_start
     print (l_delta, flush=True)
 
+# cut if necessary
+def boll_cutting(stock_price, window_size, num_of_std):
+    rolling_mean = stock_price.rolling(window=window_size).mean()
+    rolling_std  = stock_price.rolling(window=window_size).std()
+    upper_band = rolling_mean + (rolling_std*num_of_std)
+    lower_band = rolling_mean - (rolling_std*num_of_std)
+    return rolling_mean[-1], upper_band[-1], lower_band[-1]
+    
+def save_boll_cutting_to_file(stock_price, filename, window_size=default_window_size, num_of_std=default_num_of_std):
+    l_start = dt.now()
+    mean, upper, lower = boll(stock_price, window_size, num_of_std)
+    l_delta = dt.now() - l_start
+    l_start = dt.now()
+    print (l_delta, end=' ')
+    with open(filename, 'w') as f:
+        f.write('%9.3f, %9.3f, %9.3f\n' % (mean, upper, lower))
+        f.close()
+    l_delta = dt.now() - l_start
+    print (l_delta, flush=True)
+
+# do post process 
+def boll_cutting_post(stock_price, window_size, num_of_std):
+    
+
 # refer to: http://pandas.pydata.org/pandas-docs/stable/computation.html#exponentially-weighted-windows
 def ewma(stock_price, w1=3, w2=10, w3=20, w4=60):
     #print (w1, w2, w3, w4)
