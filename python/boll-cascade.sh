@@ -26,70 +26,70 @@ TIMES=1
 case ${COIN} in
      btc)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
-	 echo '0.00012' > ${SYMBOL1}.boll_fee
+	 echo '0.001' > ${SYMBOL1}.boll_fee
 	 SCALE1=1
 	 
 	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
-	 echo '0.00012' > ${SYMBOL2}.boll_fee
+	 echo '0.001' > ${SYMBOL2}.boll_fee
 	 SCALE2=1
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
-	 echo '0.00012' > ${SYMBOL3}.boll_fee
+	 echo '0.001' > ${SYMBOL3}.boll_fee
 	 SCALE3=1
 
 	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount	 
-	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 echo '0.001' > ${SYMBOL4}.boll_fee
 	 SCALE4=1
 	 ;;
      eth)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
-	 echo '0.00012' > ${SYMBOL1}.boll_fee
+	 echo '0.001' > ${SYMBOL1}.boll_fee
 	 SCALE1=100
 	 
 	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
-	 echo '0.00012' > ${SYMBOL2}.boll_fee
+	 echo '0.001' > ${SYMBOL2}.boll_fee
 	 SCALE2=100
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount
-	 echo '0.00012' > ${SYMBOL3}.boll_fee
+	 echo '0.001' > ${SYMBOL3}.boll_fee
 	 SCALE3=100
 	 
 	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount
-	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 echo '0.001' > ${SYMBOL4}.boll_fee
 	 SCALE4=100
 	 ;;
      ltc)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
-	 echo '0.00012' > ${SYMBOL1}.boll_fee
+	 echo '0.001' > ${SYMBOL1}.boll_fee
 	 SCALE1=100
 	 
 	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
-	 echo '0.00012' > ${SYMBOL2}.boll_fee
+	 echo '0.001' > ${SYMBOL2}.boll_fee
 	 SCALE2=100
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount	 
-	 echo '0.00012' > ${SYMBOL3}.boll_fee
+	 echo '0.001' > ${SYMBOL3}.boll_fee
 	 SCALE3=100
 
 	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount	 
-	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 echo '0.001' > ${SYMBOL4}.boll_fee
 	 SCALE4=100
 	 ;;
      eos)
 	 echo $(expr "${RATE1}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL1}.boll_amount
-	 echo '0.00012' > ${SYMBOL1}.boll_fee
+	 echo '0.001' > ${SYMBOL1}.boll_fee
 	 SCALE1=1000
 	 
 	 echo $(expr "${RATE2}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL2}.boll_amount
-	 echo '0.00012' > ${SYMBOL2}.boll_fee
+	 echo '0.001' > ${SYMBOL2}.boll_fee
 	 SCALE2=1000
 	 
 	 echo $(expr "${RATE3}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL3}.boll_amount
-	 echo '0.00012' > ${SYMBOL3}.boll_fee
+	 echo '0.001' > ${SYMBOL3}.boll_fee
 	 SCALE3=1000
 	 
 	 echo $(expr "${RATE4}" '*' "${TOTAL}" '/' "${DIVID}" '*' $"${TIMES}") > ${SYMBOL4}.boll_amount
-	 echo '0.00012' > ${SYMBOL4}.boll_fee
+	 echo '0.001' > ${SYMBOL4}.boll_fee
 	 SCALE4=1000
 	 ;;
      *)
