@@ -28,7 +28,7 @@ parser.add_option("", "--without_old_files", dest='without_old_files',
                   help="do not processing stock files")
 parser.add_option('', '--signal', dest='signals', default=[],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix')
+                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting]')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -38,6 +38,10 @@ parser.add_option('', '--boll_window', dest='boll_window_size', default='120',
                   help='config boll window size')
 parser.add_option('', '--boll_std', dest='boll_std', default='2',
                   help='config boll std')
+parser.add_option('', '--outdir', dest='outdir', default='',
+                  help='save result to outdir')
+parser.add_option('', '--cutting_window', dest='cutting_window', 
+                  help='always cut window to that much, only use with boll_cutting')
 
 
 (options, args) = parser.parse_args()
@@ -49,6 +53,7 @@ if len(args) != 0 : # unknows options, quit
 
 latest_to_read = int(options.latest_to_read)
 default_skip_suffixes=['.open', '.close', '.buy', '.sell', '.log']
+v_outdir=options.outdir
 
 # only processing on signal a time
 v_signal = options.signals[0]
@@ -109,7 +114,7 @@ def save_boll_cutting_to_file(stock_price, filename, window_size=default_window_
 
 # do post process 
 def boll_cutting_post(stock_price, window_size, num_of_std):
-    
+    pass
 
 # refer to: http://pandas.pydata.org/pandas-docs/stable/computation.html#exponentially-weighted-windows
 def ewma(stock_price, w1=3, w2=10, w3=20, w4=60):
@@ -146,6 +151,17 @@ def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
         f.write(filename)
         f.close()
 
+def generate_signal_filename(event_path, v_signal, outdir=''):
+    #print (event_path, v_signal, outdir)
+    dirfix = '' if outdir == '' else '-'+outdir
+    f_outdir=os.path.dirname(event_path)+dirfix
+    filename = '%s.%s' % (os.path.join(f_outdir, os.path.basename(event_path)), v_signal)
+    if os.path.isdir(f_outdir) == False:
+        os.mkdir(f_outdir)
+    #print (filename)
+    print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), '/%s:%s' % (outdir, v_signal), end=' ', flush=True)
+    return filename
+            
 # #import the pandas library and aliasing as pd
 # import pandas as pd
 # import numpy as np
@@ -160,7 +176,7 @@ old_event_path = ''
 
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def callback_file_new(subpath, signal_notify, v_signal):
+def callback_file_new(subpath, signal_notify, v_signal, v_outdir=''):
     global l_index, old_l_index, event_path, old_event_path
     global close_prices
     event_path=subpath
@@ -205,8 +221,7 @@ def callback_file_new(subpath, signal_notify, v_signal):
     elif l_index > old_l_index: # if os.path.isfile(old_event_path) and os.path.getsize(old_event_path) > 0 :
         try:
             print ('')
-            filename = '%s.%s' % (old_event_path, v_signal)
-            print (os.path.basename(os.path.dirname(old_event_path)), old_l_index, l_index, close_prices.count(), end=' ', flush=True)
+            filename = generate_signal_filename(old_event_path, v_signal, v_outdir)
             save_and_notify_signal(close_prices, filename, v_signal, signal_notify)
         except Exception as ex:
             print (filename)
@@ -270,7 +285,7 @@ def with_scandir_nosuffix(v_dir):
         it.close()
     return files
     
-def processing_old_files(v_dir, latest_to_read, signal):
+def processing_old_files(v_dir, latest_to_read, signal, outdir):
     start = dt.now()
     print ('Processing old files, begin at %s' % (start))
     # with os.scandir(sys.argv[1]) as it:
@@ -293,7 +308,7 @@ def processing_old_files(v_dir, latest_to_read, signal):
                 close=eval(f.readline())[3]
                 # print (close)
                 close_prices[fname]=close
-            fpathboll='%s.%s' % (fpath, signal)
+            fpathboll = generate_signal_filename(fpath, signal, outdir)
             save_and_notify_signal(close_prices, fpathboll, signal)
         print ('Processed total %d(%d saved) old files' % (len(files), read_saved))
     except Exception as ex:
@@ -303,12 +318,12 @@ def processing_old_files(v_dir, latest_to_read, signal):
     stop = dt.now()
     print ('Stop at %s, cost %s' % (stop, stop - start))
 
-def waiting_for_notify(v_dir, v_signal):
+def waiting_for_notify(v_dir, v_signal, v_outdir):
     signal_notify = '%s.%s_notify' % (v_dir, v_signal)  # file used to notify boll finish signal
 
     logfile='%s.log' % signal_notify
     saved_stdout = sys.stdout
-    sys.stdout = open(logfile, 'a')
+    #sys.stdout = open(logfile, 'a')
     print (dt.now())
     print ('signal_notify: %s' % signal_notify, flush=True)
 
@@ -326,7 +341,7 @@ def waiting_for_notify(v_dir, v_signal):
         print ('(window_size, std) is (%d, %d)' % (default_window_size, default_num_of_std))
 
     print ('Skip processing old files') if options.without_old_files == True \
-        else processing_old_files(v_dir, latest_to_read, v_signal)
+        else processing_old_files(v_dir, latest_to_read, v_signal, v_outdir)
 
     print ('')
     print ('Waiting for process new coming file')
@@ -350,15 +365,15 @@ def waiting_for_notify(v_dir, v_signal):
                         #print (subpath)
                     if os.path.isfile(subpath) == True and os.path.getsize(subpath) > 0:
                         #print (subpath)
-                        callback_file_new(subpath, signal_notify, v_signal)
+                        callback_file_new(subpath, signal_notify, v_signal, v_outdir)
                         break
                     # for old version watch_poll_price.py
                     elif os.path.isfile(os.path.join(v_dir, subpath)) == True and os.path.getsize(os.path.join(v_dir, subpath)) > 0:
                         print (subpath)
-                        callback_file_new(os.path.join(v_dir, subpath), signal_notify, v_signal)
+                        callback_file_new(os.path.join(v_dir, subpath), signal_notify, v_signal, v_outdir)
                         break
         except Exception as ex:
             print (ex)
             continue
 
-waiting_for_notify(v_dir, v_signal)
+waiting_for_notify(v_dir, v_signal, v_outdir)
