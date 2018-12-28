@@ -259,12 +259,16 @@ order_dict = dict()
 # if rate touched, close specified orders in order_dict
 def cleanup_boll_greedy_order(close='', rate=''):
     for key in order_dict.keys():
+        topop = list()
         if close == '' or abs(float(close) - float(key))/float(key) > float(rate):
             print ('cleanup %s at %s with %s' % (order_dict[key], key, close))
             do_trade_new('%s.close' % order_dict[key])
-            order_dict.pop(key, None)
+            list.append(key)
+
             # every 5s for each order
             time.sleep(5)
+    for key in topop:
+        order_dict.pop(key, None)
     pass
 
 # when open, reset order_dict
