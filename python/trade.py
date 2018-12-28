@@ -341,13 +341,17 @@ def do_trade_new(subpath):
         print (traceback.format_exc())
     return msg
 
+def cleanup_boll_greedy_order(subpath, rate):
+    
+    pass
+
 trade_notify = ''
 # wait on trade_notify for signal
-def wait_trade_notify(notify):
+def wait_trade_notify(notify, policy_notify='', rate='0.5'):
     global amount, auto_amount
     while True:
         print ('', end='', flush=True)
-        command = ['fswatch', '-1', notify]
+        command = ['fswatch', '-1', notify, policy_notify]
         if os.path.isfile(amount_file) and os.path.getsize(amount_file)>0:
             auto_amount = 0
             # check if should read amount from file
@@ -367,15 +371,23 @@ def wait_trade_notify(notify):
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
+            # should sort rawdata by notify date
             # print (rawdata)
             for data in rawdata:
-                if len(data) > 7 and data == notify:
-                    # print (data)
-                    subpath = data
-                    with open(subpath, 'r') as f:
-                        subpath = f.readline().rstrip('\n')
-                        queue_trade_order(subpath)
-                    break
+                if len(data) > 7:
+                    if data == notify:
+                        # print (data)
+                        subpath = data
+                        with open(subpath, 'r') as f:
+                            subpath = f.readline().rstrip('\n')
+                            queue_trade_order(subpath)
+                            f.close()
+                        break
+                    elif data == policy_notify:
+                        # print (data)
+                        subpath = data
+                        globals()['cleanup_%s_order' % options.policy](subpath, rate)
+                        break
             if os.path.isfile(trade_queue) == True:
                 orders = list()
                 # first get file lock, saved and cleared
@@ -425,6 +437,8 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--policy', dest='policy', default='',
+                  help='should receive policy notify, key is [boll_greedy]')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -447,6 +461,12 @@ print ('trade_queue: is %s' % trade_queue)
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)
 print ('trade_notify is %s' % trade_notify)
 
+if options.policy != '':
+    policy_notify = '%s.%s_notify' % (l_dir, options.policy)
+else:
+    policy_notify = ''
+print ('policy_notify is %s' % policy_notify)
+
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
@@ -466,7 +486,8 @@ with open(pid_file, 'w') as f:
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
 trade_notify = os.path.realpath(trade_notify)
-wait_trade_notify(trade_notify)
+policy_notify= os.path.realpath(policy_notify)
+wait_trade_notify(trade_notify, policy_notify)
 
 # 调用  websocket 中的 okcoin_websocket.py 来获取实时价格，写入到对应的目录中
 # 调用 rest 中的 process_price_fsevents.py 来监控价格数据，生成 bolinger band 数据写入相同目录下的 .boll文件

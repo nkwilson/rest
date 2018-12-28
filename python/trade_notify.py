@@ -415,6 +415,12 @@ def try_to_trade_boll(subpath):
                         # print (l_trade_file)
                         globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
                         pass
+                    else: # write close to boll_greedy signal for possible rate
+                        global policy_notify
+                        with open(policy_notify, 'w') as f:
+                            f.write('%s', close)
+                            f.close()
+                        pass
                 if close_lower.count() > 2 * latest_to_read:
                     close_lower = close_lower[-latest_to_read:]
                     close_mean = close_mean[-latest_to_read:]
@@ -996,6 +1002,13 @@ else:
     signal_notify = '%s.%snotify' % (l_dir, l_prefix)
 #logging.info ('signal_notify: %s' % signal_notify)
 print ('signal_notify: %s' % signal_notify)
+
+# should emit signal into policy_notify
+if options.policy != None:
+    policy_notify = '%s.%s_notify' % (l_dir, options.policy)
+else:
+    policy_notify = ''
+print ('policy_notify: %s' % policy_notify)
 
 fee_file = '%s.%sfee' % (l_dir, l_prefix)
 #logging.info ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
