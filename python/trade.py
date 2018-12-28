@@ -123,12 +123,12 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['asks'])
-    return data['asks'][0][0] * (1 + 0.003) # the biggest ask
+    return data['asks'][0][0] * (1 + 0.005) # the biggest ask
 
 def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['bids'])
-    return data['bids'][int(depth) - 1][0] * (1 - 0.003) # the smallest bid
+    return data['bids'][int(depth) - 1][0] * (1 - 0.005) # the smallest bid
 
 def check_match_price_and_lever_rate(price, lever_rate):
     if price == '':
@@ -140,6 +140,7 @@ def check_match_price_and_lever_rate(price, lever_rate):
     return match_price, lever_rate
 
 def open_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
+    price = figure_best_price_sell(symbol)
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '2',
                                      match_price,
@@ -154,6 +155,7 @@ def close_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
                                      lever_rate)
 
 def open_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
+    price = figure_best_price_buy(symbol)
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '1',
                                      match_price,
@@ -349,7 +351,10 @@ def do_trade_new(subpath):
               f.close()
            # order ok
            # first argument is stripped subpath, second is price in order_info
-           globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
+           if order_info['orders'][0]['price_avg'] == 0
+               globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price'])
+           else:
+               globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
         elif action == 'close': # figure balance info
             # close all unconditionally
             globals()['cleanup_%s_order' % options.policy]()
