@@ -252,6 +252,30 @@ def trade_timestamp():
 #print (quarter_orderinfo('bch_usd', '1426230836341760'))
 #os.sys.exit()
 
+order_dict = dict()
+#{ 'subpath':'price', ..}
+# if rate touched, close specified orders in order_dict
+def cleanup_boll_greedy_order(close='', rate=''):
+    for key in order_dict.keys():
+        if close == '' or abs(float(close) - float(key))/float(key) > float(rate):
+            print ('cleanup %s at %s with %s' % (order_dict[key], key, close))
+            do_trade_new('%s.close' % order_dict[key])
+            order_dict.pop(key, None)
+            # every 5s for each order
+            time.sleep(5)
+    pass
+
+# when open, reset order_dict
+def setup_boll_greedy_order(subpath, close):
+    key = '%s' % close
+    if order_dict.get(key) == None:
+        order_dict[key] = subpath
+    else:
+        key = '%s' % (close + 0.00001) # plus mini value
+        order_dict[key] = subpath
+    print ('setup %s at %s' % (subpath, key)
+    pass
+
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -314,16 +338,21 @@ def do_trade_new(subpath):
         order_info = json.loads(quarter_orderinfo(symbol, order_id))
         print (order_info)
         if action == 'open': # figure bond info
-            # generate startup notify
-            with open(startup_notify, 'w') as f:
-                f.write('%s' % order_info)
-                f.close()
-                print ('%s startup signal generated' % trade_timestamp())
-            # append amount info to subsubpath
-            with open(subsubpath, 'a') as f:
-                f.write(',%s' % order_id)
-                f.close()
+           # generate startup notify
+           with open(startup_notify, 'w') as f:
+              f.write('%s' % order_info)
+              f.close()
+              print ('%s startup signal generated' % trade_timestamp())
+           # append amount info to subsubpath
+           with open(subsubpath, 'a') as f:
+              f.write(',%s' % order_id)
+              f.close()
+           # order ok
+           # first argument is stripped subpath, second is price in order_info
+           globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
         elif action == 'close': # figure balance info
+            # close all unconditionally
+            globals()['cleanup_%s_order' % options.policy]()
             # generate shutdown notify
             with open(shutdown_notify, 'w') as f:
                 f.write('%s' % order_info)
@@ -340,10 +369,6 @@ def do_trade_new(subpath):
         print (ex)
         print (traceback.format_exc())
     return msg
-
-def cleanup_boll_greedy_order(subpath, rate):
-    
-    pass
 
 trade_notify = ''
 # wait on trade_notify for signal
@@ -384,9 +409,12 @@ def wait_trade_notify(notify, policy_notify='', rate='0.5'):
                             f.close()
                         break
                     elif data == policy_notify:
-                        # print (data)
+                        print (data)
                         subpath = data
-                        globals()['cleanup_%s_order' % options.policy](subpath, rate)
+                        # read close from policy_notify
+                        with open(subpath, 'r') as f:
+                            close = f.readline().rstrip('\n')           
+                        globals()['cleanup_%s_order' % options.policy](close, rate)
                         break
             if os.path.isfile(trade_queue) == True:
                 orders = list()
@@ -437,7 +465,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--policy', dest='policy', default='',
+parser.add_option('', '--policy', dest='policy', default='boll_greedy',
                   help='should receive policy notify, key is [boll_greedy]')
 
 (options, args) = parser.parse_args()
