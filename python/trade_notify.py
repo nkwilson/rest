@@ -101,7 +101,7 @@ parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
 parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
                   help='Should multple it before do compare')
 parser.add_option('', '--policy', dest='policy',
-                  help="use specified trade policy, ema_greedy/close_ema")
+                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
                   help='using with one of ema')
 parser.add_option('', '--order_num', dest='order_num',
@@ -330,6 +330,10 @@ def try_to_pick_old_order():
                    f.close()
                 return
 
+# if close is reversed, signal open signal            
+def boll_greedy_policy():
+    pass
+
 # inotify specified dir to plot living price
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -337,6 +341,7 @@ def try_to_trade_boll(subpath):
     global trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
+    global old_close
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -395,12 +400,28 @@ def try_to_trade_boll(subpath):
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                         old_open_close = 0
-                elif close_lower.count() > 2 * latest_to_read:
+                elif options.policy == 'boll_greedy':
+                    l_dir = ''
+                    if trade_file.endswith('.sell') == True: # sell direction
+                        if close > old_close:
+                            l_dir = 'sell'
+                        pass
+                    else : # open direction
+                        if close < old_close:
+                            l_dir = 'buy'
+                        pass
+                    if l_dir != '': # yes, new order
+                        l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                        # print (l_trade_file)
+                        globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
+                        pass
+                if close_lower.count() > 2 * latest_to_read:
                     close_lower = close_lower[-latest_to_read:]
                     close_mean = close_mean[-latest_to_read:]
                     close_upper = close_upper[-latest_to_read:]
                     print ('Reduce data size to %d', close_lower.count())
                 old_close_mean = now_close_mean
+                old_close = close
 
 def read_ema(filename):
     ema = 0
