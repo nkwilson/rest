@@ -418,7 +418,7 @@ def try_to_trade_boll(subpath):
                     else: # write close to boll_greedy signal for possible rate
                         global policy_notify
                         with open(policy_notify, 'w') as f:
-                            f.write('%s', close)
+                            f.write('%s' % close)
                             f.close()
                         pass
                 if close_lower.count() > 2 * latest_to_read:
