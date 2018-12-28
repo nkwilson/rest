@@ -351,7 +351,7 @@ def do_trade_new(subpath):
               f.close()
            # order ok
            # first argument is stripped subpath, second is price in order_info
-           if order_info['orders'][0]['price_avg'] == 0
+           if order_info['orders'][0]['price_avg'] == 0:
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price'])
            else:
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
