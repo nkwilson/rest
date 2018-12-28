@@ -273,7 +273,7 @@ def setup_boll_greedy_order(subpath, close):
     else:
         key = '%s' % (close + 0.00001) # plus mini value
         order_dict[key] = subpath
-    print ('setup %s at %s' % (subpath, key)
+    print ('setup %s at %s' % (subpath, key))
     pass
 
 # inotify specified dir to catch trade signals
