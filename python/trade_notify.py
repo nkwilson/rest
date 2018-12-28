@@ -100,7 +100,7 @@ parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
                   help="Should skip checking gate when open trade")
 parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
                   help='Should multple it before do compare')
-parser.add_option('', '--policy', dest='policy',
+parser.add_option('', '--policy', dest='policy', default='boll_greedy', 
                   help="use specified trade policy, ema_greedy/close_ema/boll_greedy")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
                   help='using with one of ema')
@@ -109,9 +109,9 @@ parser.add_option('', '--order_num', dest='order_num',
 parser.add_option('', '--fee_amount', dest='fee_amount',
                   action='store_true', default=False,
                   help='take amount int account with fee')
-parser.add_option('', '--signal', dest='signals', default=[],
+parser.add_option('', '--signal', dest='signals', default=['boll'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix')
+                  help='use wich signal to generate trade notify and also as prefix, boll')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
