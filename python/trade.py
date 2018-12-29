@@ -418,7 +418,7 @@ def wait_trade_notify(notify, policy_notify='', rate='0.01'):
                             f.close()
                         break
                     elif data == policy_notify:
-                        print (data)
+                        # print (data)
                         subpath = data
                         # read close from policy_notify
                         with open(subpath, 'r') as f:
