@@ -381,7 +381,7 @@ def do_trade_new(subpath):
 
 trade_notify = ''
 # wait on trade_notify for signal
-def wait_trade_notify(notify, policy_notify='', rate='0.01'):
+def wait_trade_notify(notify, policy_notify='', rate='0.02'):
     global amount, auto_amount
     while True:
         print ('', end='', flush=True)
