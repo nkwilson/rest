@@ -260,9 +260,15 @@ order_dict = dict()
 def cleanup_boll_greedy_order(close='', rate=''):
     topop = list()
     for key in order_dict.keys():
-        if close == '' or abs(float(close) - float(key))/float(key) > float(rate):
-            print ('cleanup %s at %s with %s' % (order_dict[key], key, close))
-            do_trade_new('%s.close' % order_dict[key])
+        subsubpath = order_dict[key]
+        direction = os.path.splitext(subsubpath)[1][1:]
+        if direction == 'sell':
+            plus = (float(key) - float(close))/float(key)
+        else:
+            plus = (float(close) - float(key))/float(key)
+        if close == '' or plus > float(rate):
+            print ('cleanup %s at %s with %s' % (subsubpath, key, close))
+            do_trade_new('%s.close' % subsubpath)
             list.append(key)
             # every 5s for each order
             time.sleep(5)
