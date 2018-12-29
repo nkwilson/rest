@@ -258,13 +258,12 @@ order_dict = dict()
 #{ 'subpath':'price', ..}
 # if rate touched, close specified orders in order_dict
 def cleanup_boll_greedy_order(close='', rate=''):
+    topop = list()
     for key in order_dict.keys():
-        topop = list()
         if close == '' or abs(float(close) - float(key))/float(key) > float(rate):
             print ('cleanup %s at %s with %s' % (order_dict[key], key, close))
             do_trade_new('%s.close' % order_dict[key])
             list.append(key)
-
             # every 5s for each order
             time.sleep(5)
     for key in topop:
@@ -423,7 +422,8 @@ def wait_trade_notify(notify, policy_notify='', rate='0.01'):
                         # read close from policy_notify
                         with open(subpath, 'r') as f:
                             close = f.readline().rstrip('\n')           
-                        globals()['cleanup_%s_order' % options.policy](close, rate)
+                            globals()['cleanup_%s_order' % options.policy](close, rate)
+                            f.close()
                         break
             if os.path.isfile(trade_queue) == True:
                 orders = list()
