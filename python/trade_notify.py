@@ -410,14 +410,14 @@ def try_to_trade_boll(subpath):
                     if trade_file.endswith('.sell') == True: # sell direction
                         if close > old_close:
                             l_dir = 'sell'
-                            bins--
+                            bins = bins - 1
                         else:
                             bins = 1 # reset as first open order
                         pass
                     else : # open direction
                         if close < old_close:
                             l_dir = 'buy'
-                            bins--
+                            bins = bins - 1
                         else:
                             bins = 1 # reset as first open order
                         pass
