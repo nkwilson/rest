@@ -421,16 +421,17 @@ def try_to_trade_boll(subpath):
                         else:
                             bins = 1 # reset as first open order
                         pass
-                    if l_dir != '': # yes, new order
-                        l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
-                        # print (l_trade_file)
-                        globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
-                        pass
                     if bins < 0: # write close to boll_greedy signal for possible rate
                         global policy_notify
                         with open(policy_notify, 'w') as f:
                             f.write('%s' % close)
                             f.close()
+                        time.sleep(60) # wait 1m for trade is finished, but no guarentee
+                        pass
+                    if l_dir != '': # yes, new order
+                        l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                        # print (l_trade_file)
+                        globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
                         pass
                 if close_lower.count() > 2 * latest_to_read:
                     close_lower = close_lower[-latest_to_read:]
