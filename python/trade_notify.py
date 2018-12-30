@@ -341,7 +341,7 @@ def try_to_trade_boll(subpath):
     global trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
-    global old_close
+    global old_close, bins
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -375,6 +375,7 @@ def try_to_trade_boll(subpath):
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
+                        bins = 1
                 elif now_close_mean > old_close_mean: # open buy order
                     if trade_file == '' and check_close_to_mean(boll, close) and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -382,9 +383,11 @@ def try_to_trade_boll(subpath):
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
+                        bins = 1
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
+                    bins = 0
                     pass
                 # close is touch upper
                 elif old_close_mean < now_close_mean and trade_file.endswith('.sell') == True :
@@ -393,6 +396,7 @@ def try_to_trade_boll(subpath):
                         signal_close_order_with_buy(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                         old_open_close = 0
+                        bins = -1
                 # close is touch lower
                 elif old_close_mean > now_close_mean and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
@@ -400,22 +404,29 @@ def try_to_trade_boll(subpath):
                         signal_close_order_with_sell(l_index, trade_file, close)
                         trade_file = ''  # make trade_file empty to indicate close
                         old_open_close = 0
+                        bins = -1
                 elif options.policy == 'boll_greedy':
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
                         if close > old_close:
                             l_dir = 'sell'
+                            bins--
+                        else:
+                            bins = 1 # reset as first open order
                         pass
                     else : # open direction
                         if close < old_close:
                             l_dir = 'buy'
+                            bins--
+                        else:
+                            bins = 1 # reset as first open order
                         pass
                     if l_dir != '': # yes, new order
                         l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                         # print (l_trade_file)
                         globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
                         pass
-                    else: # write close to boll_greedy signal for possible rate
+                    if bins < 0: # write close to boll_greedy signal for possible rate
                         global policy_notify
                         with open(policy_notify, 'w') as f:
                             f.write('%s' % close)
