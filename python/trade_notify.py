@@ -426,7 +426,7 @@ def try_to_trade_boll(subpath):
                         with open(policy_notify, 'w') as f:
                             f.write('%s' % close)
                             f.close()
-                        time.sleep(60) # wait 1m for trade is finished, but no guarentee
+                        time.sleep(20) # wait 1m for trade is finished, but no guarentee
                         pass
                     if l_dir != '': # yes, new order
                         l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
