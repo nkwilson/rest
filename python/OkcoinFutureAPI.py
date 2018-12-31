@@ -32,6 +32,20 @@ class OKCoinFuture:
             params += '&size=' + size if params else 'size=' + size
         return httpGet(self.__url,FUTURE_DEPTH_RESOURCE,params)
 
+    #OKCoin期货市场kline信息
+    def future_kline(self,symbol,type,contractType,size):
+        FUTURE_DEPTH_RESOURCE = "/api/v1/future_kline.do"
+        params = ''
+        if symbol:
+            params += '&symbol=' + symbol if params else 'symbol=' +symbol
+        if type:
+            params += '&type=' + type if params else 'type=' +type
+        if contractType:
+            params += '&contract_type=' + contractType if params else 'contract_type=' +symbol
+        if size:
+            params += '&size=' + size if params else 'size=' + size
+        return httpGet(self.__url,FUTURE_DEPTH_RESOURCE,params)
+
     #OKCoin期货交易记录信息
     def future_trades(self,symbol,contractType):
         FUTURE_TRADES_RESOURCE = "/api/v1/future_trades.do"

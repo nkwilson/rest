@@ -83,6 +83,16 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u' 期货市场深度信息')
 #print (okcoinFuture.future_depth('btc_usd','this_week','6'))
 
+print (u' 期货市场kline信息')
+print (okcoinFuture.future_kline('bsv_usd', '30min', 'quarter', '130'))
+os.sys.exit(0)
+# use following lines to generate standard price data in ipython
+#os.mkdir('bch')
+#for p in prices:
+# with open('bch/%s' % p[0], 'w') as f:
+# line0 = ['%s' % x for x in p[1:]]
+# f.write(str(line0)[1:-1])
+
 #print (u'期货交易记录信息') 
 #print (okcoinFuture.future_trades('ltc_usd','this_week'))
 
