@@ -269,7 +269,7 @@ def cleanup_boll_greedy_order(close='0', rate=''):
         if close == '0' or plus > float(rate):
             print ('cleanup %s at %s with %s' % (subsubpath, key, close))
             do_trade_new('%s.close' % subsubpath)
-            list.append(key)
+            topop.append(key)
             # every 5s for each order
             time.sleep(5)
     for key in topop:
