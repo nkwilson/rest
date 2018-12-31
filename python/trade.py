@@ -257,7 +257,7 @@ def trade_timestamp():
 order_dict = dict()
 #{ 'subpath':'price', ..}
 # if rate touched, close specified orders in order_dict
-def cleanup_boll_greedy_order(close='', rate=''):
+def cleanup_boll_greedy_order(close='0', rate=''):
     topop = list()
     for key in order_dict.keys():
         subsubpath = order_dict[key]
@@ -266,7 +266,7 @@ def cleanup_boll_greedy_order(close='', rate=''):
             plus = (float(key) - float(close))/float(key)
         else:
             plus = (float(close) - float(key))/float(key)
-        if close == '' or plus > float(rate):
+        if close == '0' or plus > float(rate):
             print ('cleanup %s at %s with %s' % (subsubpath, key, close))
             do_trade_new('%s.close' % subsubpath)
             list.append(key)
