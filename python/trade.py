@@ -268,12 +268,13 @@ def cleanup_boll_greedy_order(close='0', rate=''):
             plus = (float(close) - float(key))/float(key)
         if close == '0' or plus > float(rate):
             print ('cleanup %s at %s with %s' % (subsubpath, key, close))
-            do_trade_new('%s.close' % subsubpath)
+            do_trade_new('%s.close' % subsubpath, do_cleanup = False)
             topop.append(key)
-            # every 5s for each order
-            time.sleep(5)
+            # wait a few seconds
+            time.sleep(3)
     for key in topop:
         order_dict.pop(key, None)
+    topop = None
     pass
 
 # when open, reset order_dict
@@ -290,7 +291,7 @@ def setup_boll_greedy_order(subpath, close):
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
-def do_trade_new(subpath):
+def do_trade_new(subpath, do_cleanup=True):
     global amount, last_balance, last_bond
     global startup_notify, shutdown_notify
     #print (subpath)
@@ -365,8 +366,9 @@ def do_trade_new(subpath):
            else:
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
         elif action == 'close': # figure balance info
-            # close all unconditionally
-            globals()['cleanup_%s_order' % options.policy]()
+            if do_cleanup == True:
+                # close all unconditionally
+                globals()['cleanup_%s_order' % options.policy]()
             # generate shutdown notify
             with open(shutdown_notify, 'w') as f:
                 f.write('%s' % order_info)
