@@ -123,12 +123,12 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['asks'])
-    return data['asks'][0][0] * (1 + 0.005) # the biggest ask
+    return data['asks'][0][0] * (1 + 0.002) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
 
 def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['bids'])
-    return data['bids'][int(depth) - 1][0] * (1 - 0.005) # the smallest bid
+    return data['bids'][int(depth) - 1][0] * (1 - 0.002) # the smallest bid
 
 def check_match_price_and_lever_rate(price, lever_rate):
     if price == '':
@@ -342,7 +342,6 @@ def do_trade_new(subpath, do_cleanup=True):
                     print ('amount may accumulated to %d' % l_amount)
         raw_result = order_infos[direction][action](symbol, l_amount)
         result = json.loads(raw_result)
-        msg = 'failed,go'
         print (result)
         order_id = str(result['order_id']) # no exceptions, means successed
         msg = 'successed,go'
