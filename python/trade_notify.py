@@ -1078,6 +1078,9 @@ while True:
             # try to clean startup notify
             f.close()
     print (trade_timestamp(), 'Waiting for process new coming file\n', flush=True)
+    #issue kickup signal
+    with open('%s.ok' % trade_notify, 'w') as f:
+        f.close()
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
     print (trade_timestamp(), 'shutdown signal processed')
 

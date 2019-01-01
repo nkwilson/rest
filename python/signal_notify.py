@@ -345,7 +345,9 @@ def waiting_for_notify(v_dir, v_signal, v_outdir):
 
     print ('')
     print ('Waiting for process new coming file')
-        
+    # issue kickup signal
+    with open('%s.ok' % signal_notify, 'w') as f:
+        f.close()
     while True:
         print ('', end='', flush=True)
         subpath = ''
