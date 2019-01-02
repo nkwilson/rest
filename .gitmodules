@@ -1,0 +1,3 @@
+[submodule "api-v3"]
+	path = api-v3
+	url = https://github.com/nkwilson/open-api-v3-sdk.git
