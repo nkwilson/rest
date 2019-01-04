@@ -271,7 +271,7 @@ def cleanup_boll_greedy_order(close='0', rate=''):
             do_trade_new('%s.close' % subsubpath, do_cleanup = False)
             topop.append(key)
             # wait a few seconds
-            time.sleep(3)
+            time.sleep(1)
     for key in topop:
         order_dict.pop(key, None)
     topop = None
