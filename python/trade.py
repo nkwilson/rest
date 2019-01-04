@@ -388,6 +388,7 @@ def do_trade_new(subpath, do_cleanup=True):
             if do_cleanup == True:
                 # close all unconditionally
                 globals()['cleanup_%s_order' % options.policy]()
+            else:
                 return msg
             # generate shutdown notify
             with open(shutdown_notify, 'w') as f:
