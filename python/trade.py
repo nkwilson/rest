@@ -193,6 +193,7 @@ last_balance = 0
 
 def quarter_auto_bond(symbol):
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    # print (holding)
     if holding['result'] != True:
         return 0 # 0 means failed
     if len(holding['holding']) == 0:
@@ -214,6 +215,9 @@ def quarter_auto_balance(symbol):
     balance=result['info'][coin]['balance']
     return balance
 
+#print (quarter_auto_bond('ltc_usd'), quarter_auto_balance('ltc_usd'))
+#os.sys.exit(0)
+
 def figure_out_symbol_info(path):
     start_pattern = 'ok_sub_future'
     end_pattern = '_kline_'
@@ -225,8 +229,17 @@ def figure_out_symbol_info(path):
 trade_file = ''  # signal storing file
 amount_file = '' # if exist, read from file
 default_amount = 1 # default amount, if auto then figure it out 
-amount = 1
+amount = default_amount
 auto_amount = 0 # if non-zero, auto figure out amount; enabled if amount_file no exists
+
+rate_file = '' # if exist, read rate from file
+default_rate = 0.001 # default rate
+rate = default_rate
+
+ratio_file = '' # if exist read ratio from file
+default_amount_ratio = 50 # means use 1/50 of total amount on one trade, if auto_amount
+amount_ratio = default_amount_ratio
+
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -366,6 +379,7 @@ def do_trade_new(subpath, do_cleanup=True):
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price'])
            else:
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
+           last_bond = quarter_auto_bond(symbol)
         elif action == 'close': # figure balance info
             if do_cleanup == True:
                 # close all unconditionally
@@ -380,36 +394,49 @@ def do_trade_new(subpath, do_cleanup=True):
             if quarter_auto_bond(symbol) == 0:
                 balance = quarter_auto_balance(symbol)
             if balance > 0 and last_bond > 0: # successed
-                print ('balance is updated from %f to %f\n' % (last_balance, balance))
+                print ('balance is updated from %f to %f, delta rate %f\n' % (last_balance, balance, (balance - last_balance) / last_balance))
+                total_amount = int(balance / last_bond)
                 last_balance = balance
+                if auto_amount != 0:
+                    l_amount = int((total_amount + amount_ratio - 1) / amount_ratio)
+                    print ('auto update amount from %d to %d by ratio %d' % (amount, l_amount, amount_ratio))
+                    amount = l_amount
     except Exception as ex:
         print (ex)
         print (traceback.format_exc())
     return msg
 
+def read_int_var(filename, var_name):
+    l_var = globals()[var_name]
+    if os.path.isfile(filename) and os.path.getsize(filename)>0:
+        # check if should read from file
+        with open(filename) as f:
+            old_var = l_var
+            try:
+                l_var = float(f.readline())
+                if old_var != l_var:
+                    print ('%s updated to %f' % (var_name, l_var))
+            except Exception as ex:
+                l_var = globals()['default_%s' % var_name]
+                print ('%s reset to default %f' % (var_name, l_var))
+        f.close()
+        globals()[var_name] = l_var
+        return True
+    return False
+
 trade_notify = ''
 # wait on trade_notify for signal
-def wait_trade_notify(notify, policy_notify='', rate='0.001'):
+def wait_trade_notify(notify, policy_notify=''):
     global amount, auto_amount
+    global rate, default_rate
     while True:
         print ('', end='', flush=True)
         command = ['fswatch', '-1', notify, policy_notify]
-        if os.path.isfile(amount_file) and os.path.getsize(amount_file)>0:
-            auto_amount = 0
-            # check if should read amount from file
-            with open(amount_file) as f:
-                old_amount = amount
-                try:
-                    amount = int(f.readline())
-                    if old_amount != amount:
-                        print ('amount updated to %d' % amount)
-                except Exception as ex:
-                    amount = default_amount
-                    print ('amount reset to default %d' % amount)
-        else: # no amount file means auto
-            if auto_amount != 1:
-                print ('switched to auto amount policy\n')
+        if read_int_var(amount_file, 'amount') == False:
             auto_amount = 1
+            print ('switched to auto amount policy\n')
+        read_int_var(rate_file, 'rate')
+        read_int_var(ratio_file, 'amount_ratio')
         try:
             result = subprocess.run(command, stdout=PIPE) # wait file modified
             rawdata = result.stdout.decode().split('\n')
@@ -486,6 +513,12 @@ parser.add_option('', '--signal', dest='signal', default='boll',
                   help='use wich signal to generate trade notify and also as prefix')
 parser.add_option('', '--policy', dest='policy', default='boll_greedy',
                   help='should receive policy notify, key is [boll_greedy]')
+parser.add_option('', '--amount', dest='amount', default=1,
+                  help='default trade amount')
+parser.add_option('', '--rate', dest='rate', default=0.001,
+                  help='default positive revenue rate')
+parser.add_option('', '--ratio', dest='amount_ratio', default=50,
+                  help='default trade ratio of total amount')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -516,6 +549,12 @@ print ('policy_notify is %s' % policy_notify)
 
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
+
+rate_file = '%s.%srate' % (l_dir, l_prefix)
+print ('rate will read from %s if exist, default is %d' % (rate_file, rate), flush=True)
+
+ratio_file = '%s.%sratio' % (l_dir, l_prefix)
+print ('ratio will read from %s if exist, default is %d' % (ratio_file, ratio), flush=True)
 
 stop_notify = '%s.%strade.stop_notify' % (l_dir, l_prefix) # file indicate trade should stop
 print ('stop_notify: %s' % stop_notify)
