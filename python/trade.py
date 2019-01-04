@@ -343,6 +343,8 @@ def do_trade_new(subpath, do_cleanup=True):
         raw_result = order_infos[direction][action](symbol, l_amount)
         result = json.loads(raw_result)
         print (result)
+        if result['result'] == False:
+            return msg
         order_id = str(result['order_id']) # no exceptions, means successed
         msg = 'successed,go'
         #print (order_id)
@@ -387,7 +389,7 @@ def do_trade_new(subpath, do_cleanup=True):
 
 trade_notify = ''
 # wait on trade_notify for signal
-def wait_trade_notify(notify, policy_notify='', rate='0.02'):
+def wait_trade_notify(notify, policy_notify='', rate='0.001'):
     global amount, auto_amount
     while True:
         print ('', end='', flush=True)
