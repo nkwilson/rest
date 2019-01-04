@@ -136,7 +136,7 @@ close_lower = pandas.Series()
 old_open_price = 0
 old_close_mean = 0
 trade_file = ''
-default_fee_threshold = 0.012# baesed on one order's fee
+default_fee_threshold = 0.0001# baesed on one order's fee
 fee_threshold = default_fee_threshold
 levage_rate = 20
 
