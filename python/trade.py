@@ -551,7 +551,7 @@ amount_file = '%s.%samount' % (l_dir, l_prefix)
 print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
 
 rate_file = '%s.%srate' % (l_dir, l_prefix)
-print ('rate will read from %s if exist, default is %d' % (rate_file, rate), flush=True)
+print ('rate will read from %s if exist, default is %f' % (rate_file, rate), flush=True)
 
 ratio_file = '%s.%sratio' % (l_dir, l_prefix)
 print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
