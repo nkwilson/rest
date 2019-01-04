@@ -455,6 +455,7 @@ def wait_trade_notify(notify, policy_notify='', rate='0.02'):
                         result = do_trade_new(subpath)
                         time.sleep(1)
                         if result.index('go'):
+                            redo = 0 # if go, reset it 
                             continue
                     except Exception as ex:
                         if redo > 3:
