@@ -1,5 +1,7 @@
 set -e
 
+DO_RESTART=${RESTART:-0}
+
 COIN=${1:-btc}
 TOTAL=${2:-50} # 3:3:3:3 ratio
 KEY1=${3:-30min}
@@ -41,6 +43,20 @@ case ${COIN} in
      *)
 	 echo 'unknow coin, quit'
 	 exit 
+esac
+
+case ${DO_RESTART} in
+    0)
+	true
+	;;
+    *)
+	# should stop trade
+	touch ${SYMBOL1}.boll_trade.stop_notify
+	fswatch -1 ${SYMBOL1}.boll_trade.stop_notify
+	kill $(cat ${SYMBOL1}.boll_notify.pid)
+	kill $(cat ${SYMBOL1}.boll_trade_notify.pid)
+	# kill $(cat ${SYMBOL1}.boll_trade.pid)
+	;;
 esac
 
 # quit if dry
