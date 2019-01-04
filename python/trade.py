@@ -554,7 +554,7 @@ rate_file = '%s.%srate' % (l_dir, l_prefix)
 print ('rate will read from %s if exist, default is %d' % (rate_file, rate), flush=True)
 
 ratio_file = '%s.%sratio' % (l_dir, l_prefix)
-print ('ratio will read from %s if exist, default is %d' % (ratio_file, ratio), flush=True)
+print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
 
 stop_notify = '%s.%strade.stop_notify' % (l_dir, l_prefix) # file indicate trade should stop
 print ('stop_notify: %s' % stop_notify)
