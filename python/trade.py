@@ -123,12 +123,12 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['asks'])
-    return data['asks'][0][0] * (1 + 0.002) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
+    return data['asks'][0][0] * (1 + 0.001) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
 
 def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['bids'])
-    return data['bids'][int(depth) - 1][0] * (1 - 0.002) # the smallest bid
+    return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
 
 def check_match_price_and_lever_rate(price, lever_rate):
     if price == '':
@@ -323,6 +323,9 @@ def do_trade_new(subpath, do_cleanup=True):
     msg = 'failed' # means failed
     try:
         l_amount = amount
+        # update balance first time
+        if last_balance == 0 and quarter_auto_bond(symbol) == 0:
+            last_balance = quarter_auto_balance(symbol)
         if action == 'close': # if close, read order_id info from subsubpath
             order_id = ''
             raw_order_info = ''
@@ -379,11 +382,13 @@ def do_trade_new(subpath, do_cleanup=True):
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price'])
            else:
                globals()['setup_%s_order' % options.policy](subsubpath, order_info['orders'][0]['price_avg'])
-           last_bond = quarter_auto_bond(symbol)
+           if last_bond == 0:
+               last_bond = quarter_auto_bond(symbol)
         elif action == 'close': # figure balance info
             if do_cleanup == True:
                 # close all unconditionally
                 globals()['cleanup_%s_order' % options.policy]()
+                return msg
             # generate shutdown notify
             with open(shutdown_notify, 'w') as f:
                 f.write('%s' % order_info)
@@ -393,7 +398,9 @@ def do_trade_new(subpath, do_cleanup=True):
             balance = 0
             if quarter_auto_bond(symbol) == 0:
                 balance = quarter_auto_balance(symbol)
-            if balance > 0 and last_bond > 0: # successed
+                if last_balance == 0:
+                    last_balance = balance
+            if balance != last_balance and last_bond > 0: # successed
                 print ('balance is updated from %f to %f, delta rate %f\n' % (last_balance, balance, (balance - last_balance) / last_balance))
                 total_amount = int(balance / last_bond)
                 last_balance = balance
@@ -401,6 +408,8 @@ def do_trade_new(subpath, do_cleanup=True):
                     l_amount = int((total_amount + amount_ratio - 1) / amount_ratio)
                     print ('auto update amount from %d to %d by ratio %d' % (amount, l_amount, amount_ratio))
                     amount = l_amount
+                    # update last bond again
+                    last_bond = 0
     except Exception as ex:
         print (ex)
         print (traceback.format_exc())
