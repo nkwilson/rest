@@ -323,7 +323,7 @@ def waiting_for_notify(v_dir, v_signal, v_outdir):
 
     logfile='%s.log' % signal_notify
     saved_stdout = sys.stdout
-    #sys.stdout = open(logfile, 'a')
+    sys.stdout = open(logfile, 'a')
     print (dt.now())
     print ('signal_notify: %s' % signal_notify, flush=True)
 
