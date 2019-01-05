@@ -581,6 +581,10 @@ with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
 
+#issue kickup signal
+with open('%s.%strade.ok' % (l_dir, l_prefix), 'w') as f:
+    f.close()
+
 trade_notify = os.path.realpath(trade_notify)
 policy_notify= os.path.realpath(policy_notify)
 wait_trade_notify(trade_notify, policy_notify)
