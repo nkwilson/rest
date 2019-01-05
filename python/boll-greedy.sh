@@ -67,4 +67,4 @@ fswatch -1 ${SYMBOL1}.boll_notify.ok
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
 fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
 jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
-
+fswatch -1 ${SYMBOL1}.boll_trade.ok
