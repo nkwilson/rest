@@ -82,11 +82,14 @@ if test -n "${DO_RESTART}"; then
     # kill $(cat ${SYMBOL1}.boll_trade.pid)
 fi
 
+rm -f ${SYMBOL1}.boll_notify.ok
 jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} > /dev/null &
 test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
 
+rm -f ${SYMBOL1}.boll_trade_notify.ok
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
 test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
 
+rm -f ${SYMBOL1}.boll_trade.ok
 jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
 test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
