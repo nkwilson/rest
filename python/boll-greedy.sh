@@ -1,6 +1,8 @@
 set -e
 
-while getopts "c:k:f:s:a:Rh" var; do
+WINDOW=20 # default is 20 
+
+while getopts "c:k:f:s:a:w:Rh" var; do
     case $var in
 	'c') # coin
 	    COIN=$OPTARG
@@ -20,6 +22,9 @@ while getopts "c:k:f:s:a:Rh" var; do
 	'a') # amount
 	    AMOUNT=$OPTARG
 	    ;;
+	'w') # boll window
+	    WINDOW=$OPTARG
+	    ;;
 	'h') # help
 	    echo 'Usage: '
 	    echo '-c: coin'
@@ -28,6 +33,7 @@ while getopts "c:k:f:s:a:Rh" var; do
 	    echo '-a: amount'
 	    echo '-s: cmp_scale'
 	    echo '-R: restart all'
+	    echo '-w: boll window size'
 	    exit
 	    ;;
 	?)
@@ -48,6 +54,8 @@ test -n "${FEE_RATE1}" && echo "${FEE_RATE1}" > ${SYMBOL1}.boll_fee
 
 rm -f ${SYMBOL1}.boll_amount
 test -n "${AMOUNT}" && echo "${AMOUNT}" > ${SYMBOL1}.boll_amount
+
+test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit 
 
 case ${COIN} in
      btc)
@@ -83,13 +91,16 @@ if test -n "${DO_RESTART}"; then
 fi
 
 rm -f ${SYMBOL1}.boll_notify.ok
-jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} > /dev/null &
+jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} --boll_window=${WINDOW} > /dev/null &
+sleep 1
 test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
 
 rm -f ${SYMBOL1}.boll_trade_notify.ok
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
+sleep 1
 test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
 
 rm -f ${SYMBOL1}.boll_trade.ok
 jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
+sleep 1
 test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
