@@ -1,6 +1,7 @@
 set -e
 
 WINDOW=20 # default is 20 
+KEY1=30min
 
 while getopts "c:k:f:s:a:w:Rh" var; do
     case $var in
