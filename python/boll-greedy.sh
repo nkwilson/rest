@@ -91,17 +91,19 @@ if test -n "${DO_RESTART}"; then
     # kill $(cat ${SYMBOL1}.boll_trade.pid)
 fi
 
-rm -f ${SYMBOL1}.boll_notify.ok
+rm -f ${SYMBOL1}.boll_notify.ok go
+fswatch -1 ${SYMBOL1}.boll_notify.ok && (sleep 2; touch go)
 jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} --boll_window=${WINDOW} > /dev/null &
-sleep 1
-test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
+fswatch -1 ./go
 
-rm -f ${SYMBOL1}.boll_trade_notify.ok
+rm -f ${SYMBOL1}.boll_trade_notify.ok go
+fswatch -1 ${SYMBOL1}.boll_trade_notify.ok && (sleep 2; touch go)
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
-sleep 1
-test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
+fswatch -1 ./go
 
-rm -f ${SYMBOL1}.boll_trade.ok
+
+rm -f ${SYMBOL1}.boll_trade.ok go
+fswatch -1 ${SYMBOL1}.boll_trade.ok && (sleep 2 ; touch go)
 jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
-sleep 1
-test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
+
+
