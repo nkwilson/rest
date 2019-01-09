@@ -63,7 +63,7 @@ case ${COIN} in
 	 SCALE1=${SCALE1:-1}
 	 ;;
      bch)
-	 SCALE1=${SCALE1:-1}
+	 SCALE1=${SCALE1:-10}
 	 ;;
      eth)
 	 SCALE1=${SCALE1:-100}
