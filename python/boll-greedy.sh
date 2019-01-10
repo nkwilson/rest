@@ -58,6 +58,19 @@ test -n "${AMOUNT}" && echo "${AMOUNT}" > ${SYMBOL1}.boll_amount
 
 test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit 
 
+case ${KEY1} in
+    30min)
+	RATIO=50
+	;;
+    12hour)
+	RATIO=25
+	;;
+    *)
+	RATIO=50
+	echo unknown key ${KEY1}, using ratio ${RATIO}
+	;;
+esac
+
 case ${COIN} in
      btc)
 	 SCALE1=${SCALE1:-1}
@@ -104,6 +117,6 @@ fswatch -1 ./go
 
 rm -f ${SYMBOL1}.boll_trade.ok go
 fswatch -1 ${SYMBOL1}.boll_trade.ok && (sleep 2 ; touch go)
-jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
+jobs -x python3 monitor_me.py trade.py --signal=boll --ratio=${RATIO} ${SYMBOL1} &
 
 
