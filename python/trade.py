@@ -30,6 +30,28 @@ import filelock
 
 import json
 
+print (sys.argv)
+#print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
+
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option('', '--signal', dest='signal', default='boll',
+                  help='use wich signal to generate trade notify and also as prefix')
+parser.add_option('', '--policy', dest='policy', default='boll_greedy',
+                  help='should receive policy notify, key is [boll_greedy]')
+parser.add_option('', '--amount', dest='amount', default=1,
+                  help='default trade amount')
+parser.add_option('', '--rate', dest='rate', default=0.001,
+                  help='default positive revenue rate')
+parser.add_option('', '--ratio', dest='amount_ratio', default=50,
+                  help='default trade ratio of total amount')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+l_dir = args[0].rstrip('/')
+#print (l_dir, os.path.basename(l_dir))
+
 #初始化apikey，secretkey,url
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
 #secretkey = '4752BE55655A6233A7254628FB7E9F50'
@@ -516,27 +538,6 @@ def wait_trade_notify(notify, policy_notify=''):
             continue
         print ('', end='', flush=True)
 
-print (sys.argv)
-#print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
-
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option('', '--signal', dest='signal', default='boll',
-                  help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--policy', dest='policy', default='boll_greedy',
-                  help='should receive policy notify, key is [boll_greedy]')
-parser.add_option('', '--amount', dest='amount', default=1,
-                  help='default trade amount')
-parser.add_option('', '--rate', dest='rate', default=0.001,
-                  help='default positive revenue rate')
-parser.add_option('', '--ratio', dest='amount_ratio', default=50,
-                  help='default trade ratio of total amount')
-
-(options, args) = parser.parse_args()
-print (type(options), options, args)
-
-l_dir = args[0].rstrip('/')
-#print (l_dir, os.path.basename(l_dir))
 
 l_signal = options.signal
 l_prefix = '%s_' % l_signal
