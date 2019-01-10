@@ -20,6 +20,10 @@ while getopts "c:k:f:s:a:w:Rh" var; do
 	'R') # restart
 	    DO_RESTART=1
 	    ;;
+	'K') # force restart
+	    DO_RESTART=1
+	    DO_FORCE_RESTART=1
+	    ;;
 	'a') # amount
 	    AMOUNT=$OPTARG
 	    ;;
@@ -33,11 +37,8 @@ while getopts "c:k:f:s:a:w:Rh" var; do
 	    echo '-f: fee rate'
 	    echo '-a: amount'
 	    echo '-s: cmp_scale'
-	    echo '-R: restart all'
-	    echo '-w: boll window size'
-	    exit
-	    ;;
-	?)
+	    echo '-R: use stop notify to restart all'
+	    echo '-K: force restart all if no order holded'
 	    echo unknown argument
 	    ;;
     esac
@@ -93,11 +94,17 @@ case ${COIN} in
 esac
 
 if test -n "${DO_RESTART}"; then
-    echo restart requested
-    # should stop trade
-    touch ${SYMBOL1}.boll_trade.stop_notify
-    date
-    fswatch -1 ${SYMBOL1}.boll_trade.stop_notify
+    echo -n restart requested
+    if test -z "${DO_FORCE_RESTART}"; then
+	echo ' gracefully'
+	# should stop trade
+	touch ${SYMBOL1}.boll_trade.stop_notify
+	date
+	fswatch -1 ${SYMBOL1}.boll_trade.stop_notify
+    else
+	echo ' forced'
+	kill $(cat ${SYMBOL1}.boll_trade.pid)
+    fi
     date
     kill $(cat ${SYMBOL1}.boll_notify.pid)
     kill $(cat ${SYMBOL1}.boll_trade_notify.pid)
