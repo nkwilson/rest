@@ -112,18 +112,19 @@ if test -n "${DO_RESTART}"; then
 fi
 
 rm -f ${SYMBOL1}.boll_notify.ok go
-fswatch -1 ${SYMBOL1}.boll_notify.ok && (sleep 2; touch go)
 jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} --boll_window=${WINDOW} > /dev/null &
-fswatch -1 ./go
+sleep 2
+test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
 
 rm -f ${SYMBOL1}.boll_trade_notify.ok go
-fswatch -1 ${SYMBOL1}.boll_trade_notify.ok && (sleep 2; touch go)
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
-fswatch -1 ./go
+sleep 2
+test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
 
 
 rm -f ${SYMBOL1}.boll_trade.ok go
-fswatch -1 ${SYMBOL1}.boll_trade.ok && (sleep 2 ; touch go)
 jobs -x python3 monitor_me.py trade.py --signal=boll --ratio=${RATIO} ${SYMBOL1} &
+sleep 2
+test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
 
 
