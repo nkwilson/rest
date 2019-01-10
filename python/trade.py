@@ -235,11 +235,11 @@ amount = default_amount
 auto_amount = 0 # if non-zero, auto figure out amount; enabled if amount_file no exists
 
 rate_file = '' # if exist, read rate from file
-default_rate = 0.001 # default rate
+default_rate = float(options.rate) # default rate
 rate = default_rate
 
 ratio_file = '' # if exist read ratio from file
-default_amount_ratio = 50 # means use 1/50 of total amount on one trade, if auto_amount
+default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
 amount_ratio = default_amount_ratio
 
 
