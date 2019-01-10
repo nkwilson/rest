@@ -1,6 +1,9 @@
 set -e
 
-while getopts "c:k:f:s:a:Rh" var; do
+WINDOW=20 # default is 20 
+KEY1=30min
+
+while getopts "c:k:f:s:a:w:Rh" var; do
     case $var in
 	'c') # coin
 	    COIN=$OPTARG
@@ -20,6 +23,9 @@ while getopts "c:k:f:s:a:Rh" var; do
 	'a') # amount
 	    AMOUNT=$OPTARG
 	    ;;
+	'w') # boll window
+	    WINDOW=$OPTARG
+	    ;;
 	'h') # help
 	    echo 'Usage: '
 	    echo '-c: coin'
@@ -28,6 +34,7 @@ while getopts "c:k:f:s:a:Rh" var; do
 	    echo '-a: amount'
 	    echo '-s: cmp_scale'
 	    echo '-R: restart all'
+	    echo '-w: boll window size'
 	    exit
 	    ;;
 	?)
@@ -49,12 +56,14 @@ test -n "${FEE_RATE1}" && echo "${FEE_RATE1}" > ${SYMBOL1}.boll_fee
 rm -f ${SYMBOL1}.boll_amount
 test -n "${AMOUNT}" && echo "${AMOUNT}" > ${SYMBOL1}.boll_amount
 
+test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit 
+
 case ${COIN} in
      btc)
 	 SCALE1=${SCALE1:-1}
 	 ;;
      bch)
-	 SCALE1=${SCALE1:-1}
+	 SCALE1=${SCALE1:-10}
 	 ;;
      eth)
 	 SCALE1=${SCALE1:-100}
@@ -82,14 +91,19 @@ if test -n "${DO_RESTART}"; then
     # kill $(cat ${SYMBOL1}.boll_trade.pid)
 fi
 
-rm -f ${SYMBOL1}.boll_notify.ok
-jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} > /dev/null &
-test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
+rm -f ${SYMBOL1}.boll_notify.ok go
+fswatch -1 ${SYMBOL1}.boll_notify.ok && (sleep 2; touch go)
+jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} --boll_window=${WINDOW} > /dev/null &
+fswatch -1 ./go
 
-rm -f ${SYMBOL1}.boll_trade_notify.ok
+rm -f ${SYMBOL1}.boll_trade_notify.ok go
+fswatch -1 ${SYMBOL1}.boll_trade_notify.ok && (sleep 2; touch go)
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
-test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
+fswatch -1 ./go
 
-rm -f ${SYMBOL1}.boll_trade.ok
+
+rm -f ${SYMBOL1}.boll_trade.ok go
+fswatch -1 ${SYMBOL1}.boll_trade.ok && (sleep 2 ; touch go)
 jobs -x python3 monitor_me.py trade.py --signal=boll ${SYMBOL1} &
-test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
+
+
