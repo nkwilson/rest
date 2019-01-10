@@ -123,12 +123,14 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['asks'])
-    return data['asks'][0][0] * (1 + 0.001) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
+    #return data['asks'][0][0] * (1 + 0.001) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
+    return data['asks'][0][0]
 
 def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
     data=okcoinFuture.future_depth(symbol, contract_type, depth)
     # print (data['bids'])
-    return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
+    #return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
+    return data['bids'][int(depth) - 1][0]
 
 def check_match_price_and_lever_rate(price, lever_rate):
     if price == '':
