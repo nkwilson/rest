@@ -123,18 +123,21 @@ fi
 
 rm -f ${SYMBOL1}.boll_notify.ok go
 jobs -x python3 monitor_me.py signal_notify.py --signal=boll --dir=${SYMBOL1} --boll_window=${WINDOW} > /dev/null &
-sleep 2
-test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
+while ! test -f ${SYMBOL1}.boll_notify.ok ; do
+    sleep 1
+done
 
 rm -f ${SYMBOL1}.boll_trade_notify.ok go
 jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} --bins=${bins} &
-sleep 2
-test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
-
+while ! test -f ${SYMBOL1}.boll_trade_notify.ok ; do
+    sleep 1
+done
 
 rm -f ${SYMBOL1}.boll_trade.ok go
 jobs -x python3 monitor_me.py trade.py --signal=boll --ratio=${RATIO} ${SYMBOL1} &
-sleep 2
-test -f ${SYMBOL1}.boll_trade.ok || fswatch -1 ${SYMBOL1}.boll_trade.ok
+while ! test -f ${SYMBOL1}.boll_trade.ok ; do
+    sleep 1
+done    
+
 
 
