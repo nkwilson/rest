@@ -128,7 +128,7 @@ while ! test -f ${SYMBOL1}.boll_notify.ok ; do
 done
 
 rm -f ${SYMBOL1}.boll_trade_notify.ok go
-jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} --bins=${bins} &
+jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} --bins=${BINS} &
 while ! test -f ${SYMBOL1}.boll_trade_notify.ok ; do
     sleep 1
 done
