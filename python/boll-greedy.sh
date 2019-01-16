@@ -17,8 +17,14 @@ while getopts "c:k:f:s:a:w:Rh" var; do
 	's') # cmp_scale
 	    SCALE1=$OPTARG
 	    ;;
+	'r') # ratio
+	    RATIO=$OPTARG
+	    ;;
 	'R') # restart
 	    DO_RESTART=1
+	    ;;
+	'b') # din=close
+	    BINS=$OPTARG
 	    ;;
 	'K') # force restart
 	    DO_RESTART=1
@@ -37,6 +43,8 @@ while getopts "c:k:f:s:a:w:Rh" var; do
 	    echo '-f: fee rate'
 	    echo '-a: amount'
 	    echo '-s: cmp_scale'
+	    echo '-r: ratio'
+	    echo '-b: bins'
 	    echo '-R: use stop notify to restart all'
 	    echo '-K: force restart all if no order holded'
 	    echo unknown argument
@@ -61,16 +69,18 @@ test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit
 
 case ${KEY1} in
     30min)
-	RATIO=50
+	RATIO=${RATIO:-50}
 	;;
     12hour)
-	RATIO=25
+	RATIO=${RATIO:-25}
 	;;
     *)
-	RATIO=50
+	RATIO=${RATIO:-50}
 	echo unknown key ${KEY1}, using ratio ${RATIO}
 	;;
 esac
+
+BINS=${BINS:-1}
 
 case ${COIN} in
      btc)
@@ -117,7 +127,7 @@ sleep 2
 test -f ${SYMBOL1}.boll_notify.ok || fswatch -1 ${SYMBOL1}.boll_notify.ok
 
 rm -f ${SYMBOL1}.boll_trade_notify.ok go
-jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} &
+jobs -x python3 monitor_me.py trade_notify.py --signal=boll --dir=${SYMBOL1} --cmp_scale=${SCALE1} --bins=${bins} &
 sleep 2
 test -f ${SYMBOL1}.boll_trade_notify.ok || fswatch -1 ${SYMBOL1}.boll_trade_notify.ok
 

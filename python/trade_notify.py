@@ -117,6 +117,8 @@ parser.add_option('', '--latest', dest='latest_to_read', default='1000',
 parser.add_option('', '--dir', dest='dirs', default=[],
                   action='append',
                   help='target dir should processing')
+parser.add_option('', '--bins', dest='bins', default=0,
+                  help='wait how many reverse, 0=once, 1=twice')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -375,7 +377,7 @@ def try_to_trade_boll(subpath):
                         signal_open_order_with_sell(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                        bins = 1
+                        bins = int(options.bins)
                 elif now_close_mean > old_close_mean: # open buy order
                     if trade_file == '' and check_close_to_mean(boll, close) and check_open_order_gate(symbol, 'buy', close):
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
@@ -383,7 +385,7 @@ def try_to_trade_boll(subpath):
                         signal_open_order_with_buy(l_index, trade_file, close)
                         fresh_trade = True
                         old_open_price = close
-                        bins = 1
+                        bins = int(options.bins)
                 if fresh_trade == True: # ok, fresh trade
                     pass
                 elif trade_file == '':  # no open trade
@@ -412,14 +414,14 @@ def try_to_trade_boll(subpath):
                             l_dir = 'sell'
                             bins = bins - 1
                         else:
-                            bins = 1 # reset as first open order
+                            bins = int(options.bins) # reset as first open order
                         pass
                     else : # open direction
                         if close < old_close:
                             l_dir = 'buy'
                             bins = bins - 1
                         else:
-                            bins = 1 # reset as first open order
+                            bins = int(options.bins) # reset as first open order
                         pass
                     if l_dir != '': # yes, new order
                         l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
