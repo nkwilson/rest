@@ -69,13 +69,13 @@ test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit
 
 case ${KEY1} in
     30min)
-	RATIO=${RATIO:-50}
+	RATIO=${RATIO:-11}
 	;;
     12hour)
-	RATIO=${RATIO:-25}
+	RATIO=${RATIO:-11}
 	;;
     *)
-	RATIO=${RATIO:-50}
+	RATIO=${RATIO:-11}
 	echo unknown key ${KEY1}, using ratio ${RATIO}
 	;;
 esac
@@ -84,16 +84,16 @@ BINS=${BINS:-1}
 
 case ${COIN} in
      btc)
-	 SCALE1=${SCALE1:-1}
-	 ;;
-     bch)
 	 SCALE1=${SCALE1:-10}
 	 ;;
+     bch)
+	 SCALE1=${SCALE1:-1000}
+	 ;;
      eth)
-	 SCALE1=${SCALE1:-100}
+	 SCALE1=${SCALE1:-1000}
 	 ;;
      ltc)
-	 SCALE1=${SCALE1:-100}
+	 SCALE1=${SCALE1:-1000}
 	 ;;
      eos)
 	 SCALE1=${SCALE1:-1000}
