@@ -399,6 +399,14 @@ def try_to_trade_boll(subpath):
                         trade_file = ''  # make trade_file empty to indicate close
                         old_open_close = 0
                         bins = -1
+                        # fast open now
+                        time.sleep(5)
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'buy')
+                        # print (trade_file)
+                        signal_open_order_with_buy(l_index, trade_file, close)
+                        fresh_trade = True
+                        old_open_price = close
+                        bins = int(options.bins)
                 # close is touch lower
                 elif old_close_mean > now_close_mean and trade_file.endswith('.buy') == True :
                     # check if return bigger than fee
@@ -407,6 +415,14 @@ def try_to_trade_boll(subpath):
                         trade_file = ''  # make trade_file empty to indicate close
                         old_open_close = 0
                         bins = -1
+                        # fast open now
+                        time.sleep(5)
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, 'sell')
+                        # print (trade_file)
+                        signal_open_order_with_sell(l_index, trade_file, close)
+                        fresh_trade = True
+                        old_open_price = close
+                        bins = int(options.bins)
                 elif options.policy == 'boll_greedy':
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
