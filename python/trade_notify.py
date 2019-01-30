@@ -336,7 +336,7 @@ def try_to_pick_old_order():
 def boll_greedy_policy():
     pass
 
-def try_to_trade_close(subpath):
+def try_to_trade_simple(subpath):
     global trade_file, old_close_mean
     global old_open_price
     global close_mean, close_upper, close_lower
@@ -408,10 +408,14 @@ def try_to_trade_close(subpath):
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
                         if direction > 0:
-                            l_dir = 'sell'                            
+                            l_dir = 'sell'
+                        else: # same direction
+                            direction = 0
                     else : # open direction
                         if direction < 0:
                             l_dir = 'buy'
+                        else: # same direction
+                            direction = 0
                     if l_dir != '': # yes, new order
                         # write close to close_greedy signal for possible rate
                         global policy_notify
