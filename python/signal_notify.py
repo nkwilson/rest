@@ -143,7 +143,7 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
     print (l_delta, flush=True)
 
 #just save close to filename    
-def save_simple_to_file((stock_price, filename):
+def save_simple_to_file(stock_price, filename):
     with open(filename, 'w') as f:
         f.write('%9.3f\n' % (stock_price[-1]))
         f.close()
