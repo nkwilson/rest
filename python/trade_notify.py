@@ -100,8 +100,8 @@ parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
                   help="Should skip checking gate when open trade")
 parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
                   help='Should multple it before do compare')
-parser.add_option('', '--policy', dest='policy', default='boll_greedy', 
-                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy/close_greedy")
+parser.add_option('', '--policy', dest='policy', default='simple_greedy', 
+                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy/simple_greedy")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
                   help='using with one of ema')
 parser.add_option('', '--order_num', dest='order_num',
@@ -109,9 +109,9 @@ parser.add_option('', '--order_num', dest='order_num',
 parser.add_option('', '--fee_amount', dest='fee_amount',
                   action='store_true', default=False,
                   help='take amount int account with fee')
-parser.add_option('', '--signal', dest='signals', default=['boll'],
+parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, boll')
+                  help='use wich signal to generate trade notify and also as prefix, boll, simple')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -408,20 +408,20 @@ def try_to_trade_close(subpath):
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
                         if direction > 0:
-                            l_dir = 'buy'                            
+                            l_dir = 'sell'                            
                     else : # open direction
                         if direction < 0:
-                            l_dir = 'sell'
+                            l_dir = 'buy'
                     if l_dir != '': # yes, new order
-                        l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
-                        # print (l_trade_file)
-                        globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
-                        pass
-                    else: # write close to boll_greedy signal for possible rate
+                        # write close to close_greedy signal for possible rate
                         global policy_notify
                         with open(policy_notify, 'w') as f:
                             f.write('%s' % close)
                             f.close()
+                        time.sleep(5)
+                        l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                        # print (l_trade_file)
+                        globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
                         pass
                 old_close_mean = now_close_mean
                 old_close = close
