@@ -145,7 +145,7 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
 #just save close to filename    
 def save_simple_to_file(stock_price, filename):
     with open(filename, 'w') as f:
-        f.write('%9.3f\n' % (stock_price[-1]))
+        f.write('%9.3f\n' % float(stock_price[-1]))
         f.close()
 
 def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
@@ -345,6 +345,8 @@ def waiting_for_notify(v_dir, v_signal, v_outdir):
 
     if v_signal == 'boll':
         print ('(window_size, std) is (%d, %d)' % (default_window_size, default_num_of_std))
+    elif v_signal == 'simple':
+        options.without_old_files = True
 
     print ('Skip processing old files') if options.without_old_files == True \
         else processing_old_files(v_dir, latest_to_read, v_signal, v_outdir)
