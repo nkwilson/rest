@@ -26,9 +26,9 @@ parser.add_option("", "--signal_notify", dest="signal_notify",
 parser.add_option("", "--without_old_files", dest='without_old_files',
                   action="store_true", default=False,
                   help="do not processing stock files")
-parser.add_option('', '--signal', dest='signals', default=[],
+parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting]')
+                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple]')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -141,6 +141,12 @@ def save_ewma_to_file(stock_price, filename, w1=3, w2=10, w3=20, w4=60):
         f.close()
     l_delta = datetime.datetime.now() - l_start                
     print (l_delta, flush=True)
+
+#just save close to filename    
+def save_simple_to_file((stock_price, filename):
+    with open(filename, 'w') as f:
+        f.write('%9.3f\n' % (stock_price[-1]))
+        f.close()
 
 def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
     globals()['save_%s_to_file' % signal](stock_price, filename)
