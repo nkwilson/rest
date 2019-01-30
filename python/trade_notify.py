@@ -348,11 +348,11 @@ def try_to_trade_simple(subpath):
     if True: # type 256, new file event
         close = read_close(event_path)
         if trade_file == '':
-            print ('%9.3f' % close, 0)
+            print ('%9.3f' % close, 0, direction)
         elif trade_file.endswith('.sell') == True: # sell order
-            print ('%8.3f' % -close, '%9.3f' % old_open_price)
+            print ('%8.3f' % -close, '%9.3f' % old_open_price, direction)
         elif trade_file.endswith('.buy') == True: # buy order
-            print ('%9.3f' % close, '%8.3f' % -old_open_price)
+            print ('%9.3f' % close, '%8.3f' % -old_open_price, direction)
         if close == 0: # in case read failed
             return
         if True:
