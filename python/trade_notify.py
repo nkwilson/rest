@@ -336,6 +336,7 @@ def try_to_pick_old_order():
 def boll_greedy_policy():
     pass
 
+direction = 0
 def try_to_trade_simple(subpath):
     global trade_file, old_close_mean
     global old_open_price
