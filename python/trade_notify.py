@@ -365,14 +365,24 @@ def try_to_trade_simple(subpath):
                     bins = int(options.bins)
                     direction = 0
                 elif now_close_mean < old_close_mean:
-                    direction = direction - 1
-                elif now_close_mean > old_close_mean:
-                    direction = direction + 1
-                else: # now_close_mean == old_close_mean, see as reverse direction
-                    if trade_file.endswith('.sell') == True:
-                        direction = direction + 1
-                    elif trade_file.endswith('.buy') == True:
+                    if direction > 0:
+                        direction = -1
+                    else:
                         direction = direction - 1
+                elif now_close_mean > old_close_mean:
+                    if direction < 0:
+                        direction = 1
+                    else:
+                        direction = direction + 1
+                else: # now_close_mean == old_close_mean, see as reverse direction
+                    if direction < 0:
+                        direction = 1
+                    elif direction > 0:
+                        direction = - 1
+                    elif trade_file.endswith('.buy') == True:
+                        direction = -1
+                    elif trade_file.endswith('.sell') == True:
+                        direction = 1
                     else:
                         pass
                 if direction < 0:
