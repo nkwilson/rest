@@ -355,8 +355,6 @@ def try_to_trade_simple(subpath):
             print ('%8.3f' % -close, '%9.3f' % old_open_price, direction)
         elif trade_file.endswith('.buy') == True: # buy order
             print ('%9.3f' % close, '%8.3f' % -old_open_price, direction)
-        if abs(direction) > bins:
-            direction = 0
         if close == 0: # in case read failed
             return
         if True:
