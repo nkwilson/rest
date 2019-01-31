@@ -325,6 +325,11 @@ def setup_boll_greedy_order(subpath, close):
     print ('setup %s at %s' % (subpath, key))
     pass
 
+def cleanup_simple_greedy_order(close='0', rate='0'):
+    cleanup_boll_greedy_order(close, rate)
+def setup_simple_greedy_order(subpath, close):
+    setup_boll_greedy_order(subpath, close)
+
 # inotify specified dir to catch trade signals
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
