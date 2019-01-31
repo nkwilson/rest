@@ -342,6 +342,7 @@ def try_to_trade_simple(subpath):
     global old_open_price
     global close_mean, close_upper, close_lower
     global old_close, bins, direction
+    bins = int(options.bins)
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -354,6 +355,8 @@ def try_to_trade_simple(subpath):
             print ('%8.3f' % -close, '%9.3f' % old_open_price, direction)
         elif trade_file.endswith('.buy') == True: # buy order
             print ('%9.3f' % close, '%8.3f' % -old_open_price, direction)
+        if abs(direction) > bins:
+            direction = 0
         if close == 0: # in case read failed
             return
         if True:
@@ -363,7 +366,6 @@ def try_to_trade_simple(subpath):
                 now_close_mean = int(close * float(options.cmp_scale))
                 if old_close_mean == 0:
                     old_close_mean = now_close_mean
-                    bins = int(options.bins)
                     direction = 0
                 elif now_close_mean < old_close_mean:
                     if direction > 0:
@@ -415,7 +417,7 @@ def try_to_trade_simple(subpath):
                     pass
                 elif trade_file == '':  # no open trade
                     pass
-                elif options.policy == 'close_greedy':
+                elif options.policy == 'simple_greedy':
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
                         if direction > 0:
