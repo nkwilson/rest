@@ -294,7 +294,13 @@ def trade_timestamp():
 order_dict = dict()
 #{ 'subpath':'price', ..}
 # if rate touched, close specified orders in order_dict
-def cleanup_boll_greedy_order(close='0', rate=''):
+# leftup specified how many orders left in current holdings
+def cleanup_generic_order(close='0', rate='', leftup=0):
+    keys = len(order_dict.keys())
+    if keys > leftup:
+        left = keys - leftup
+    else:
+        return
     topop = list()
     for key in order_dict.keys():
         subsubpath = order_dict[key]
@@ -303,7 +309,8 @@ def cleanup_boll_greedy_order(close='0', rate=''):
             plus = (float(key) - float(close))/float(key)
         else:
             plus = (float(close) - float(key))/float(key)
-        if close == '0' or plus > float(rate):
+        if (close == '0' or plus > float(rate)) and left > 0:
+            left = left - 1
             print ('cleanup %s at %s with %s' % (subsubpath, key, close))
             do_trade_new('%s.close' % subsubpath, do_cleanup = False)
             topop.append(key)
@@ -313,6 +320,9 @@ def cleanup_boll_greedy_order(close='0', rate=''):
         order_dict.pop(key, None)
     topop = None
     pass
+
+def cleanup_boll_greedy_order(close='0', rate='0'):
+    cleanup_generic_order(close, rate, leftup=0)
 
 # when open, reset order_dict
 def setup_boll_greedy_order(subpath, close):
@@ -326,7 +336,8 @@ def setup_boll_greedy_order(subpath, close):
     pass
 
 def cleanup_simple_greedy_order(close='0', rate='0'):
-    cleanup_boll_greedy_order(close, rate)
+    cleanup_generic_order(close, rate, leftup=1)
+
 def setup_simple_greedy_order(subpath, close):
     setup_boll_greedy_order(subpath, close)
 

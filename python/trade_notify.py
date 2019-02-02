@@ -342,6 +342,7 @@ def try_to_trade_simple(subpath):
     global old_open_price
     global close_mean, close_upper, close_lower
     global old_close, bins, direction
+    global l_trade_file
     bins = int(options.bins)
     #print (subpath)
     event_path=subpath
@@ -415,6 +416,14 @@ def try_to_trade_simple(subpath):
                     pass
                 elif trade_file == '':  # no open trade
                     pass
+                elif l_trade_file != '': # do greedy processing
+                    # write close to close_greedy signal for possible rate
+                    global policy_notify
+                    with open(policy_notify, 'w') as f:
+                        f.write('%s' % close)
+                        f.close()
+                    print (trade_timestamp(), 'cleanup %s with %f' % (os.path.basename(l_trade_file), close))
+                    l_trade_file = ''
                 elif options.policy == 'simple_greedy':
                     l_dir = ''
                     if trade_file.endswith('.sell') == True: # sell direction
@@ -428,12 +437,6 @@ def try_to_trade_simple(subpath):
                         else: # same direction
                             direction = 0
                     if l_dir != '': # yes, new order
-                        # write close to close_greedy signal for possible rate
-                        global policy_notify
-                        with open(policy_notify, 'w') as f:
-                            f.write('%s' % close)
-                            f.close()
-                        time.sleep(5)
                         l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                         # print (l_trade_file)
                         globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
