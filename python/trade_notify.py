@@ -424,7 +424,7 @@ def try_to_trade_simple(subpath):
                     with open(policy_notify, 'w') as f:
                         f.write('%s' % close)
                         f.close()
-                    print (trade_timestamp(), 'cleanup %s with %f' % (os.path.basename(l_trade_file), close))
+                    print (trade_timestamp(), 'greedy cleanup %s with %f' % (os.path.basename(l_trade_file), close))
                     l_trade_file = ''
                 elif options.policy == 'simple_greedy':
                     l_dir = ''
