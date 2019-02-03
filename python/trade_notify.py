@@ -366,6 +366,7 @@ def try_to_trade_simple(subpath):
                 if old_close_mean == 0:
                     old_close_mean = now_close_mean
                     direction = 0
+                    l_trade_file = ''
                 elif now_close_mean < old_close_mean:
                     if direction > 0:
                         direction = -1
