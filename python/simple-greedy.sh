@@ -68,7 +68,7 @@ test -n "${AMOUNT}" && echo "${AMOUNT}" > ${SYMBOL1}.simple_amount
 test ${WINDOW} -eq $(expr "${WINDOW}" + "0") || exit 
 
 case ${KEY1} in
-    30min)
+    30min|1min)
 	RATIO=${RATIO:-9}
 	;;
     12hour)
