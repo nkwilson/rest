@@ -407,6 +407,7 @@ def try_to_trade_simple(subpath):
                     else:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         time.sleep(5)
+                        l_trade_file = ''
                         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                         # print (trade_file)
                         globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
