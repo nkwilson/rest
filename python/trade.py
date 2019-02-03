@@ -493,6 +493,7 @@ def wait_trade_notify(notify, policy_notify=''):
             # should sort rawdata by notify date
             # print (rawdata)
             for data in rawdata:
+                print (trade_timestamp(), 'received ', data)
                 if len(data) > 7:
                     if data == notify:
                         # print (data)
