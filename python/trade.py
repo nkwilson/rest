@@ -296,6 +296,7 @@ order_dict = dict()
 # if rate touched, close specified orders in order_dict
 # leftup specified how many orders left in current holdings
 def cleanup_generic_order(close='0', rate='', leftup=0):
+    left = 0
     keys = len(order_dict.keys())
     if keys > leftup:
         left = keys - leftup
@@ -303,7 +304,6 @@ def cleanup_generic_order(close='0', rate='', leftup=0):
         return
     topop = list()
     for key in order_dict.keys():
-        global left
         subsubpath = order_dict[key]
         direction = os.path.splitext(subsubpath)[1][1:]
         if direction == 'sell':
