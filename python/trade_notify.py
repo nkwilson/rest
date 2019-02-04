@@ -424,6 +424,10 @@ def try_to_trade_simple(subpath):
                     print (trade_timestamp(), 'greedy cleanup %s with %f' % (os.path.basename(l_trade_file), close))
                     l_trade_file = ''
                 elif options.policy == 'simple_greedy':
+                    if l_dir == 'sell':
+                        l_dir = 'buy'  # reversed
+                    elif l_dir == 'buy':
+                        l_dir = 'sell'
                     l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                     # print (l_trade_file)
                     globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
