@@ -303,6 +303,7 @@ def cleanup_generic_order(close='0', rate='', leftup=0):
         return
     topop = list()
     for key in order_dict.keys():
+        global left
         subsubpath = order_dict[key]
         direction = os.path.splitext(subsubpath)[1][1:]
         if direction == 'sell':
