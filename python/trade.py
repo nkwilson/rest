@@ -41,9 +41,9 @@ parser.add_option('', '--policy', dest='policy', default='boll_greedy',
                   help='should receive policy notify, key is [boll_greedy]')
 parser.add_option('', '--amount', dest='amount', default=1,
                   help='default trade amount')
-parser.add_option('', '--rate', dest='rate', default=0.001,
+parser.add_option('', '--rate', dest='rate', default=0,
                   help='default positive revenue rate')
-parser.add_option('', '--ratio', dest='amount_ratio', default=50,
+parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
 
 (options, args) = parser.parse_args()
