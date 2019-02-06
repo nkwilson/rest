@@ -415,13 +415,17 @@ def try_to_trade_simple(subpath):
                     pass
                 elif trade_file == '':  # no open trade
                     pass
-                elif l_trade_file != '': # do greedy processing
+                elif l_trade_file != '': # do greedy processing, must in reverse direction
                     # write close to close_greedy signal for possible rate
                     global policy_notify
                     with open(policy_notify, 'w') as f:
                         f.write('%s' % close)
                         f.close()
-                    print (trade_timestamp(), 'greedy cleanup %s with %f' % (os.path.basename(l_trade_file), close))
+                    all_cleanup = ''
+                    if (close - old_open_price) * direction > 0: # if positive, must cleanup all orders
+                        all_cleanup = 'all '
+                        trade_file = '' # new order opened
+                    print (trade_timestamp(), 'greedy %scleanup %s with %f' % (all_cleanup, os.path.basename(l_trade_file), close))
                     l_trade_file = ''
                 elif options.policy == 'simple_greedy':
                     if l_dir == 'sell':
