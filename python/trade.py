@@ -337,7 +337,7 @@ def setup_boll_greedy_order(subpath, close):
     pass
 
 def cleanup_simple_greedy_order(close='0', rate='0'):
-    cleanup_generic_order(close, rate, leftup=1)
+    cleanup_generic_order(close, rate, leftup=0)
 
 def setup_simple_greedy_order(subpath, close):
     setup_boll_greedy_order(subpath, close)
