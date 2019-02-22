@@ -298,6 +298,7 @@ order_dict = dict()
 def cleanup_generic_order(close='0', rate='', leftup=0):
     left = 0
     keys = len(order_dict.keys())
+    print (order_dict.keys())
     if keys > leftup:
         left = keys - leftup
     else:
