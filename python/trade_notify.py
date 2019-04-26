@@ -111,7 +111,7 @@ parser.add_option('', '--fee_amount', dest='fee_amount',
                   help='take amount int account with fee')
 parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, boll, simple')
+                  help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -335,6 +335,104 @@ def try_to_pick_old_order():
 # if close is reversed, signal open signal            
 def boll_greedy_policy():
     pass
+
+def try_to_trade_tit2tat(subpath):
+    global trade_file, old_close_mean
+    global old_open_price
+    global close_mean, close_upper, close_lower
+    global old_close, bins, direction
+    global l_trade_file
+    bins = int(options.bins)
+    #print (subpath)
+    event_path=subpath
+    l_index = os.path.basename(event_path)
+    # print (l_index, event_path)
+    if True: # type 256, new file event
+        close = read_close(event_path)
+        if trade_file == '':
+            print ('%9.3f' % close, 0, direction)
+        elif trade_file.endswith('.sell') == True: # sell order
+            print ('%8.3f' % -close, '%9.3f' % old_open_price, direction)
+        elif trade_file.endswith('.buy') == True: # buy order
+            print ('%9.3f' % close, '%8.3f' % -old_open_price, direction)
+        if close == 0: # in case read failed
+            return
+        if True:
+                fresh_trade = False
+                symbol=symbols_mapping[figure_out_symbol_info(event_path)]
+                # print (symbol)
+                now_close_mean = int(close * float(options.cmp_scale))
+                if old_close_mean == 0:
+                    old_close_mean = now_close_mean
+                    direction = 0
+                    l_trade_file = ''
+                elif now_close_mean < old_close_mean:
+                    if direction >= 0:
+                        direction = -1
+                    else:
+                        direction = direction - 1
+                elif now_close_mean > old_close_mean:
+                    if direction <= 0:
+                        direction = 1
+                    else:
+                        direction = direction + 1
+                else: # now_close_mean == old_close_mean, see as reverse direction
+                    if direction < 0:
+                        direction = 1
+                    elif direction > 0:
+                        direction = - 1
+                    else:
+                        pass
+                if direction < 0:
+                    l_dir = 'sell'
+                elif direction > 0:
+                    l_dir = 'buy'
+                else:
+                    l_dir = ''
+                    fresh_trade = True # let it go
+                    pass
+                # if two times, abs(direction) > bins==1
+                if abs(direction) > bins :
+                    if trade_file == '':
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                        # print (trade_file)
+                        globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
+                        old_open_price = close
+                    elif trade_file.endswith(l_dir) == True:
+                        pass # same direction
+                    else:
+                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        time.sleep(30)
+                        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                        # print (trade_file)
+                        globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
+                        old_open_price = close                        
+                    l_trade_file = ''
+                    fresh_trade = True
+                    direction = direction / abs(direction) # clean
+                if fresh_trade == True: # ok, fresh trade
+                    pass
+                elif trade_file == '':  # no open trade
+                    pass
+                elif l_trade_file != '': # do greedy processing
+                    # write close to close_greedy signal for possible rate
+                    global policy_notify
+                    with open(policy_notify, 'w') as f:
+                        f.write('%s' % close)
+                        f.close()
+                    print (trade_timestamp(), 'greedy cleanup %s with %f' % (os.path.basename(l_trade_file), close))
+                    l_trade_file = ''
+                elif options.policy == 'simple_greedy':
+                    if l_dir == 'sell':
+                        l_dir = 'buy'  # reversed
+                    elif l_dir == 'buy':
+                        l_dir = 'sell'
+                    l_trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                    # print (l_trade_file)
+                    globals()['signal_open_order_with_%s' % l_dir](l_index, l_trade_file, close)
+                    pass
+                old_close_mean = now_close_mean
+                old_close = close
 
 direction = 0
 def try_to_trade_simple(subpath):

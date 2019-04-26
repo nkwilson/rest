@@ -28,7 +28,7 @@ parser.add_option("", "--without_old_files", dest='without_old_files',
                   help="do not processing stock files")
 parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple]')
+                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple, tit2tat]')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -147,6 +147,9 @@ def save_simple_to_file(stock_price, filename):
     with open(filename, 'w') as f:
         f.write('%9.3f\n' % float(stock_price[-1]))
         f.close()
+
+def save_tit2tat_to_file(stock_price, filename):
+    save_simple_to_file(stock_price, filename)
 
 def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
     globals()['save_%s_to_file' % signal](stock_price, filename)
@@ -345,7 +348,7 @@ def waiting_for_notify(v_dir, v_signal, v_outdir):
 
     if v_signal == 'boll':
         print ('(window_size, std) is (%d, %d)' % (default_window_size, default_num_of_std))
-    elif v_signal == 'simple':
+    elif v_signal in ['simple', 'tit2tat']:
         options.without_old_files = True
 
     print ('Skip processing old files') if options.without_old_files == True \
