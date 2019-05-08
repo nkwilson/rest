@@ -111,7 +111,7 @@ parser.add_option('', '--fee_amount', dest='fee_amount',
                   help='take amount int account with fee')
 parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, boll, simple')
+                  help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -359,8 +359,25 @@ def read_4prices(filename):
     # print (close)
     return prices
 
+open_price = 0
+
+last_bond = 0 # means uninitialized
+last_balance = 0
+
+ID_OPEN=0
+ID_HIGH=1
+ID_LOW=2
+ID_CLOSE=3
+
 # Whether symbol holding is closed forecly
 def check_forced_close(symbol, direction, prices):
+    if prices != None: # when do emulation
+        if direction == 'buy' and open_price > prices[ID_LOW]:
+            return ((open_price - prices[ID_LOW]) / open_price) >= 0.1  # rate is 10
+        elif direction == 'sell' and open_price > 0 and open_price < prices[ID_HIGH]:
+            return ((open_price - prices[ID_HIGH]) / open_price) <= -0.1  # rate is 10
+        else:
+            return False
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
         return False
@@ -371,14 +388,6 @@ def check_forced_close(symbol, direction, prices):
         if data['symbol'] == symbol:
             return data['%s_amount' % direction] == 0:
     pass
-
-last_bond = 0 # means uninitialized
-last_balance = 0
-
-ID_OPEN=0
-ID_HIGH=1
-ID_LOW=2
-ID_CLOSE=3
 
 def quarter_auto_bond(symbol, direction):
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
@@ -457,6 +466,8 @@ def calculate_amount(symbol):
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, direction, prices):
+    if prices != None: # when do emulation
+        return (prices[ID_CLOSE], 0.001)
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
         return 0
@@ -510,7 +521,7 @@ def try_to_trade_tit2tat(subpath):
                 
                 new_open = True if trade_file == '' else False
                 
-                if new_open == False and check_forced_close(symbol, l_dir, prices):
+                if new_open == False and check_forced_close(symbol, l_dir, prices if options.emulate else None):
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     new_open = True
@@ -518,7 +529,7 @@ def try_to_trade_tit2tat(subpath):
                 if new_open == False:
                     # delay here to update open price
                     if open_price == 0:
-                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir, prices)
+                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir, prices if options.emulate else None)
                     
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     
