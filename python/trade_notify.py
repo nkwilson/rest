@@ -1201,6 +1201,14 @@ def with_scandir_ewma(l_dir):
                 files.append(entry.name)
     return files
 
+def with_scandir_tit2tat(l_dir):
+    files = list()
+    with os.scandir(l_dir) as it:
+        for entry in it:
+            if entry.name.endswith('.t2t') == True:
+                files.append(entry.name)
+    return files
+
 # try to emulate signal notification
 def emul_signal_notify(l_dir, l_signal):
     global old_close_mean, signal_notify, trade_notify
@@ -1217,11 +1225,12 @@ def emul_signal_notify(l_dir, l_signal):
             # print (fpath)
             wait_signal_notify(fpath, l_signal)
         files = None
-        msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
-        with open("%s_new_result.txt" % l_dir, 'a') as f:
-            f.write('%s\n' % msg)
-            f.close()
-        print (msg)
+        if total_orders > 0:
+            msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
+            with open("%s_new_result.txt" % l_dir, 'a') as f:
+                f.write('%s\n' % msg)
+                f.close()
+                print (msg)
         #print (close_mean)
     except Exception as ex:
         print (traceback.format_exc())
