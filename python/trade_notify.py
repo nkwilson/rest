@@ -109,7 +109,7 @@ parser.add_option('', '--order_num', dest='order_num',
 parser.add_option('', '--fee_amount', dest='fee_amount',
                   action='store_true', default=False,
                   help='take amount int account with fee')
-parser.add_option('', '--signal', dest='signals', default=['simple'],
+parser.add_option('', '--signal', dest='signals', default=[],
                   action='append',
                   help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
@@ -119,6 +119,8 @@ parser.add_option('', '--dir', dest='dirs', default=[],
                   help='target dir should processing')
 parser.add_option('', '--bins', dest='bins', default=0,
                   help='wait how many reverse, 0=once, 1=twice')
+parser.add_option('', '--nolog', dest='nolog', default=0,
+                  help='Do not log to file')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1200,11 +1202,11 @@ def with_scandir_ewma(l_dir):
     return files
 
 # try to emulate signal notification
-def emul_signal_notify(l_dir):
+def emul_signal_notify(l_dir, l_signal):
     global old_close_mean, signal_notify, trade_notify
     global total_revenue, total_orders
     try:
-        files = with_scandir_ewma(l_dir)
+        files = globals()['with_scandir_%s' % l_signal](l_dir)
         files.sort()
         total_files = len(files)
         to_read = int (random.random() * total_files)
@@ -1213,7 +1215,7 @@ def emul_signal_notify(l_dir):
         for fname in files[start_at:start_at+to_read]:
             fpath = os.path.join(l_dir, fname)
             # print (fpath)
-            wait_signal_notify(fpath)
+            wait_signal_notify(fpath, l_signal)
         files = None
         msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
         with open("%s_new_result.txt" % l_dir, 'a') as f:
@@ -1364,9 +1366,10 @@ logging.basicConfig(filename=logfile,
                     format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 #logging.info('trade_notify: %s' % trade_notify)
-saved_stdout = sys.stdout
-sys.stdout = open(logfile, 'a')
-sys.stderr = sys.stdout
+if options.nolog == 0:
+    saved_stdout = sys.stdout
+    sys.stdout = open(logfile, 'a')
+    sys.stderr = sys.stdout
 print (dt.now())
 print ('trade_notify: %s' % trade_notify)
 
@@ -1411,7 +1414,7 @@ if options.shutdown_notify != None:
     print ('shutdown_notify: %s' % shutdown_notify)
         
 if options.emulate:
-    emul_signal_notify(l_dir)
+    emul_signal_notify(l_dir, l_signal)
     os.sys.exit(0)
 
 while True:
