@@ -386,7 +386,7 @@ def check_forced_close(symbol, direction, prices):
     # print (holding['holding'])
     for data in holding['holding']:
         if data['symbol'] == symbol:
-            return data['%s_amount' % direction] == 0:
+            return data['%s_amount' % direction] == 0
     pass
 
 def quarter_auto_bond(symbol, direction):
