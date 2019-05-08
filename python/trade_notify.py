@@ -171,6 +171,10 @@ def figure_out_symbol_info(path):
     # print (path[start:end])
     return path[start:end]
 
+# future_position_4fix return format
+# 期货逐仓持仓信息
+# {'result': True, 'holding': [{'buy_price_avg': 75.221, 'symbol': 'ltc_usd', 'lever_rate': 10, 'buy_available': 1, 'contract_id': 201906280010015, 'sell_risk_rate': '1,000,000.00', 'buy_amount': 1, 'buy_risk_rate': '99.84', 'profit_real': -3.988e-05, 'contract_type': 'quarter', 'sell_flatprice': '0.000', 'buy_bond': 0.01329151, 'sell_profit_lossratio': '0.00', 'buy_flatprice': '69.011', 'buy_profit_lossratio': '-0.14', 'sell_amount': 0, 'sell_bond': 0, 'sell_price_cost': 92.37172398, 'buy_price_cost': 75.221, 'create_date': 1552656524000, 'sell_price_avg': 92.37172398, 'sell_available': 0}]
+# {'result': True, 'holding': [{'buy_price_avg': 176.08158274, 'symbol': 'eth_usd', 'lever_rate': 10, 'buy_available': 0, 'contract_id': 201906280020041, 'sell_risk_rate': '99.36', 'buy_amount': 0, 'buy_risk_rate': '1,000,000.00', 'profit_real': -1.847e-05, 'contract_type': 'quarter', 'sell_flatprice': '178.453', 'buy_bond': 0, 'sell_profit_lossratio': '-0.66', 'buy_flatprice': '0.000', 'buy_profit_lossratio': '0.00', 'sell_amount': 1, 'sell_bond': 0.00615942, 'sell_price_cost': 162.388, 'buy_price_cost': 176.08158274, 'create_date': 1552656509000, 'sell_price_avg': 162.388, 'sell_available': 1}]}
 # if current order is permit to issue
 def check_open_order_gate(symbol, direction, current_price):
     if options.emulate:
@@ -335,6 +339,237 @@ def try_to_pick_old_order():
 # if close is reversed, signal open signal            
 def boll_greedy_policy():
     pass
+
+# open, high, low, close == 4 prices
+def read_4prices(filename):
+    prices = None
+    # drop suffix
+    filename = os.path.splitext(filename)[0]
+    # print (filename)
+    if os.path.isfile(filename) == False: # in case not exist
+        return prices
+    try:
+        with open(filename, 'r') as f:
+            line = eval(f.readline().rstrip('\n'))  # can't just copy from boll
+            prices = float(line[0:3])
+            f.close()
+            # close = eval(f.readline())[3]
+    except Exception as ex:
+        print ('read_4prices: %s' % filename)
+    # print (close)
+    return prices
+
+# Whether symbol holding is closed forecly
+def check_forced_close(symbol, direction, prices):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    if holding['result'] != True:
+        return False
+    if len(holding['holding']) == 0:
+        return False
+    # print (holding['holding'])
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            return data['%s_amount' % direction] == 0:
+    pass
+
+last_bond = 0 # means uninitialized
+last_balance = 0
+
+ID_OPEN=0
+ID_HIGH=1
+ID_LOW=2
+ID_CLOSE=3
+
+def quarter_auto_bond(symbol, direction):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    # print (holding)
+    if holding['result'] != True:
+        return 0.0 # 0 means failed
+    if len(holding['holding']) == 0:
+        return 0.0
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            if data['%s_amount' % direction] > 0:
+                return data['%s_bond' % direction]/data['%s_amount' % direction]
+    return 0.0
+    
+def quarter_auto_balance(symbol):
+    coin = symbol[0:symbol.index('_')]
+    result=json.loads(okcoinFuture.future_userinfo_4fix())
+    if result['result'] != True:
+        return 0.0
+    balance=result['info'][coin]['balance']
+    return float(balance)
+
+# Check price and return calcuated profit, zero means do greedy open otherwite close holding
+def check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy):
+    if l_dir == 'buy':
+        if close > previous_close:
+            if open_greedy == False:
+                return (close - open_price) 
+            else:
+                if close > open_price: # already positive profit
+                    return (close - open_price)
+                else: # negative profit
+                    return (close - open_price)
+        elif close < previous_close:
+            if open_greedy == False:
+                if close > open_start_price: # positive profit
+                    return 0
+                else:
+                    return (close - open_start_price)
+            else:
+                if close > open_start_price: # positive profit
+                    return 0
+                else:
+                    return (close - open_start_price)
+    elif l_dir == 'sell':
+        if close < previous_close:
+            if open_greedy == False:
+                return -(close - open_price) 
+            else:
+                if close < open_price: # already positive profit
+                    return -(close - open_price)
+                else: # negative profit
+                    return -(close - open_price)
+        elif close > previous_close:
+            if open_greedy == False:
+                if close < open_start_price: # positive profit
+                    return 0
+                else:
+                    return -(close - open_start_price)
+            else:
+                if close < open_start_price: # positive profit
+                    return 0
+                else:
+                    return -(close - open_start_price)
+    pass
+
+# Figure out current holding's amount
+def calculate_amount(symbol):
+    if last_bond == 0.0:
+        return 1  # in case error, just process 1 ticket
+    last_balance = quarter_auto_balance(symbol)
+    if last_balance == 0.0:
+        return 1 # just in case
+    return int(last_balance / last_bond / 10 + 0.5)
+    pass
+
+# Figure out current holding's open price, zero means no holding
+def real_open_price_and_cost(symbol, direction, prices):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    if holding['result'] != True:
+        return 0
+    if len(holding['holding']) == 0:
+        return 0
+    # print (holding['holding'])
+    for data in holding['holding']:
+        if data['symbol'] == symbol and data['%s_amount' % direction] != 0:
+            last_bond = quarter_auto_bond(symbol, direction)
+            avg = data['%s_price_avg' % direction]
+            real= data['profit_real']
+            return (float(avg), float(avg)*float(real))
+    return 0
+
+def try_to_trade_tit2tat(subpath):
+    global trade_file, old_close_mean
+    global old_open_price
+    global close_mean, close_upper, close_lower
+    global old_close, bins, direction
+    global l_trade_file
+    global previous_close
+    global open_greedy
+    global open_price, open_start_price
+    global open_cost
+    
+    #print (subpath)
+    event_path=subpath
+    l_index = os.path.basename(event_path)
+    # print (l_index, event_path)
+    if True: # type 256, new file event
+        prices = read_4prices(event_path)
+        close = prices[ID_CLOSE]
+        l_dir = ''
+        if trade_file == '':
+            print ('%9.3f' % close, '-')
+        elif trade_file.endswith('.sell') == True: # sell order
+            l_dir = 'sell'
+            print ('%8.3f' % -close, '%9.3f' % open_price, l_dir)
+        elif trade_file.endswith('.buy') == True: # buy order
+            l_dir = 'buy'
+            print ('%9.3f' % close, '%8.3f' % -open_price, l_dir)
+        if close == 0: # in case read failed
+            return
+        if True:
+            if True:
+                if previous_close == 0:
+                    previous_close = close
+                    return
+                
+                symbol=symbols_mapping[figure_out_symbol_info(event_path)]
+                
+                new_open = True if trade_file == '' else False
+                
+                if new_open == False and check_forced_close(symbol, l_dir, prices):
+                    # suffered forced close
+                    globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                    new_open = True
+                
+                if new_open == False:
+                    # delay here to update open price
+                    if open_price == 0:
+                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir, prices)
+                    
+                    current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
+                    
+                    if current_profit > open_cost: # yes, positive 
+                        # do close
+                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        # and open again, just like new_open == True
+                        new_open = True
+                        open_greedy = False
+                    elif current_profit < -open_cost: # no, negative 
+                        # do close
+                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        # and open again, just list new_open == True
+                        new_open = True
+                        open_greedy = False
+                        open_start_price = open_price # when seeing this price, should close, init only once
+                    elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
+                        # emit open again signal
+                        open_greedy = True
+                        with open(policy_notify, 'w') as f:
+                            f.write('%s %s %s' % (l_dir, close, previous_close))
+                            f.close()
+                        print (trade_timestamp(), 'greedy signal %s at %s => %s' % (l_dir, previous_close, close))
+                        previous_close = close
+                    else:
+                        previous_close = close
+                        return
+                if new_open == True:
+                    trade_file = ''
+                    open_greedy = False
+                    open_price = 0.0
+                    open_cost = 0.0
+                    
+                    if close > previous_close:
+                        l_dir = 'buy'
+                    elif close < previous_close:
+                        l_dir = 'sell'
+                    else:
+                        previous_close = close
+                        return
+                    
+                    # do open
+                    trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+                    # print (trade_file)
+                    globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
+                    
+                    if open_start_price == 0:
+                        open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
+                    
+                    previous_close = close
+                    return
 
 direction = 0
 def try_to_trade_simple(subpath):
