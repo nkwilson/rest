@@ -472,7 +472,7 @@ def calculate_amount(symbol):
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, direction, prices):
     if prices != None: # when do emulation
-        return (prices[ID_CLOSE], 0.001)
+        return (prices[ID_OPEN], 0.001)
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
     if holding['result'] != True:
         return 0
@@ -532,10 +532,6 @@ def try_to_trade_tit2tat(subpath):
                     new_open = True
                 
                 if new_open == False:
-                    # delay here to update open price
-                    if open_price == 0:
-                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir, prices if options.emulate else None)
-                    
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     
                     if current_profit > open_cost: # yes, positive 
@@ -580,7 +576,12 @@ def try_to_trade_tit2tat(subpath):
                     trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                     # print (trade_file)
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-                    
+
+                    # sleep 1s here
+                    time.sleep(1)
+                    if open_price == 0:
+                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir, prices if options.emulate else None)
+
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
