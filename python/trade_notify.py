@@ -352,8 +352,10 @@ def read_4prices(filename):
         return prices
     try:
         with open(filename, 'r') as f:
-            line = eval(f.readline().rstrip('\n'))  # can't just copy from boll
-            prices = float(line[0:3])
+            line=f.readline().rstrip('\n')
+            # print (line, eval(line))
+            prices = [float(x) for x in eval(line)]
+            # print (prices)
             f.close()
             # close = eval(f.readline())[3]
     except Exception as ex:
@@ -362,7 +364,8 @@ def read_4prices(filename):
     return prices
 
 open_price = 0
-
+previous_close = 0
+open_start_price = 0
 last_bond = 0 # means uninitialized
 last_balance = 0
 
@@ -1223,7 +1226,7 @@ def emul_signal_notify(l_dir, l_signal):
         for fname in files[start_at:start_at+to_read]:
             fpath = os.path.join(l_dir, fname)
             # print (fpath)
-            wait_signal_notify(fpath, l_signal)
+            wait_signal_notify(fpath, l_signal, '')
         files = None
         if total_orders > 0:
             msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
