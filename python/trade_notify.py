@@ -425,7 +425,10 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close > open_price: # already positive profit
                     return (close - open_price)
                 else: # negative profit
-                    return (close - open_price)
+                    if close < open_start_price:
+                        return (close - open_start_price)
+                    else:
+                        return 0
         elif close < previous_close:
             if open_greedy == False:
                 if close > open_start_price: # positive profit
@@ -445,7 +448,10 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close < open_price: # already positive profit
                     return -(close - open_price)
                 else: # negative profit
-                    return -(close - open_price)
+                    if close > open_start_price:
+                        return -(close - open_start_price)
+                    else:
+                        return 0
         elif close > previous_close:
             if open_greedy == False:
                 if close < open_start_price: # positive profit
