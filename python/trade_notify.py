@@ -534,7 +534,8 @@ def try_to_trade_tit2tat(subpath):
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     new_open = True
-                
+                    open_greedy = False
+                    open_start_price = open_price # when seeing this price, should close, init only once                
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     
@@ -555,6 +556,7 @@ def try_to_trade_tit2tat(subpath):
                         # emit open again signal
                         open_greedy = True
                         with open(policy_notify, 'w') as f:
+                            # if same direction and positive profit cleanup
                             f.write('%s %s %s' % (l_dir, close, previous_close))
                             f.close()
                         print (trade_timestamp(), 'greedy signal %s at %s => %s' % (l_dir, previous_close, close))
