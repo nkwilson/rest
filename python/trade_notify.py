@@ -498,7 +498,7 @@ def try_to_trade_tit2tat(subpath):
     global old_close, bins, direction
     global l_trade_file
     global previous_close
-    global open_greedy
+    global open_greedy, close_greedy 
     global open_price, open_start_price
     global open_cost
     
@@ -535,6 +535,7 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     new_open = True
                     open_greedy = False
+                    close_greedy = True
                     open_start_price = open_price # when seeing this price, should close, init only once                
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
@@ -544,12 +545,16 @@ def try_to_trade_tit2tat(subpath):
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         # and open again, just like new_open == True
                         new_open = True
+                        if open_greedy == True:
+                            close_greedy = True
                         open_greedy = False
                     elif current_profit < -open_cost: # no, negative 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         # and open again, just list new_open == True
                         new_open = True
+                        if open_greedy == True:
+                            close_greedy = True
                         open_greedy = False
                         open_start_price = open_price # when seeing this price, should close, init only once
                     elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
@@ -557,16 +562,25 @@ def try_to_trade_tit2tat(subpath):
                         open_greedy = True
                         with open(policy_notify, 'w') as f:
                             # if same direction and positive profit cleanup
-                            f.write('%s %s %s' % (l_dir, close, previous_close))
+                            f.write('%s %s %s %s' % (l_dir, close, previous_close, 'holding'))
                             f.close()
-                        print (trade_timestamp(), 'greedy signal %s at %s => %s' % (l_dir, previous_close, close))
+                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, 'holding'))
                         previous_close = close
                     else:
                         previous_close = close
                         return
+                    if close_greedy == True:
+                        # should notify to close
+                        with open(policy_notify, 'w') as f:
+                            # if same direction and positive profit cleanup
+                            f.write('%s %s %s %s' % (l_dir, close, previous_close, 'closed'))
+                            f.close()
+                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, 'closed'))
+                        close_greedy = False
                 if new_open == True:
                     trade_file = ''
                     open_greedy = False
+                    close_greedy = False
                     open_price = 0.0
                     open_cost = 0.0
                     
