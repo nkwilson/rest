@@ -1,0 +1,35 @@
+   52.263  -58.150 buy gate    43.341
+2019-05-11 22:11:21  closed at 1552348800000.t2t with 52.2630000
+2019-05-11 22:11:21 greedy signal buy at 54.488 => 52.263 (closed)
+2019-05-11 22:11:21 1552348800000.t2t sell at 52.2630000
+ -53.304    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 52.263 => 53.304 (holding)
+ -56.202    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 53.304 => 56.202 (holding)
+ -55.598    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 56.202 => 55.598 (holding)
+ -55.806    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 55.598 => 55.806 (holding)
+ -56.272    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 55.806 => 56.272 (holding)
+ -56.312    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 56.272 => 56.312 (holding)
+ -56.126    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 56.312 => 56.126 (holding)
+ -54.712    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 56.126 => 54.712 (holding)
+ -55.235    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 54.712 => 55.235 (holding)
+ -55.053    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 55.235 => 55.053 (holding)
+ -54.950    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 55.053 => 54.95 (holding)
+ -55.309    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 54.95 => 55.309 (holding)
+ -54.940    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 55.309 => 54.94 (holding)
+ -54.995    52.263 sell gate    58.150
+2019-05-11 22:11:21 greedy signal sell at 54.94 => 54.995 (holding)
+ -55.523    52.263 sell gate    58.150
+2019-05-11 22:11:21  closed at 1552564800000.t2t with 55.5230000  # here must be forced closing
+2019-05-11 22:11:21 greedy signal sell at 54.995 => 55.523 (closed) 
