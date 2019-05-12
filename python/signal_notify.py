@@ -148,15 +148,17 @@ def save_simple_to_file(stock_price, filename):
         f.write('%9.3f\n' % float(stock_price[-1]))
         f.close()
 
-def save_tit2tat_to_file(stock_price, filename, old_event_path):
+old_event_path = ''
+def save_tit2tat_to_file(stock_price, filename):
+    global old_event_path
     with open(old_event_path, 'r') as f:
         with open(filename, 'w') as wf:
             wf.write('%s' % f.readline())
             wf.close()
         f.close()
 
-def save_and_notify_signal(stock_price, filename, signal, notify_file='', old_event_path):
-    globals()['save_%s_to_file' % signal](stock_price, filename, old_event_path)
+def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
+    globals()['save_%s_to_file' % signal](stock_price, filename)
     if notify_file == '':
         return
     # make signal
@@ -185,7 +187,6 @@ def generate_signal_filename(event_path, v_signal, outdir=''):
 l_index = ''
 old_l_index = ''
 event_path = ''
-old_event_path = ''
 
 # if new file, subpath = (256, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
 # if old file modified, subpath = (2, None, '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min/1533455340000')
@@ -235,7 +236,7 @@ def callback_file_new(subpath, signal_notify, v_signal, v_outdir=''):
         try:
             print ('')
             filename = generate_signal_filename(old_event_path, v_signal, v_outdir)
-            save_and_notify_signal(close_prices, filename, v_signal, signal_notify, old_event_path)
+            save_and_notify_signal(close_prices, filename, v_signal, signal_notify)
         except Exception as ex:
             print (filename)
             print (traceback.format_exc())
