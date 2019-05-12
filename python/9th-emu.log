@@ -1,0 +1,56 @@
+2019-05-12 22:30:18  closed at 1548000000000.t2t with 29.1330000
+2019-05-12 22:30:18 greedy signal sell at 29.385 => 29.133 (closed)
+2019-05-12 22:30:18 1548000000000.t2t sell at 29.1330000
+ -29.198    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.133 => 29.198 (holding)
+ -29.315    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.198 => 29.315 (holding)
+ -29.425    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.315 => 29.425 (holding)
+ -29.701    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.425 => 29.701 (holding)
+ -29.409    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.701 => 29.409 (holding)
+ -29.460    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.409 => 29.46 (holding)
+ -29.616    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.46 => 29.616 (holding)
+ -29.480    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.616 => 29.48 (holding)
+ -29.384    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.48 => 29.384 (holding)
+ -29.390    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.384 => 29.39 (holding)
+ -30.404    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 29.39 => 30.404 (holding)
+ -30.608    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.404 => 30.608 (holding)
+ -30.447    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.608 => 30.447 (holding)
+ -30.710    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.447 => 30.71 (holding)
+ -30.423    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.71 => 30.423 (holding)
+ -30.944    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.423 => 30.944 (holding)
+ -30.458    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.944 => 30.458 (holding)
+ -30.584    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.458 => 30.584 (holding)
+ -30.747    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.584 => 30.747 (holding)
+ -30.194    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.747 => 30.194 (holding)
+ -30.385    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.194 => 30.385 (holding)
+ -30.582    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.385 => 30.582 (holding)
+ -30.943    29.133 sell gate    36.141
+2019-05-12 22:30:18 greedy signal sell at 30.582 => 30.943 (holding)
+ -31.694    29.133 sell gate    36.141
+2019-05-12 22:30:18  closed at 1548345600000.t2t with 31.6940000
+2019-05-12 22:30:18 greedy signal sell at 30.943 => 31.694 (forced closed)
+2019-05-12 22:30:18 1548345600000.t2t buy at 31.6940000
+   31.633  -31.694 buy gate    36.141  # 此处 open_start_price 更新有误，即在forced close时是根据 sell 方向更新的。
+2019-05-12 22:30:18  closed at 1548360000000.t2t with 31.6330000
+

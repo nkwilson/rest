@@ -585,17 +585,23 @@ def try_to_trade_tit2tat(subpath):
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     close_greedy = False
                 if new_open == True:
+                    l_dir = ''    
+                    if close > previous_close:
+                        l_dir = 'buy'
+                    elif close < previous_close:
+                        l_dir = 'sell'
+                    if forced_close == True: # should check open_start_price again
+                        if l_dir == 'buy' and open_start_price > open_price:
+                            open_start_price = open_price
+                        elif l_dir == 'sell' and open_start_price < open_price:
+                            open_start_price = open_price
                     trade_file = ''
                     open_greedy = False
                     close_greedy = False
                     open_price = 0.0
                     open_cost = 0.0
                     
-                    if close > previous_close:
-                        l_dir = 'buy'
-                    elif close < previous_close:
-                        l_dir = 'sell'
-                    else:
+                    if l_dir == '': # no updating
                         previous_close = close
                         return
                     
@@ -603,12 +609,12 @@ def try_to_trade_tit2tat(subpath):
                     trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                     # print (trade_file)
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-
+                    
                     # sleep 1s here
                     time.sleep(1) if options.emulate == True else True
                     if open_price == 0:
                         (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir) if options.emulate == False else (close, 0.001)
-
+                    
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
