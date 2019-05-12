@@ -28,7 +28,7 @@ parser.add_option("", "--without_old_files", dest='without_old_files',
                   help="do not processing stock files")
 parser.add_option('', '--signal', dest='signals', default=['simple'],
                   action='append',
-                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple]')
+                  help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple, tit2tat]')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
                   help='only keep that much old values')
 parser.add_option('', '--dir', dest='dirs', default=[],
@@ -148,8 +148,15 @@ def save_simple_to_file(stock_price, filename):
         f.write('%9.3f\n' % float(stock_price[-1]))
         f.close()
 
-def save_and_notify_signal(stock_price, filename, signal, notify_file=''):
-    globals()['save_%s_to_file' % signal](stock_price, filename)
+def save_tit2tat_to_file(stock_price, filename, old_event_path):
+    with open(old_event_path, 'r') as f:
+        with open(filename, 'w') as wf:
+            wf.write('%s' % f.readline())
+            wf.close()
+        f.close()
+
+def save_and_notify_signal(stock_price, filename, signal, notify_file='', old_event_path):
+    globals()['save_%s_to_file' % signal](stock_price, filename, old_event_path)
     if notify_file == '':
         return
     # make signal
@@ -228,7 +235,7 @@ def callback_file_new(subpath, signal_notify, v_signal, v_outdir=''):
         try:
             print ('')
             filename = generate_signal_filename(old_event_path, v_signal, v_outdir)
-            save_and_notify_signal(close_prices, filename, v_signal, signal_notify)
+            save_and_notify_signal(close_prices, filename, v_signal, signal_notify, old_event_path)
         except Exception as ex:
             print (filename)
             print (traceback.format_exc())
@@ -315,7 +322,7 @@ def processing_old_files(v_dir, latest_to_read, signal, outdir):
                 # print (close)
                 close_prices[fname]=close
             fpathboll = generate_signal_filename(fpath, signal, outdir)
-            save_and_notify_signal(close_prices, fpathboll, signal)
+            save_and_notify_signal(close_prices, fpathboll, signal, fpath)
         print ('Processed total %d(%d saved) old files' % (len(files), read_saved))
     except Exception as ex:
         #print ('exception occured: %s' % (ex))
