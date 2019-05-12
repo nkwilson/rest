@@ -537,8 +537,13 @@ def try_to_trade_tit2tat(subpath):
                     new_open = True
                     open_greedy = False
                     close_greedy = True
-                    open_start_price = open_price # when seeing this price, should close, init only once
                     forced_close = True
+                    if l_dir == 'sell': # should keep higher price
+                        if open_start_price < open_price:
+                            open_start_price = open_price 
+                    elif l_dir == 'buy': # should keep lower price
+                        if open_start_price > open_price:
+                            open_start_price = open_price 
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     if current_profit > open_cost: # yes, positive 
