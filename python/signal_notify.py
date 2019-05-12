@@ -26,7 +26,7 @@ parser.add_option("", "--signal_notify", dest="signal_notify",
 parser.add_option("", "--without_old_files", dest='without_old_files',
                   action="store_true", default=False,
                   help="do not processing stock files")
-parser.add_option('', '--signal', dest='signals', default=[''],
+parser.add_option('', '--signal', dest='signals', default=[],
                   action='append',
                   help='use wich signal to generate trade notify and also as prefix, [boll, ewma, boll_cutting, simple, tit2tat]')
 parser.add_option('', '--latest', dest='latest_to_read', default='1000',
