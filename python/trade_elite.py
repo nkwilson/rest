@@ -167,33 +167,26 @@ def check_match_price_and_lever_rate(price, lever_rate):
         lever_rate = '20'
     return match_price, lever_rate
 
-def open_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
-    price = figure_best_price_sell(symbol)
+def open_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '2',
                                      match_price,
                                      lever_rate)
 
-def close_quarter_sell_rate(symbol, amount, price='', lever_rate='20'):
-    # should auto figure best close price
-    price = figure_best_price_buy(symbol)
+def close_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '4',
                                      match_price,
                                      lever_rate)
 
-def open_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
-    price = figure_best_price_buy(symbol)
+def open_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '1',
                                      match_price,
                                      lever_rate)
 
-def close_quarter_buy_rate(symbol, amount, price='', lever_rate='20'):
-    # should auto figure best close price
-    price = figure_best_price_sell(symbol)
+def close_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
-    # print (match_price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '3',
                                      match_price,
                                      lever_rate)
@@ -349,6 +342,7 @@ print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_r
 # 首先，用 boll 1hour 触发入场交易
 
 def issue_order_now(symbol, direction, amount, action):
+    print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, amount)
     result = json.loads(raw_result)
     #print (result)
@@ -362,4 +356,4 @@ def issue_order_now(symbol, direction, amount, action):
 
 print ('Usage: symbol direction amount action\n')
 print (sys.argv)
-print (issue_order_now(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
+print (issue_order_now(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]))

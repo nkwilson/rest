@@ -273,7 +273,7 @@ def signal_close_order_with_sell(l_index, filename, close):
         f.write('%s.close' % filename)
         f.close()
 
-def issue_order_now(symbol, direction, amount, action, price, rate):
+def issue_order_now(symbol, direction, amount, action):
     pass
 
 def generate_trade_filename_new(dir, l_index, order_type, prefix=''):
