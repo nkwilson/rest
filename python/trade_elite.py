@@ -30,28 +30,6 @@ import filelock
 
 import json
 
-print (sys.argv)
-#print (globals()[sys.argv[1]](sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]))
-
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option('', '--signal', dest='signal', default='boll',
-                  help='use wich signal to generate trade notify and also as prefix')
-parser.add_option('', '--policy', dest='policy', default='boll_greedy',
-                  help='should receive policy notify, key is [boll_greedy]')
-parser.add_option('', '--amount', dest='amount', default=1,
-                  help='default trade amount')
-parser.add_option('', '--rate', dest='rate', default=0,
-                  help='default positive revenue rate')
-parser.add_option('', '--ratio', dest='amount_ratio', default=9,
-                  help='default trade ratio of total amount')
-
-(options, args) = parser.parse_args()
-print (type(options), options, args)
-
-l_dir = args[0].rstrip('/')
-#print (l_dir, os.path.basename(l_dir))
-
 #初始化apikey，secretkey,url
 #apikey = 'd8da16f9-a531-4853-b9ee-ab07927c4fef'
 #secretkey = '4752BE55655A6233A7254628FB7E9F50'
@@ -146,43 +124,19 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u'期货下单')
 #print (okcoinFuture.future_trade('btc_usd','quarter','','1','1','1','10')) # works
 
-def figure_best_price_buy(symbol, contract_type='quarter', depth='10'):
-    data=okcoinFuture.future_depth(symbol, contract_type, depth)
-    # print (data['asks'])
-    #return data['asks'][0][0] * (1 + 0.001) # the biggest ask, 0.003/0.005 may trigger 20018/too big price error
-    return data['asks'][4][0]
-
-def figure_best_price_sell(symbol, contract_type='quarter', depth='10'):
-    data=okcoinFuture.future_depth(symbol, contract_type, depth)
-    # print (data['bids'])
-    #return data['bids'][int(depth) - 1][0] * (1 - 0.001) # the smallest bid
-    return data['bids'][4][0]
-
-def check_match_price_and_lever_rate(price, lever_rate):
-    if price == '':
-        match_price = '1'
-    else:
-        match_price = '0'
-    if lever_rate != '10':
-        lever_rate = '20'
-    return match_price, lever_rate
-
 def open_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2',
                                      '1', '10')
 
 def close_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
-    match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4',
                                      '1', '10')
 
 def open_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
-    match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1',
                                      '1', '10')
 
 def close_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
-    match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
     return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3',
                                      '1', '10')
 
@@ -204,33 +158,6 @@ def quarter_orderinfo(symbol, order_id):
 #print (u'期货逐仓持仓信息')
 #print (json.loads(okcoinFuture.future_position_4fix('ltc_usd','quarter', '1')))
 
-last_bond = 0 # means uninitialized
-last_balance = 0
-
-def quarter_auto_bond(symbol):
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
-    # print (holding)
-    if holding['result'] != True:
-        return 0 # 0 means failed
-    if len(holding['holding']) == 0:
-        return 0
-    for data in holding['holding']:
-        if data['symbol'] == symbol:
-            if data['buy_amount'] > 0:
-                bond=data['buy_bond']/data['buy_amount']
-            elif data['sell_amount'] > 0:
-                bond=data['sell_bond']/data['sell_amount']
-            return bond
-    return 0
-    
-def quarter_auto_balance(symbol):
-    coin = symbol[0:symbol.index('_')]
-    result=json.loads(okcoinFuture.future_userinfo_4fix())
-    if result['result'] != True:
-        return 0
-    balance=result['info'][coin]['balance']
-    return balance
-
 #print (quarter_auto_bond('ltc_usd'), quarter_auto_balance('ltc_usd'))
 #os.sys.exit(0)
 
@@ -242,21 +169,6 @@ def figure_out_symbol_info(path):
     # print (path[start:end])
     return path[start:end]
 
-trade_file = ''  # signal storing file
-amount_file = '' # if exist, read from file
-default_amount = 1 # default amount, if auto then figure it out 
-amount = default_amount
-auto_amount = 0 # if non-zero, auto figure out amount; enabled if amount_file no exists
-
-rate_file = '' # if exist, read rate from file
-default_rate = float(options.rate) # default rate
-rate = default_rate
-
-ratio_file = '' # if exist read ratio from file
-default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
-amount_ratio = default_amount_ratio
-
-
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
                'usd_eth':'eth_usd',
@@ -266,75 +178,6 @@ order_infos = {'usd_btc':'btc_usd',
                        'close':close_quarter_sell_rate},
                'buy':{'open':open_quarter_buy_rate,
                       'close':close_quarter_buy_rate}}
-
-# use global trade queue file to sync trade process
-trade_queue = ''
-trade_queue_lock = ''
-
-def queue_trade_order(subpath):
-    with filelock.FileLock(trade_queue_lock, timeout=20) as flock:
-        with open(trade_queue, 'a') as f:
-            f.write(subpath)
-
-def trade_timestamp():
-    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-#print (quarter_orderinfo('bch_usd', '1460633310147580'))
-#print (quarter_orderinfo('bch_usd', '1426230836341760'))
-#os.sys.exit()
-
-def read_int_var(filename, var_name):
-    l_var = globals()[var_name]
-    if os.path.isfile(filename) and os.path.getsize(filename)>0:
-        # check if should read from file
-        with open(filename) as f:
-            old_var = l_var
-            try:
-                l_var = float(f.readline())
-                if old_var != l_var:
-                    print ('%s updated to %f' % (var_name, l_var))
-            except Exception as ex:
-                l_var = globals()['default_%s' % var_name]
-                print ('%s reset to default %f' % (var_name, l_var))
-        f.close()
-        globals()[var_name] = l_var
-        return True
-    return False
-
-def wrapper():
-        print ('', end='', flush=True)
-        if read_int_var(amount_file, 'amount') == False:
-            auto_amount = 1
-            print ('switched to auto amount policy\n')
-        read_int_var(rate_file, 'rate')
-        read_int_var(ratio_file, 'amount_ratio')
-
-        result = do_trade_new(subpath)
-        time.sleep(1)
-        if result.index('go'):
-            redo = 0 # if go, reset it 
-        print ('', end='', flush=True)
-
-
-l_signal = options.signal
-l_prefix = '%s_' % l_signal
-
-amount_file = '%s.%samount' % (l_dir, l_prefix)
-print ('amount will read from %s if exist, default is %d' % (amount_file, amount), flush=True)
-
-rate_file = '%s.%srate' % (l_dir, l_prefix)
-print ('rate will read from %s if exist, default is %f' % (rate_file, rate), flush=True)
-
-ratio_file = '%s.%sratio' % (l_dir, l_prefix)
-print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
-
-
-# 调用  websocket 中的 okcoin_websocket.py 来获取实时价格，写入到对应的目录中
-# 调用 rest 中的 process_price_fsevents.py 来监控价格数据，生成 bolinger band 数据写入相同目录下的 .boll文件
-# 调用 rest 中的 watch_poll_price.py 来监控boll数据，并根据趋势生成交易信号，分别写入 .sell 或者  .buy 文件
-# 最后调用 Client.py 根据信号来执行交易
-
-# 首先，用 boll 1hour 触发入场交易
 
 def issue_order_now(symbol, direction, amount, action):
     print (symbol, direction, amount, action)
@@ -347,8 +190,3 @@ def issue_order_now(symbol, direction, amount, action):
     #print (order_id)
     order_info = json.loads(quarter_orderinfo(symbol, order_id))
     print (order_info)
-    return True
-
-print ('Usage: symbol direction amount action\n')
-print (sys.argv)
-print (issue_order_now(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]))
