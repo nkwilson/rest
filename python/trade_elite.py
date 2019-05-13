@@ -321,10 +321,10 @@ def wrapper():
         read_int_var(rate_file, 'rate')
         read_int_var(ratio_file, 'amount_ratio')
 
-                        result = do_trade_new(subpath)
-                        time.sleep(1)
-                        if result.index('go'):
-                            redo = 0 # if go, reset it 
+        result = do_trade_new(subpath)
+        time.sleep(1)
+        if result.index('go'):
+            redo = 0 # if go, reset it 
         print ('', end='', flush=True)
 
 
