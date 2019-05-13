@@ -168,28 +168,23 @@ def check_match_price_and_lever_rate(price, lever_rate):
     return match_price, lever_rate
 
 def open_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
-    match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
-    return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '2',
-                                     match_price,
-                                     lever_rate)
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2',
+                                     '1', '10')
 
 def close_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
-    return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '4',
-                                     match_price,
-                                     lever_rate)
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4',
+                                     '1', '10')
 
 def open_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
-    return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '1',
-                                     match_price,
-                                     lever_rate)
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1',
+                                     '1', '10')
 
 def close_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
     match_price, lever_rate = check_match_price_and_lever_rate(price, lever_rate)
-    return okcoinFuture.future_trade(symbol, 'quarter', price, amount, '3',
-                                     match_price,
-                                     lever_rate)
+    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3',
+                                     '1', '10')
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
@@ -351,7 +346,7 @@ def issue_order_now(symbol, direction, amount, action):
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
     order_info = json.loads(quarter_orderinfo(symbol, order_id))
-    #print (order_info)
+    print (order_info)
     return True
 
 print ('Usage: symbol direction amount action\n')
