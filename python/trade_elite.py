@@ -124,20 +124,20 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u'期货下单')
 #print (okcoinFuture.future_trade('btc_usd','quarter','','1','1','1','10')) # works
 
-def open_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
-    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '2',
+def open_quarter_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
+    return okcoinFuture.future_trade(symbol, contract, '', amount, '2',
                                      '1', '10')
 
-def close_quarter_sell_rate(symbol, amount, price='', lever_rate='10'):
-    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '4',
+def close_quarter_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
+    return okcoinFuture.future_trade(symbol, contract, '', amount, '4',
                                      '1', '10')
 
-def open_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
-    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '1',
+def open_quarter_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
+    return okcoinFuture.future_trade(symbol, contract, '', amount, '1',
                                      '1', '10')
 
-def close_quarter_buy_rate(symbol, amount, price='', lever_rate='10'):
-    return okcoinFuture.future_trade(symbol, 'quarter', '', amount, '3',
+def close_quarter_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
+    return okcoinFuture.future_trade(symbol, contract, '', amount, '3',
                                      '1', '10')
 
 #print (u'期货批量下单')
@@ -169,6 +169,23 @@ def figure_out_symbol_info(path):
     # print (path[start:end])
     return path[start:end]
 
+# {'result': True, 'holding': [{'buy_price_avg': 176.08158274, 'symbol': 'eth_usd', 'lever_rate': 10, 'buy_available': 0, 'contract_id': 201906280020041, 'sell_risk_rate': '99.36', 'buy_amount': 0, 'buy_risk_rate': '1,000,000.00', 'profit_real': -1.847e-05, 'contract_type': 'quarter', 'sell_flatprice': '178.453', 'buy_bond': 0, 'sell_profit_lossratio': '-0.66', 'buy_flatprice': '0.000', 'buy_profit_lossratio': '0.00', 'sell_amount': 1, 'sell_bond': 0.00615942, 'sell_price_cost': 162.388, 'buy_price_cost': 176.08158274, 'create_date': 1552656509000, 'sell_price_avg': 162.388, 'sell_available': 1}]}
+# if current order is permit to issue
+def check_holdings_profit(symbol, contract, direction):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
+    if holding['result'] != True:
+        return 0
+    if len(holding['holding']) == 0:
+        return 0
+    # print (holding['holding'])
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            if data['%s_amount' % direction] == 0 :
+                return 0
+            else :
+                return data['%s_profit_lossratio' % direction]
+    return 0
+
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
                'usd_eth':'eth_usd',
@@ -179,9 +196,9 @@ order_infos = {'usd_btc':'btc_usd',
                'buy':{'open':open_quarter_buy_rate,
                       'close':close_quarter_buy_rate}}
 
-def issue_order_now(symbol, direction, amount, action):
+def issue_order_now(symbol, contract, direction, amount, action):
     print (symbol, direction, amount, action)
-    raw_result = order_infos[direction][action](symbol, amount)
+    raw_result = order_infos[direction][action](symbol, contract, amount)
     result = json.loads(raw_result)
     #print (result)
     if result['result'] == False:
@@ -190,3 +207,24 @@ def issue_order_now(symbol, direction, amount, action):
     #print (order_id)
     order_info = json.loads(quarter_orderinfo(symbol, order_id))
     print (order_info)
+
+def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
+    if must_positive == True and check_holdings_profit(symbol, contract, direction) <= 0:
+        return
+    return issue_order_now(symbol, contract, direction, amount, action)
+
+def issue_quarter_order_now(symbol, direction, amount, action):
+    print ('issue quarter order')
+    issue_order_now(symbol, 'quarter', direction, amount, action)
+
+def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
+    print ('issue quarter order conditional')
+    issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
+
+def issue_thisweek_order_now(symbol, direction, amount, action):
+    print ('issue quarter order')
+    issue_order_now(symbol, 'this_week', direction, amount, action)
+
+def issue_thisweek_order_now_conditional(symbol, direction, amount, action, must_positive=True):
+    print ('issue quarter order conditional')
+    issue_order_now_conditional(symbol, 'this_week', direction, amount, action, must_positive)

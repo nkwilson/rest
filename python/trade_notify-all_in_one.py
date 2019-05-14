@@ -40,16 +40,17 @@ limit_price = 0
 limit_symbol = ''
 limit_amount = 0
 
-apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
-secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
-okcoinRESTURL = 'www.okex.com'
+import trade_elite
+
+# apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
+# secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
+# okcoinRESTURL = 'www.okex.com'
     
-#现货API
-okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
+# #现货API
+# okcoinSpot = OKCoinSpot(okcoinRESTURL,apikey,secretkey)
 
-#期货API
-okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
-
+# #期货API
+# okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
 def main(argv):
     print (argv)
@@ -272,9 +273,6 @@ def signal_close_order_with_sell(l_index, filename, close):
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
         f.close()
-
-def issue_order_now(symbol, direction, amount, action):
-    pass
 
 def generate_trade_filename_new(dir, l_index, order_type, prefix=''):
     fname = '%s-%strade.%s' % (l_index, prefix, order_type)
@@ -552,6 +550,7 @@ def try_to_trade_tit2tat(subpath):
                     if current_profit > open_cost: # yes, positive 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        issue_quarter_order_now(symbol, l_dir, 1, 'close')
                         # and open again, just like new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -560,6 +559,7 @@ def try_to_trade_tit2tat(subpath):
                     elif current_profit < -open_cost: # no, negative 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        issue_quarter_order_now(symbol, l_dir, 1, 'close')
                         # and open again, just list new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -574,6 +574,16 @@ def try_to_trade_tit2tat(subpath):
                             f.write('%s %s %s %s' % (l_dir, close, previous_close, 'holding'))
                             f.close()
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, 'holding'))
+                        if l_dir == 'buy':
+                            if close > previous_close:
+                                issue_thisweek_order_now_conditional(symbol, l_dir, 1, 'close')
+                            elif close < previous_close:
+                                issue_thisweek_order_now(symbol, l_dir, 1, 'open')
+                        elif l_dir == 'sell':
+                            if close < previous_close:
+                                issue_thisweek_order_now_conditional(symbol, l_dir, 1, 'close')
+                            elif close > previous_close:
+                                issue_thisweek_order_now(symbol, l_dir, 1, 'open')
                         previous_close = close
                     else:
                         previous_close = close
@@ -586,6 +596,7 @@ def try_to_trade_tit2tat(subpath):
                         f.close()
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
+                    issue_thisweek_order_now(symbol, l_dir, 1, 'close')
                     close_greedy = False
                 if new_open == True:
                     l_dir = ''    
@@ -612,6 +623,7 @@ def try_to_trade_tit2tat(subpath):
                     trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                     # print (trade_file)
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
+                    issue_quarter_order_now(symbol, l_dir, 1, 'open')
                     
                     # sleep 1s here
                     time.sleep(1) if options.emulate == True else True
