@@ -137,21 +137,23 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u'期货下单')
 #print (okcoinFuture.future_trade('btc_usd','quarter','','1','1','1','10')) # works
 
-def open_quarter_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
+def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, contract, '', amount, '2',
                                      '1', '10')
 
-def close_quarter_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
+def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, contract, '', amount, '4',
                                      '1', '10')
 
-def open_quarter_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
+def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, contract, '', amount, '1',
                                      '1', '10')
 
-def close_quarter_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
+def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, contract, '', amount, '3',
                                      '1', '10')
+def cancel_order(symbol, contract, order_id):
+    return okcoinFuture.future_cacel(symbol, contract, order_id)
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
@@ -162,8 +164,8 @@ def close_quarter_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
 #print (u'期货获取订单信息')
 #print (okcoinFuture.future_orderinfo('ltc_usd','this_week','47231812','0','1','2'))
 
-def quarter_orderinfo(symbol, order_id):
-    return okcoinFuture.future_orderinfo(symbol,'quarter',order_id,'0','1','2')
+def query_orderinfo(symbol, contract, order_id):
+    return okcoinFuture.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 #print (u'期货逐仓账户信息')
 #print (json.loads(okcoinFuture.future_userinfo_4fix()))
@@ -196,7 +198,9 @@ def check_holdings_profit(symbol, contract, direction):
             if data['%s_amount' % direction] == 0 :
                 return 0
             else :
-                return float(data['%s_profit_lossratio' % direction])
+                loss = float(data['%s_profit_lossratio' % direction])
+                amount = int(data['%s_amount' % direction])
+                return (loss, amount)
     return 0
 
 order_infos = {'usd_btc':'btc_usd',
@@ -204,26 +208,39 @@ order_infos = {'usd_btc':'btc_usd',
                'usd_eth':'eth_usd',
                'usd_eos':'eos_usd',                              
                'usd_bch':'bch_usd',
-               'sell':{'open':open_quarter_sell_rate,
-                       'close':close_quarter_sell_rate},
-               'buy':{'open':open_quarter_buy_rate,
-                      'close':close_quarter_buy_rate}}
+               'sell':{'open':open_order_sell_rate,
+                       'close':close_order_sell_rate},
+               'buy':{'open':open_order_buy_rate,
+                      'close':close_order_buy_rate}}
 
+reissuing_order = 0
 def issue_order_now(symbol, contract, direction, amount, action):
     print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
     result = json.loads(raw_result)
     #print (result)
     if result['result'] == False:
+        reissuing_order = 0
         return False
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
-    order_info = json.loads(quarter_orderinfo(symbol, order_id))
+    order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     print (order_info)
+    if order_info['orders'][0]['status'] != 2: # pending
+        reissuing_order += 1
+        if reissuing_order > 1: # more than once , quit
+            reissuing_order = 0
+            return
+        print ('try to cancel pending order and reissue')
+        print (cancel_order(symbol, contract, order_id))
+        print (issue_order_now(symbol, contract, direction, amount, action))
 
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
-    if must_positive == True and check_holdings_profit(symbol, contract, direction) <= 0:
+    (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
+    if must_positive == True and loss < 0:
         return
+    if amount == 0:
+        amount = t_amount
     return issue_order_now(symbol, contract, direction, amount, action)
 
 def issue_quarter_order_now(symbol, direction, amount, action):
@@ -776,12 +793,12 @@ def try_to_trade_tit2tat(subpath):
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, 'holding'))
                         if l_dir == 'buy':
                             if close > previous_close:
-                                issue_thisweek_order_now_conditional(symbol, l_dir, 1, 'close')
+                                issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
                             elif close < previous_close:
                                 issue_thisweek_order_now(symbol, l_dir, 1, 'open')
                         elif l_dir == 'sell':
                             if close < previous_close:
-                                issue_thisweek_order_now_conditional(symbol, l_dir, 1, 'close')
+                                issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
                             elif close > previous_close:
                                 issue_thisweek_order_now(symbol, l_dir, 1, 'open')
                         previous_close = close
