@@ -238,6 +238,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
     if must_positive == True and loss < 0:
+        print ('in loss status, quit ', loss)
         return
     if amount == 0:
         amount = t_amount
