@@ -216,7 +216,7 @@ order_infos = {'usd_btc':'btc_usd',
 reissuing_order = 0
 def issue_order_now(symbol, contract, direction, amount, action):
     global reissuing_order
-    print (symbol, direction, amount, action)
+    # print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
     result = json.loads(raw_result)
     print (result)
@@ -250,19 +250,19 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     return issue_order_now(symbol, contract, direction, amount, action)
 
 def issue_quarter_order_now(symbol, direction, amount, action):
-    print ('issue quarter order')
+    print ('issue quarter order: ', action, symbol, direction, amount)
     issue_order_now(symbol, 'quarter', direction, amount, action)
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print ('issue quarter order conditional')
+    print ('issue quarter order conditional: ', action, symbol, direction, amount)
     issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
 
 def issue_thisweek_order_now(symbol, direction, amount, action):
-    print ('issue thisweek order')
+    print ('issue thisweek order: ', action, symbol, direction, amount)
     issue_order_now(symbol, 'this_week', direction, amount, action)
 
 def issue_thisweek_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print ('issue thisweek order conditional')
+    print ('issue thisweek order conditional: ', action, symbol, direction, amount)
     issue_order_now_conditional(symbol, 'this_week', direction, amount, action, must_positive)
 
 # apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
