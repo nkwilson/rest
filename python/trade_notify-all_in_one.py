@@ -215,10 +215,11 @@ order_infos = {'usd_btc':'btc_usd',
 
 reissuing_order = 0
 def issue_order_now(symbol, contract, direction, amount, action):
+    global reissuing_order
     print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
     result = json.loads(raw_result)
-    #print (result)
+    print (result)
     if result['result'] == False:
         reissuing_order = 0
         return False
@@ -226,14 +227,18 @@ def issue_order_now(symbol, contract, direction, amount, action):
     #print (order_id)
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     print (order_info)
-    if order_info['orders'][0]['status'] != 2: # pending
+    if action == 'open' and order_info['orders'][0]['status'] != 2: # pending
         reissuing_order += 1
-        if reissuing_order > 1: # more than once , quit
-            reissuing_order = 0
-            return
-        print ('try to cancel pending order and reissue')
-        print (cancel_order(symbol, contract, order_id))
-        print (issue_order_now(symbol, contract, direction, amount, action))
+    elif action == 'close' and order_info['orders'][0]['status'] != 0: # failed
+        reissuing_order += 1
+    else:
+        return
+    if reissuing_order > 1: # more than once , quit
+        reissuing_order = 0
+        return
+    print ('try to cancel pending order and reissue')
+    print (cancel_order(symbol, contract, order_id))
+    print (issue_order_now(symbol, contract, direction, amount, action))
 
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
@@ -390,10 +395,10 @@ def query_balance(symbol):
         return 0.0
     return float(result['info'][coin]['rights'])
 
-print ('quarter buy bond ', query_bond('eth_usd', 'quarter', 'buy'))
-print ('quarter sell bond ', query_bond('eth_usd', 'quarter', 'sell'))
-print ('rights ', query_balance('eth_usd'))
-sys.exit(0)
+#print ('quarter buy bond ', query_bond('eth_usd', 'quarter', 'buy'))
+#print ('quarter sell bond ', query_bond('eth_usd', 'quarter', 'sell'))
+#print ('rights ', query_balance('eth_usd'))
+#sys.exit(0)
 
 # check if close is in the ratio of boll std
 def check_close_to_mean(bolls, close, ratio=0.3, threshold=0.01):
