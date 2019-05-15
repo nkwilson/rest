@@ -301,56 +301,6 @@ def main(argv):
     else:
             print ("Usage: program [one_stock [stock [start [end]]]]")
 
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option("", "--signal_notify", dest="signal_notify",
-                  help="specify signal notifier")
-parser.add_option("", "--startup_notify", dest="startup_notify",
-                  help="specify startup notifier")
-parser.add_option("", "--shutdown_notify", dest="shutdown_notify",
-                  help="specify shutdown notifier")
-parser.add_option("", "--pick_old_order", dest='pick_old_order',
-                  action="store_true", default=False,
-                  help="do not pick old order")
-parser.add_option('', '--emulate', dest='emulate',
-                  help="try to emulate trade notify")
-parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
-                  action="store_false", default=True,
-                  help="Should skip checking gate when open trade")
-parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
-                  help='Should multple it before do compare')
-parser.add_option('', '--policy', dest='policy', default='simple_greedy', 
-                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy/simple_greedy")
-parser.add_option('', '--which_ema', dest='which_ema', default=0, 
-                  help='using with one of ema')
-parser.add_option('', '--order_num', dest='order_num',
-                  help='how much orders')
-parser.add_option('', '--fee_amount', dest='fee_amount',
-                  action='store_true', default=False,
-                  help='take amount int account with fee')
-parser.add_option('', '--signal', dest='signals', default=[],
-                  action='append',
-                  help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
-parser.add_option('', '--latest', dest='latest_to_read', default='1000',
-                  help='only keep that much old values')
-parser.add_option('', '--dir', dest='dirs', default=[],
-                  action='append',
-                  help='target dir should processing')
-parser.add_option('', '--bins', dest='bins', default=0,
-                  help='wait how many reverse, 0=once, 1=twice')
-parser.add_option('', '--nolog', dest='nolog', default=0,
-                  help='Do not log to file')
-
-(options, args) = parser.parse_args()
-print (type(options), options, args)
-
-latest_to_read = int(options.latest_to_read)
-
-pick_old_order = options.pick_old_order
-
-l_signal = options.signals[0]
-l_prefix = '%s_' % l_signal
-l_dir = options.dirs[0]
 
 close_mean = pandas.Series()
 close_upper = pandas.Series()
@@ -439,6 +389,11 @@ def query_balance(symbol):
     if result['result'] != True:
         return 0.0
     return float(result['info'][coin]['rights'])
+
+print ('quarter buy bond ', query_bond('eth_usd', 'quarter', 'buy'))
+print ('quarter sell bond ', query_bond('eth_usd', 'quarter', 'sell'))
+print ('rights ', query_balance('eth_usd'))
+sys.exit(0)
 
 # check if close is in the ratio of boll std
 def check_close_to_mean(bolls, close, ratio=0.3, threshold=0.01):
@@ -1638,6 +1593,57 @@ def wait_ewma_notify(notify, shutdown):
                 break
             continue
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("", "--signal_notify", dest="signal_notify",
+                  help="specify signal notifier")
+parser.add_option("", "--startup_notify", dest="startup_notify",
+                  help="specify startup notifier")
+parser.add_option("", "--shutdown_notify", dest="shutdown_notify",
+                  help="specify shutdown notifier")
+parser.add_option("", "--pick_old_order", dest='pick_old_order',
+                  action="store_true", default=False,
+                  help="do not pick old order")
+parser.add_option('', '--emulate', dest='emulate',
+                  help="try to emulate trade notify")
+parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
+                  action="store_false", default=True,
+                  help="Should skip checking gate when open trade")
+parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
+                  help='Should multple it before do compare')
+parser.add_option('', '--policy', dest='policy', default='simple_greedy', 
+                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy/simple_greedy")
+parser.add_option('', '--which_ema', dest='which_ema', default=0, 
+                  help='using with one of ema')
+parser.add_option('', '--order_num', dest='order_num',
+                  help='how much orders')
+parser.add_option('', '--fee_amount', dest='fee_amount',
+                  action='store_true', default=False,
+                  help='take amount int account with fee')
+parser.add_option('', '--signal', dest='signals', default=[],
+                  action='append',
+                  help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
+parser.add_option('', '--latest', dest='latest_to_read', default='1000',
+                  help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[],
+                  action='append',
+                  help='target dir should processing')
+parser.add_option('', '--bins', dest='bins', default=0,
+                  help='wait how many reverse, 0=once, 1=twice')
+parser.add_option('', '--nolog', dest='nolog', default=0,
+                  help='Do not log to file')
+
+(options, args) = parser.parse_args()
+print (type(options), options, args)
+
+latest_to_read = int(options.latest_to_read)
+
+pick_old_order = options.pick_old_order
+
+l_signal = options.signals[0]
+l_prefix = '%s_' % l_signal
+l_dir = options.dirs[0]
+        
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
