@@ -196,7 +196,7 @@ def check_holdings_profit(symbol, contract, direction):
             if data['%s_amount' % direction] == 0 :
                 return 0
             else :
-                return data['%s_profit_lossratio' % direction]
+                return float(data['%s_profit_lossratio' % direction])
     return 0
 
 order_infos = {'usd_btc':'btc_usd',
