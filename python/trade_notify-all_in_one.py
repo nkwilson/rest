@@ -418,6 +418,28 @@ def check_open_order_gate(symbol, direction, current_price):
                 return dirs['gate'](data['%s_price_avg' % dirs['reverse_dir']], current_price, amount)
     return False
 
+def query_bond(symbol, contract, direction):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
+    # print (holding)
+    if holding['result'] != True:
+        return 0.0 # 0 means failed
+    if len(holding['holding']) == 0:
+        return 0.0
+    for data in holding['holding']:
+        if data['symbol'] == symbol:
+            if data['%s_amount' % direction] > 0:
+                return data['%s_bond' % direction]/data['%s_amount' % direction]
+    return 0.0
+
+# future_userinfo_4fix format
+# {'result': True, 'info': {'btc': {'balance': 0.10077745, 'rights': 0.19425753, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170000013, 'available': 0.1116, 'profit': 0.0108896, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280000012, 'available': 0.1614, 'profit': 0.09122745, 'bond': 0.03053532, 'unprofit': -0.0087}]}, 'bsv': {'balance': 0, 'rights': 0, 'contracts': []}, 'etc': {'balance': 0, 'rights': 0, 'contracts': []}, 'bch': {'balance': 0.83989472, 'rights': 2.34665722, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905173010074, 'available': 0.8664, 'profit': 0.02652685, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906283010075, 'available': 2.1309, 'profit': 1.69430244, 'bond': 0.40325632, 'unprofit': -0.2141}]}, 'xrp': {'balance': 0, 'rights': 0, 'contracts': []}, 'eth': {'balance': 2.13255958, 'rights': 4.62345877, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170020042, 'available': 2.153, 'profit': 0.02053667, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280020041, 'available': 3.9439, 'profit': 2.53135193, 'bond': 0.71997122, 'unprofit': -0.0611}]}, 'eos': {'balance': 0.10395966, 'rights': 0.40952573, 'contracts': [{'contract_type': 'quarter', 'freeze': 0, 'balance': 0.17428396, 'contract_id': 201906280200053, 'available': 0.10395966, 'profit': -0.00052201, 'bond': 0.17376195, 'unprofit': 0.1318}]}, 'ltc': {'balance': 1.9931993, 'rights': 4.29178602, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170010016, 'available': 2.784, 'profit': 0.79088871, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280010015, 'available': 3.0551, 'profit': 1.68104735, 'bond': 0.61906728, 'unprofit': -0.1734}]}}}
+def query_balance(symbol):
+    coin = symbol[0:symbol.index('_')]
+    result=json.loads(okcoinFuture.future_userinfo_4fix())
+    if result['result'] != True:
+        return 0.0
+    return float(result['info'][coin]['rights'])
+
 # check if close is in the ratio of boll std
 def check_close_to_mean(bolls, close, ratio=0.3, threshold=0.01):
     return True
@@ -612,27 +634,6 @@ def check_forced_close(symbol, direction, prices):
         if data['symbol'] == symbol:
             return data['%s_amount' % direction] == 0
     pass
-
-def quarter_auto_bond(symbol, direction):
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
-    # print (holding)
-    if holding['result'] != True:
-        return 0.0 # 0 means failed
-    if len(holding['holding']) == 0:
-        return 0.0
-    for data in holding['holding']:
-        if data['symbol'] == symbol:
-            if data['%s_amount' % direction] > 0:
-                return data['%s_bond' % direction]/data['%s_amount' % direction]
-    return 0.0
-    
-def quarter_auto_balance(symbol):
-    coin = symbol[0:symbol.index('_')]
-    result=json.loads(okcoinFuture.future_userinfo_4fix())
-    if result['result'] != True:
-        return 0.0
-    balance=result['info'][coin]['balance']
-    return float(balance)
 
 # Check price and return calcuated profit, zero means do greedy open otherwite close holding
 def check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy):
