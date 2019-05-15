@@ -252,11 +252,11 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
     issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
 
 def issue_thisweek_order_now(symbol, direction, amount, action):
-    print ('issue quarter order')
+    print ('issue thisweek order')
     issue_order_now(symbol, 'this_week', direction, amount, action)
 
 def issue_thisweek_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print ('issue quarter order conditional')
+    print ('issue thisweek order conditional')
     issue_order_now_conditional(symbol, 'this_week', direction, amount, action, must_positive)
 
 # apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
