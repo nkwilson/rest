@@ -656,8 +656,8 @@ def calculate_amount(symbol):
     pass
 
 # Figure out current holding's open price, zero means no holding
-def real_open_price_and_cost(symbol, direction):
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+def real_open_price_and_cost(symbol, contract, direction):
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
     if holding['result'] != True:
         return 0
     if len(holding['holding']) == 0:
@@ -665,12 +665,13 @@ def real_open_price_and_cost(symbol, direction):
     # print (holding['holding'])
     for data in holding['holding']:
         if data['symbol'] == symbol and data['%s_amount' % direction] != 0:
-            last_bond = quarter_auto_bond(symbol, direction)
             avg = data['%s_price_avg' % direction]
             real= data['profit_real']
             return (float(avg), float(avg)*float(real))
     return 0
 
+quarter_amount = 1
+thisweek_amount_pending = 0
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -681,7 +682,8 @@ def try_to_trade_tit2tat(subpath):
     global open_greedy, close_greedy 
     global open_price, open_start_price
     global open_cost
-    
+    global quarter_amount, thisweek_amount_pending
+
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -729,7 +731,7 @@ def try_to_trade_tit2tat(subpath):
                     if current_profit > open_cost: # yes, positive 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        issue_quarter_order_now(symbol, l_dir, 1, 'close')
+                        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
                         # and open again, just like new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -738,7 +740,7 @@ def try_to_trade_tit2tat(subpath):
                     elif current_profit < -open_cost: # no, negative 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        issue_quarter_order_now(symbol, l_dir, 1, 'close')
+                        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
                         # and open again, just list new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -756,13 +758,21 @@ def try_to_trade_tit2tat(subpath):
                         if l_dir == 'buy':
                             if close > previous_close:
                                 issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
+                                thisweek_amount_pending = 0
                             elif close < previous_close:
-                                issue_thisweek_order_now(symbol, l_dir, 1, 'open')
+                                thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
+                                thisweek_amount = math.ceil(thisweek_amount + 0.0001)
+                                thisweek_amount_pending += thisweek_amount
+                                issue_thisweek_order_now(symbol, l_dir, thisweek_amount, 'open')
                         elif l_dir == 'sell':
                             if close < previous_close:
                                 issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
+                                thisweek_amount_pending = 0
                             elif close > previous_close:
-                                issue_thisweek_order_now(symbol, l_dir, 1, 'open')
+                                thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
+                                thisweek_amount = math.ceil(thisweek_amount + 0.0001)
+                                thisweek_amount_pending += thisweek_amount
+                                issue_thisweek_order_now(symbol, l_dir, thisweek_amount, 'open')
                         previous_close = close
                     else:
                         previous_close = close
@@ -775,7 +785,8 @@ def try_to_trade_tit2tat(subpath):
                         f.close()
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
-                    issue_thisweek_order_now(symbol, l_dir, 1, 'close')
+                    issue_thisweek_order_now(symbol, l_dir, thisweek_amount_pending, 'close')
+                    thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
                     l_dir = ''    
@@ -802,12 +813,17 @@ def try_to_trade_tit2tat(subpath):
                     trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
                     # print (trade_file)
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-                    issue_quarter_order_now(symbol, l_dir, 1, 'open')
+                    issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
                     # sleep 1s here
                     time.sleep(1) if options.emulate == True else True
-                    if open_price == 0:
-                        (open_price, open_cost) = real_open_price_and_cost(symbol, l_dir) if options.emulate == False else (close, 0.001)
+                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
+                    last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
+                    last_balance = query_balance(symbol) if options.emulate == False else 0
+
+                    amount = quarter_amount
+                    quarter_amount = math.ceil(last_balance / last_bond / 20 + 0.001) if last_bond > 0 else 1
+                    print ('update quarter_amount from %s to %s', amount, quarter_amount)
                     
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
