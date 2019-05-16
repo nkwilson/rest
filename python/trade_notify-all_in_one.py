@@ -831,7 +831,7 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
                     # sleep 1s here
-                    time.sleep(1) if options.emulate == True else pass
+                    time.sleep(1) if options.emulate == True else True
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
                     
 
