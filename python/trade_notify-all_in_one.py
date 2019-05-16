@@ -764,6 +764,7 @@ def try_to_trade_tit2tat(subpath):
                             f.write('%s %s %s %s' % (l_dir, close, previous_close, greedy_status))
                             f.close()
                         if greedy_action == 'close': # yes, close action pending
+                            print (query_bond(symbol, 'this_week', l_dir), query_balance(symbol))
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             thisweek_amount_pending = 0
                         elif greedy_action == 'open': # yes, open action pending
@@ -771,15 +772,17 @@ def try_to_trade_tit2tat(subpath):
                             if thisweek_amount < 1:
                                 thisweek_amount = 1
                             thisweek_amount_pending += thisweek_amount
-                            issue_thisweek_order_now(symbol, l_dir, thisweek_amount, greedy_action)                            
+                            issue_thisweek_order_now(symbol, l_dir, thisweek_amount, greedy_action)
                         previous_close = close
                     else:
                         previous_close = close
                         return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        print (query_bond(symbol, 'this_week', l_dir), query_balance(symbol))
                         last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
                         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
+                        print (query_balance(symbol))                        
                         # and open again, just like new_open == True
                         new_open = True
                         if open_greedy == True:
