@@ -609,16 +609,16 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                     if close < open_start_price:
                         return (close - open_start_price)
                     else:
-                        return 0
+                        return 0.0
         elif close < previous_close:
             if open_greedy == False:
                 if close > open_start_price: # positive profit
-                    return 0
+                    return 0.0
                 else:
                     return (close - open_start_price)
             else:
                 if close > open_start_price: # positive profit
-                    return 0
+                    return 0.0
                 else:
                     return (close - open_start_price)
     elif l_dir == 'sell':
@@ -632,19 +632,19 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                     if close > open_start_price:
                         return -(close - open_start_price)
                     else:
-                        return 0
+                        return 0.0
         elif close > previous_close:
             if open_greedy == False:
                 if close < open_start_price: # positive profit
-                    return 0
+                    return 0.0
                 else:
                     return -(close - open_start_price)
             else:
                 if close < open_start_price: # positive profit
-                    return 0
+                    return 0.0
                 else:
                     return -(close - open_start_price)
-    pass
+    return 0.0
 
 # Figure out current holding's amount
 def calculate_amount(symbol):
