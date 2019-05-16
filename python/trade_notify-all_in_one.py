@@ -242,7 +242,9 @@ def issue_order_now(symbol, contract, direction, amount, action):
 
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
-    if must_positive == True and loss < 0:
+    if t_amount == 0:
+        return
+    elif must_positive == True and loss <= 0:
         print ('loss ratio=%.3f%%, keep holding' % (loss))
         return
     print ('loss ratio=%.3f%%, yeap' % (loss))
