@@ -728,29 +728,13 @@ def try_to_trade_tit2tat(subpath):
                             open_start_price = open_price 
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
-                    updating_balance = False
+                    issuing_close = False
                     if current_profit > open_cost: # yes, positive 
                         # do close
-                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
-                        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
-                        updating_balance = True
-                        # and open again, just like new_open == True
-                        new_open = True
-                        if open_greedy == True:
-                            close_greedy = True
-                        open_greedy = False
+                        issuing_close = True
                     elif current_profit < -open_cost: # no, negative 
                         # do close
-                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
-                        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
-                        updating_balance = True
-                        # and open again, just list new_open == True
-                        new_open = True
-                        if open_greedy == True:
-                            close_greedy = True
-                        open_greedy = False
+                        issuing_close = True
                         open_start_price = open_price # when seeing this price, should close, init only once
                     elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
@@ -784,9 +768,16 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         previous_close = close
                         return
-                    if updating_balance == True:
+                    if issuing_close == True:
+                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
+                        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
+                        # and open again, just like new_open == True
+                        new_open = True
+                        if open_greedy == True:
+                            close_greedy = True
+                            open_greedy = False
                         last_balance = query_balance(symbol) if options.emulate == False else 0
-                        
                         amount = quarter_amount
                         quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
                         if quarter_amount < 1:
