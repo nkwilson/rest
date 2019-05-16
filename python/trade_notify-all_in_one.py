@@ -243,7 +243,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
     if must_positive == True and loss < 0:
-        print ('in loss status, quit ', loss)
+        print ('in loss status, %f%%, quit ' % (loss))
         return
     if amount == 0:
         amount = t_amount
@@ -390,6 +390,7 @@ def query_bond(symbol, contract, direction):
 # {'result': True, 'info': {'btc': {'balance': 0.10077745, 'rights': 0.19425753, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170000013, 'available': 0.1116, 'profit': 0.0108896, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280000012, 'available': 0.1614, 'profit': 0.09122745, 'bond': 0.03053532, 'unprofit': -0.0087}]}, 'bsv': {'balance': 0, 'rights': 0, 'contracts': []}, 'etc': {'balance': 0, 'rights': 0, 'contracts': []}, 'bch': {'balance': 0.83989472, 'rights': 2.34665722, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905173010074, 'available': 0.8664, 'profit': 0.02652685, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906283010075, 'available': 2.1309, 'profit': 1.69430244, 'bond': 0.40325632, 'unprofit': -0.2141}]}, 'xrp': {'balance': 0, 'rights': 0, 'contracts': []}, 'eth': {'balance': 2.13255958, 'rights': 4.62345877, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170020042, 'available': 2.153, 'profit': 0.02053667, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280020041, 'available': 3.9439, 'profit': 2.53135193, 'bond': 0.71997122, 'unprofit': -0.0611}]}, 'eos': {'balance': 0.10395966, 'rights': 0.40952573, 'contracts': [{'contract_type': 'quarter', 'freeze': 0, 'balance': 0.17428396, 'contract_id': 201906280200053, 'available': 0.10395966, 'profit': -0.00052201, 'bond': 0.17376195, 'unprofit': 0.1318}]}, 'ltc': {'balance': 1.9931993, 'rights': 4.29178602, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170010016, 'available': 2.784, 'profit': 0.79088871, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280010015, 'available': 3.0551, 'profit': 1.68104735, 'bond': 0.61906728, 'unprofit': -0.1734}]}}}
 def query_balance(symbol):
     coin = symbol[0:symbol.index('_')]
+    print (symbol, coin)
     result=json.loads(okcoinFuture.future_userinfo_4fix())
     if result['result'] != True:
         return 0.0
