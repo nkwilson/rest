@@ -247,7 +247,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         return
     if amount == 0:
         amount = t_amount
-    return issue_order_now(symbol, contract, direction, amount, action)
+    issue_order_now(symbol, contract, direction, amount, action)
 
 def issue_quarter_order_now(symbol, direction, amount, action):
     print ('issue quarter order: ', action, symbol, direction, amount)
