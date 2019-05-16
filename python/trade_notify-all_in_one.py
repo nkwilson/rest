@@ -237,8 +237,8 @@ def issue_order_now(symbol, contract, direction, amount, action):
         reissuing_order = 0
         return
     print ('try to cancel pending order and reissue')
-    print (cancel_order(symbol, contract, order_id))
-    print (issue_order_now(symbol, contract, direction, amount, action))
+    cancel_order(symbol, contract, order_id)
+    issue_order_now(symbol, contract, direction, amount, action)
 
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
@@ -831,7 +831,7 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
                     # sleep 1s here
-                    time.sleep(1) if options.emulate == True else True
+                    time.sleep(1) if options.emulate == True else pass
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
                     
 
@@ -839,7 +839,6 @@ def try_to_trade_tit2tat(subpath):
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
                     previous_close = close
-                    return
 
 direction = 0
 def try_to_trade_simple(subpath):
