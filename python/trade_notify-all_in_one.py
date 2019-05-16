@@ -739,31 +739,34 @@ def try_to_trade_tit2tat(subpath):
                     elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         open_greedy = True
-                        with open(policy_notify, 'w') as f:
-                            # if same direction and positive profit cleanup
-                            f.write('%s %s %s %s' % (l_dir, close, previous_close, 'holding'))
-                            f.close()
-                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, 'holding'))
+                        greedy_action = ''
+                        greedy_status = 'holding'
                         if l_dir == 'buy':
                             if close > previous_close:
-                                issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
-                                thisweek_amount_pending = 0
+                                greedy_action = 'close'
+                                greedy_status = 'maybe closed'
                             elif close < previous_close:
-                                thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
-                                if thisweek_amount < 1:
-                                    thisweek_amount = 1
-                                thisweek_amount_pending += thisweek_amount
-                                issue_thisweek_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                greedy_action = 'open'
                         elif l_dir == 'sell':
                             if close < previous_close:
-                                issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close')
-                                thisweek_amount_pending = 0
+                                greedy_action = 'close'
+                                greedy_status = 'maybe closed'
                             elif close > previous_close:
-                                thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
-                                if thisweek_amount < 1:
-                                    thisweek_amount = 1
-                                thisweek_amount_pending += thisweek_amount
-                                issue_thisweek_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                greedy_action = 'open'
+                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
+                        with open(policy_notify, 'w') as f:
+                            # if same direction and positive profit cleanup
+                            f.write('%s %s %s %s' % (l_dir, close, previous_close, greedy_status))
+                            f.close()
+                        if greedy_action == 'close': # yes, close action pending
+                            issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
+                            thisweek_amount_pending = 0
+                        elif greedy_action == 'open': # yes, open action pending
+                            thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
+                            if thisweek_amount < 1:
+                                thisweek_amount = 1
+                            thisweek_amount_pending += thisweek_amount
+                            issue_thisweek_order_now(symbol, l_dir, thisweek_amount, greedy_action)                            
                         previous_close = close
                     else:
                         previous_close = close
