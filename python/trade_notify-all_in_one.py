@@ -153,7 +153,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     return okcoinFuture.future_trade(symbol, contract, '', amount, '3',
                                      '1', '10')
 def cancel_order(symbol, contract, order_id):
-    return okcoinFuture.future_cacel(symbol, contract, order_id)
+    return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 #print (u'期货批量下单')
 #print (okcoinFuture.future_batchTrade('ltc_usd','this_week','[{price:0.1,amount:1,type:1,match_price:0},{price:0.1,amount:3,type:1,match_price:0}]','20'))
@@ -729,10 +729,13 @@ def try_to_trade_tit2tat(subpath):
                             open_start_price = open_price 
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
+                    updating_balance = False
                     if current_profit > open_cost: # yes, positive 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
                         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
+                        updating_balance = True
                         # and open again, just like new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -741,7 +744,9 @@ def try_to_trade_tit2tat(subpath):
                     elif current_profit < -open_cost: # no, negative 
                         # do close
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
                         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
+                        updating_balance = True
                         # and open again, just list new_open == True
                         new_open = True
                         if open_greedy == True:
@@ -780,6 +785,14 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         previous_close = close
                         return
+                    if updating_balance == True:
+                        last_balance = query_balance(symbol) if options.emulate == False else 0
+                        
+                        amount = quarter_amount
+                        quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
+                        if quarter_amount < 1:
+                            quarter_amount = 1
+                        print ('update quarter_amount from %s to %s' % (amount, quarter_amount))
                 if close_greedy == True:
                     # should notify to close
                     with open(policy_notify, 'w') as f:
@@ -821,13 +834,8 @@ def try_to_trade_tit2tat(subpath):
                     # sleep 1s here
                     time.sleep(1) if options.emulate == True else True
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
-                    last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
-                    last_balance = query_balance(symbol) if options.emulate == False else 0
-
-                    amount = quarter_amount
-                    quarter_amount = math.ceil(last_balance / last_bond / 20 + 0.001) if last_bond > 0 else 1
-                    print ('update quarter_amount from %s to %s' % (amount, quarter_amount))
                     
+
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
