@@ -791,7 +791,7 @@ def try_to_trade_tit2tat(subpath):
                         quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s to %s' % (amount, quarter_amount))
+                        print ('update quarter_amount from %s=>%s, bond=%.3f balance=%.3f' % (amount, quarter_amount, last_bond, last_balance))
                 if close_greedy == True:
                     # should notify to close
                     with open(policy_notify, 'w') as f:
