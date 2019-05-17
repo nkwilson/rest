@@ -791,7 +791,7 @@ def try_to_trade_tit2tat(subpath):
                         last_balance = query_balance(symbol)
                         delta_balance = (last_balance - old_balance) / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
-                        quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
+                        quarter_amount = last_balance / last_bond / amount_ratio if last_bond > 0 else 1
                         if quarter_amount < 1:
                             quarter_amount = 1
                         print ('update quarter_amount from %s=>%s, bond=%f balance=%f->%f,%f%%' %
@@ -1628,6 +1628,24 @@ def wait_ewma_notify(notify, shutdown):
                 break
             continue
 
+def read_int_var(filename, var_name):
+    l_var = globals()[var_name]
+    if os.path.isfile(filename) and os.path.getsize(filename)>0:
+        # check if should read from file
+        with open(filename) as f:
+            old_var = l_var
+            try:
+                l_var = float(f.readline())
+                if old_var != l_var:
+                    print ('%s updated to %f' % (var_name, l_var))
+            except Exception as ex:
+                l_var = globals()['default_%s' % var_name]
+                print ('%s reset to default %f' % (var_name, l_var))
+        f.close()
+        globals()[var_name] = l_var
+        return True
+    return False
+
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify",
@@ -1667,6 +1685,8 @@ parser.add_option('', '--bins', dest='bins', default=0,
                   help='wait how many reverse, 0=once, 1=twice')
 parser.add_option('', '--nolog', dest='nolog', default=0,
                   help='Do not log to file')
+parser.add_option('', '--ratio', dest='amount_ratio', default=9,
+                  help='default trade ratio of total amount')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1680,6 +1700,11 @@ l_prefix = '%s_' % l_signal
 l_dir = options.dirs[0]
         
 amount_file = '%s.%samount' % (l_dir, l_prefix)
+
+default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
+amount_ratio = default_amount_ratio
+ratio_file = '%s.%sratio' % (l_dir, l_prefix)
+print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 logfile='%s.log' % trade_notify
@@ -1750,6 +1775,7 @@ while True:
         limit_price = 0
         limit_symbol = ''
         limit_amount = 0
+        read_int_var(ratio_file, 'amount_ratio')
         with open(startup_notify, 'r') as f:
             # f is a formated map type,just eval it
             line=f.readline()
