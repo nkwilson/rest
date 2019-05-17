@@ -377,8 +377,9 @@ def check_open_order_gate(symbol, direction, current_price):
     return False
 
 def query_bond(symbol, contract, direction):
+    if options.emulate:
+        return 0.0
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
-    print (holding)
     if holding['result'] != True:
         return 0.0 # 0 means failed
     if len(holding['holding']) == 0:
@@ -392,9 +393,10 @@ def query_bond(symbol, contract, direction):
 # future_userinfo_4fix format
 # {'result': True, 'info': {'btc': {'balance': 0.10077745, 'rights': 0.19425753, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170000013, 'available': 0.1116, 'profit': 0.0108896, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280000012, 'available': 0.1614, 'profit': 0.09122745, 'bond': 0.03053532, 'unprofit': -0.0087}]}, 'bsv': {'balance': 0, 'rights': 0, 'contracts': []}, 'etc': {'balance': 0, 'rights': 0, 'contracts': []}, 'bch': {'balance': 0.83989472, 'rights': 2.34665722, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905173010074, 'available': 0.8664, 'profit': 0.02652685, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906283010075, 'available': 2.1309, 'profit': 1.69430244, 'bond': 0.40325632, 'unprofit': -0.2141}]}, 'xrp': {'balance': 0, 'rights': 0, 'contracts': []}, 'eth': {'balance': 2.13255958, 'rights': 4.62345877, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170020042, 'available': 2.153, 'profit': 0.02053667, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280020041, 'available': 3.9439, 'profit': 2.53135193, 'bond': 0.71997122, 'unprofit': -0.0611}]}, 'eos': {'balance': 0.10395966, 'rights': 0.40952573, 'contracts': [{'contract_type': 'quarter', 'freeze': 0, 'balance': 0.17428396, 'contract_id': 201906280200053, 'available': 0.10395966, 'profit': -0.00052201, 'bond': 0.17376195, 'unprofit': 0.1318}]}, 'ltc': {'balance': 1.9931993, 'rights': 4.29178602, 'contracts': [{'contract_type': 'this_week', 'freeze': 0, 'balance': 0, 'contract_id': 201905170010016, 'available': 2.784, 'profit': 0.79088871, 'bond': 0, 'unprofit': 0}, {'contract_type': 'quarter', 'freeze': 0, 'balance': 0, 'contract_id': 201906280010015, 'available': 3.0551, 'profit': 1.68104735, 'bond': 0.61906728, 'unprofit': -0.1734}]}}}
 def query_balance(symbol):
+    if options.emulate:
+        return 0.0
     coin = symbol[0:symbol.index('_')]
     result=json.loads(okcoinFuture.future_userinfo_4fix())
-    print (result, result, coin)
     if result['result'] != True:
         return 0.0
     return float(result['info'][coin]['rights'])
@@ -764,7 +766,6 @@ def try_to_trade_tit2tat(subpath):
                             f.write('%s %s %s %s' % (l_dir, close, previous_close, greedy_status))
                             f.close()
                         if greedy_action == 'close': # yes, close action pending
-                            print (query_bond(symbol, 'this_week', l_dir), query_balance(symbol))
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             thisweek_amount_pending = 0
                         elif greedy_action == 'open': # yes, open action pending
@@ -779,17 +780,15 @@ def try_to_trade_tit2tat(subpath):
                         return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        print (query_bond(symbol, 'this_week', l_dir), query_balance(symbol))
-                        last_bond = query_bond(symbol, 'quarter', direction) if options.emulate == False else 0
+                        last_bond = query_bond(symbol, 'quarter', direction)
                         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'close')
-                        print (query_balance(symbol))                        
                         # and open again, just like new_open == True
                         new_open = True
                         if open_greedy == True:
                             close_greedy = True
                             open_greedy = False
                         old_balance = last_balance
-                        last_balance = query_balance(symbol) if options.emulate == False else 0
+                        last_balance = query_balance(symbol)
                         delta_balance = (last_balance - old_balance) / last_balance if last_balance != 0 else 0
                         amount = quarter_amount
                         quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
