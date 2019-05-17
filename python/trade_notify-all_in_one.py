@@ -761,10 +761,6 @@ def try_to_trade_tit2tat(subpath):
                             elif close > previous_close:
                                 greedy_action = 'open'
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
-                        with open(policy_notify, 'w') as f:
-                            # if same direction and positive profit cleanup
-                            f.write('%s %s %s %s' % (l_dir, close, previous_close, greedy_status))
-                            f.close()
                         if greedy_action == 'close': # yes, close action pending
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             thisweek_amount_pending = 0
@@ -798,11 +794,6 @@ def try_to_trade_tit2tat(subpath):
                                (amount, quarter_amount, last_bond,
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
-                    # should notify to close
-                    with open(policy_notify, 'w') as f:
-                        # if same direction and positive profit cleanup
-                        f.write('%s %s %s %s' % (l_dir, close, previous_close, 'closed'))
-                        f.close()
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close', False)
