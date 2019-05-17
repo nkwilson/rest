@@ -789,14 +789,14 @@ def try_to_trade_tit2tat(subpath):
                             open_greedy = False
                         old_balance = last_balance
                         last_balance = query_balance(symbol)
-                        delta_balance = (last_balance - old_balance) / last_balance if last_balance != 0 else 0
+                        delta_balance = (last_balance - old_balance) / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
                         quarter_amount = last_balance / last_bond / 20 if last_bond > 0 else 1
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s=>%s, bond=%.3f balance=%.3f->%.3f,%.2f%%' %
+                        print ('update quarter_amount from %s=>%s, bond=%f balance=%f->%f,%f%%' %
                                (amount, quarter_amount, last_bond,
-                                last_balance, old_balance, delta_balance))
+                                old_balance, last_balance, delta_balance))
                 if close_greedy == True:
                     # should notify to close
                     with open(policy_notify, 'w') as f:
