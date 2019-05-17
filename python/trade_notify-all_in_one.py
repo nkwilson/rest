@@ -1685,7 +1685,7 @@ parser.add_option('', '--bins', dest='bins', default=0,
                   help='wait how many reverse, 0=once, 1=twice')
 parser.add_option('', '--nolog', dest='nolog', default=0,
                   help='Do not log to file')
-parser.add_option('', '--ratio', dest='amount_ratio', default=6,
+parser.add_option('', '--ratio', dest='amount_ratio', default=16,
                   help='default trade ratio of total amount')
 
 (options, args) = parser.parse_args()
