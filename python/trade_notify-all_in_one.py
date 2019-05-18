@@ -793,8 +793,9 @@ def try_to_trade_tit2tat(subpath):
                         quarter_amount = last_balance / last_bond / amount_ratio if last_bond > 0 else 1
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s=>%s, bond=%f balance=%f->%f,%f%%' %
-                               (amount, quarter_amount, last_bond,
+                        print ('update quarter_amount from %s=>%s(ratio=%f%s), bond=%f balance=%f->%f,%f%%' %
+                               (amount, quarter_amount, amount_ratio, '*' if amount_ratio != default_amount_ratio else '',
+                                last_bond,
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
@@ -1632,6 +1633,9 @@ def read_int_var(filename, var_name):
                 l_var = float(f.readline())
                 if old_var != l_var:
                     print ('%s updated to %f' % (var_name, l_var))
+                else:
+                    print ('%s unchanged, unlink %s' % (var_name, filename))
+                    os.unlink(filename)
             except Exception as ex:
                 l_var = globals()['default_%s' % var_name]
                 print ('%s reset to default %f' % (var_name, l_var))
@@ -1679,7 +1683,7 @@ parser.add_option('', '--bins', dest='bins', default=0,
                   help='wait how many reverse, 0=once, 1=twice')
 parser.add_option('', '--nolog', dest='nolog', default=0,
                   help='Do not log to file')
-parser.add_option('', '--ratio', dest='amount_ratio', default=16,
+parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
 
 (options, args) = parser.parse_args()
