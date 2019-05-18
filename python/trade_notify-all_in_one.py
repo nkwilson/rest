@@ -247,7 +247,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     elif must_positive == True and loss <= 0:
         print ('loss ratio=%.3f%%, keep holding' % (loss))
         return
-    print ('loss ratio=%.3f%%, yeap' % (loss))
+    print ('loss ratio=%.3f%%, %s' % ('yeap' if loss > 0 else 'tough'))
     if amount == 0:
         amount = t_amount
     issue_order_now(symbol, contract, direction, amount, action)
