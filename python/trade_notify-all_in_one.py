@@ -234,7 +234,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
         reissuing_order += 1
     else:
         return
-    if reissuing_order > 1: # more than once , quit
+    if reissuing_order > 5: # more than 5 , quit
         reissuing_order = 0
         return
     print ('try to cancel pending order and reissue')
