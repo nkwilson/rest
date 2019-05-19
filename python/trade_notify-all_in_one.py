@@ -779,7 +779,9 @@ def try_to_trade_tit2tat(subpath):
                         return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        last_bond = query_bond(symbol, 'quarter', l_dir)
+                        t_bond = query_bond(symbol, 'quarter', l_dir)
+                        if t_bond > 0:
+                            last_bond = t_bond
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
                         # and open again, just like new_open == True
                         new_open = True
