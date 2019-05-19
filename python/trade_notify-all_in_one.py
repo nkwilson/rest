@@ -230,7 +230,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     print (order_info)
     if order_info['orders'][0]['amount'] != order_info['orders'][0]['deal_amount']:
-        amount -= deal_amount
+        amount -= int(order_info['orders'][0]['deal_amount'])
         reissuing_order += 1
     else:
         return
