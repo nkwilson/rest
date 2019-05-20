@@ -766,10 +766,11 @@ def try_to_trade_tit2tat(subpath):
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             thisweek_amount_pending = 0
                         elif greedy_action == 'open': # yes, open action pending
-                            thisweek_amount = (quarter_amount - thisweek_amount_pending) * abs(previous_close - close) / previous_close * 10
-                            if thisweek_amount <= 0:
+                            if quarter_amount > thisweek_amount_pending:
+                                thisweek_amount = math.ceil(quarter_amount * abs(previous_close - close) / previous_close * 10)
+                            else:
                                 thisweek_amount = 1
-                            elif thisweek_amount < 1:
+                            if thisweek_amount < (quarter_amount / amount_ratio):
                                 thisweek_amount = math.ceil(quarter_amount / amount_ratio)
                             thisweek_amount_pending += thisweek_amount
                             issue_thisweek_order_now(symbol, l_dir, thisweek_amount, greedy_action)
