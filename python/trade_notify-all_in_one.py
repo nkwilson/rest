@@ -190,7 +190,10 @@ def check_holdings_profit(symbol, contract, direction):
     nn = (0,0)
     holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
     if holding['result'] != True:
-        return nn
+        time.sleep(1) # in case something wrong, try again
+        holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
+        if holding['result'] != True:
+            return nn
     if len(holding['holding']) == 0:
         return nn
     # print (holding['holding'])
@@ -227,6 +230,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
         return False
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
+    time.sleep(1) # wait a second
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     print (order_info)
     if order_info['orders'][0]['amount'] != order_info['orders'][0]['deal_amount']:
@@ -719,9 +723,13 @@ def try_to_trade_tit2tat(subpath):
                 
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
                 
-                new_open = True if trade_file == '' else False
+                new_open = True
                 forced_close = False
-                if new_open == False and check_forced_close(symbol, l_dir, prices if options.emulate else None):
+                t_amount = 0
+                if trade_file != '':
+                    (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
+                    new_open = False
+                if new_open == False and t_amount == 0:
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     new_open = True
@@ -807,11 +815,13 @@ def try_to_trade_tit2tat(subpath):
                     thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
-                    l_dir = ''    
                     if close > previous_close:
                         l_dir = 'buy'
                     elif close < previous_close:
                         l_dir = 'sell'
+                    else:
+                        previous_close = close
+                        return
                     if forced_close == True: # should check open_start_price again
                         if l_dir == 'buy' and open_start_price > open_price:
                             open_start_price = open_price
@@ -837,7 +847,6 @@ def try_to_trade_tit2tat(subpath):
                     time.sleep(1) if options.emulate == True else True
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
                     
-
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
