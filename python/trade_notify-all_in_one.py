@@ -683,6 +683,7 @@ def real_open_price_and_cost(symbol, contract, direction):
 
 quarter_amount = 1
 thisweek_amount_pending = 0
+close_greedy = False
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -843,8 +844,6 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
-                    # sleep 1s here
-                    time.sleep(1) if options.emulate == True else True
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
                     
                     if open_start_price == 0:
@@ -1697,6 +1696,10 @@ parser.add_option('', '--nolog', dest='nolog', default=0,
                   help='Do not log to file')
 parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
+parser.add_option('', '--open_start_price', dest='open_start_price',
+                  help='init open_start_proce')
+parser.add_option('', '--previous_close', dest='previous_close',
+                  help='init previous_close')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1756,6 +1759,11 @@ with open(pid_file, 'w') as f:
     f.write('%d' % os.getpgrp())
     f.close()
 print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+
+if options.open_start_price != None:
+    open_start_price = float(options.open_start_price)
+if options.previous_close != None:
+    previous_close = float(options.previous_close)
 
 if pick_old_order == True:
     try_to_pick_old_order()
