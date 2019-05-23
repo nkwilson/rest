@@ -705,13 +705,16 @@ def try_to_trade_tit2tat(subpath):
         prices = read_4prices(event_path)
         close = prices[ID_CLOSE]
         l_dir = ''
+        reverse_follow_dir = ''
         if trade_file == '':
             print ('%9.3f' % close, '-')
         elif trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
+            reverse_follow_dir = 'buy'
             print ('%8.3f' % -close, '%9.3f' % open_price, l_dir, 'gate %9.3f' % open_start_price)
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
+            reverse_follow_dir = 'sell'
             print ('%9.3f' % close, '%8.3f' % -open_price, l_dir, 'gate %9.3f' % open_start_price)
         if close == 0: # in case read failed
             return
@@ -771,10 +774,7 @@ def try_to_trade_tit2tat(subpath):
                             elif close > previous_close:
                                 greedy_action = 'open'
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
-                        if greedy_action == 'close': # yes, close action pending
-                            issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
-                            thisweek_amount_pending = 0
-                        elif greedy_action == 'open': # yes, open action pending
+                        if greedy_action != '': # update amount
                             if quarter_amount > thisweek_amount_pending:
                                 thisweek_amount = math.ceil(quarter_amount * abs(previous_close - close) / previous_close * 10)
                             else:
@@ -782,7 +782,20 @@ def try_to_trade_tit2tat(subpath):
                             if thisweek_amount < (quarter_amount / amount_ratio):
                                 thisweek_amount = math.ceil(quarter_amount / amount_ratio)
                             thisweek_amount_pending += thisweek_amount
+                            if thisweek_amount_pending > quarter_amount:
+                                thisweek_amount = 1
+                        if greedy_action == 'close': # yes, close action pending
+                            issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
+                            issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, greedy_action, False)
+                            # open following order
+                            issue_thisweek_order_now(symbol, l_dir, thisweek_amount, 'open')
+                            thisweek_amount_pending = 0
+                        elif greedy_action == 'open': # yes, open action pending
                             issue_thisweek_order_now(symbol, l_dir, thisweek_amount, greedy_action)
+                            # first close current order
+                            issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
+                            # secondly open new order
+                            issue_thisweek_order_now(symbol, reverse_follow_dir, quarter_amount, greedy_action)
                         previous_close = close
                     else:
                         previous_close = close
@@ -813,6 +826,7 @@ def try_to_trade_tit2tat(subpath):
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close', False)
+                    issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                     thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
