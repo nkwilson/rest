@@ -795,7 +795,7 @@ def try_to_trade_tit2tat(subpath):
                             # first close current order
                             issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                             # secondly open new order
-                            issue_thisweek_order_now(symbol, reverse_follow_dir, quarter_amount, greedy_action)
+                            issue_thisweek_order_now(symbol, reverse_follow_dir, thisweek_amount, greedy_action)
                         previous_close = close
                     else:
                         previous_close = close
