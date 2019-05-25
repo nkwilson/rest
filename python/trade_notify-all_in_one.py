@@ -826,7 +826,7 @@ def try_to_trade_tit2tat(subpath):
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     issue_thisweek_order_now_conditional(symbol, l_dir, 0, 'close', False)
-                    issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
+                    issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                     thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
