@@ -736,16 +736,8 @@ def try_to_trade_tit2tat(subpath):
                 if new_open == False and t_amount == 0:
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                    new_open = True
-                    open_greedy = False
-                    close_greedy = True
-                    forced_close = True
-                    if l_dir == 'sell': # should keep higher price
-                        if open_start_price < open_price:
-                            open_start_price = open_price 
-                    elif l_dir == 'buy': # should keep lower price
-                        if open_start_price > open_price:
-                            open_start_price = open_price 
+                    print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
+                    issue_quarter_order_now(symbol, l_dir, 1, 'open')
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
