@@ -676,9 +676,9 @@ def real_open_price_and_cost(symbol, contract, direction):
     # print (holding['holding'])
     for data in holding['holding']:
         if data['symbol'] == symbol and data['%s_amount' % direction] != 0:
-            avg = data['%s_price_avg' % direction]
-            real= data['profit_real']
-            return (float(avg), float(avg)*float(real))
+            avg = float(data['%s_price_avg' % direction])
+            real= float(data['profit_real']) * 2
+            return (avg, avg*real)
     return 0
 
 quarter_amount = 1
@@ -737,7 +737,11 @@ def try_to_trade_tit2tat(subpath):
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
+                    # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
+                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
+                    previous_close = close
+                    return
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
