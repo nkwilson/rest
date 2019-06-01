@@ -740,8 +740,6 @@ def try_to_trade_tit2tat(subpath):
                     # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
-                    previous_close = close
-                    return
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
