@@ -681,6 +681,44 @@ def real_open_price_and_cost(symbol, contract, direction):
             return (avg, avg*real)
     return 0
 
+def try_loadsave_with_names(status, names, load):
+    for name in names:
+        if load: # from status to individual names
+            globals()[name] = globals()[status][name]
+        else: # collect individual names to status
+            globals()[status][name] = globals()[name]
+
+def loadsave_status(signal, load):
+    if load: # load from file
+        mode = 'r'
+    else: # save to file
+        mode = 'w'
+    # process file
+    with open(globals()['status_file'], mode) as f:
+        if load:
+            globals()['trade_status'] = json.load(f)
+            try_loadsave_with_names('trade_status', 'names_%s' % signal, load)
+        else:
+            try_loadsave_with_names('trade_status', 'names_%s' % signal, load)
+            json.dump(globals()['trade_status']), f)
+        f.close()
+
+names_tit2tat = ['trade_file',
+                 'previous_close',
+                 'open_start_price',
+                 'open_price',
+                 'open_cost',
+                 'quarter_amount',
+                 'thisweek_amount_pending',
+                 'last_balance',
+                 'last_bond',
+                 'amount_ratio'];
+def save_status_tit2tat():
+    loadsave_status('tit2tat', load=False)
+
+def load_status_tit2tat():
+    loadsave_status('tit2tat', load=True)
+
 quarter_amount = 1
 thisweek_amount_pending = 0
 close_greedy = False
@@ -1564,6 +1602,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 f.close()
                 #print (subpath)
                 globals()['try_to_trade_%s' % signal](subpath)
+                globals()['save_status_%s' % signal]()
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
@@ -1708,6 +1747,8 @@ parser.add_option('', '--open_start_price', dest='open_start_price',
                   help='init open_start_proce')
 parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
+parser.add_option('', '--restore_status', dest='restore_status',
+                  help='restore status from status_file')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1739,6 +1780,10 @@ if options.nolog == 0:
     sys.stderr = sys.stdout
 print (dt.now())
 print ('trade_notify: %s' % trade_notify)
+
+status_file = '%s.%strade_status' % (l_dir, l_prefix) # file used to save status
+print ('status_file: %s' % status_file)
+trade_status = map()
 
 print ('using amount file: %s' % amount_file)
 
@@ -1789,6 +1834,11 @@ if options.emulate:
     emul_signal_notify(l_dir, l_signal)
     os.sys.exit(0)
 
+if options.restore_status != None and \
+   os.path.isfile(status_file) and \
+   os.path.getsize(status_file) > 0:
+    globals()['load_status_%s' % signal]()
+    
 while True:
     if startup_notify != '':
         print (trade_timestamp(), 'Waiting for startup signal', flush=True)
