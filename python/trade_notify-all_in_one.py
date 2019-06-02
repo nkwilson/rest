@@ -769,7 +769,13 @@ def try_to_trade_tit2tat(subpath):
                 forced_close = False
                 t_amount = 0
                 if trade_file != '':
-                    (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
+                    if options.emulate == False:
+                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
+                    else: # if emualtion, figure it manually
+                        if l_dir == 'buy':
+                            t_amount = 1 if ((open_price - prices[ID_LOW]) / open_price) > 0.1 else 0
+                        else: # sell
+                            t_amount = 1 if (prices[ID_HIGH] - open_price) / open_price) > 0.1 else 0
                     new_open = False
                 if new_open == False and t_amount == 0:
                     # suffered forced close
