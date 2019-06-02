@@ -1585,6 +1585,7 @@ def wait_signal_notify(notify, signal, shutdown):
         try:
             if options.emulate:
                 globals()['try_to_trade_%s' % signal](notify)
+                globals()['save_status_%s' % signal]()
                 break
 
             result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
