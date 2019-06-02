@@ -1790,7 +1790,7 @@ print ('trade_notify: %s' % trade_notify)
 
 status_file = '%s.%strade_status' % (l_dir, l_prefix) # file used to save status
 print ('status_file: %s' % status_file)
-trade_status = map()
+trade_status = dict()
 
 print ('using amount file: %s' % amount_file)
 
