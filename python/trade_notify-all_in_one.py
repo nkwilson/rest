@@ -700,7 +700,7 @@ def loadsave_status(signal, load):
             try_loadsave_with_names('trade_status', 'names_%s' % signal, load)
         else:
             try_loadsave_with_names('trade_status', 'names_%s' % signal, load)
-            json.dump(globals()['trade_status']), f)
+            json.dump(globals()['trade_status'], f)
         f.close()
 
 names_tit2tat = ['trade_file',
