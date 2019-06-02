@@ -682,7 +682,7 @@ def real_open_price_and_cost(symbol, contract, direction):
     return 0
 
 def try_loadsave_with_names(status, names, load):
-    for name in names:
+    for name in globals()[names]:
         if load: # from status to individual names
             globals()[name] = globals()[status][name]
         else: # collect individual names to status
