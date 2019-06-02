@@ -708,6 +708,7 @@ names_tit2tat = ['trade_file',
                  'open_start_price',
                  'open_price',
                  'open_cost',
+                 'open_greedy',
                  'quarter_amount',
                  'thisweek_amount_pending',
                  'last_balance',
@@ -722,6 +723,7 @@ def load_status_tit2tat():
 quarter_amount = 1
 thisweek_amount_pending = 0
 close_greedy = False
+open_greedy = False
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -767,7 +769,6 @@ def try_to_trade_tit2tat(subpath):
                 
                 new_open = True
                 forced_close = False
-                t_amount = 0
                 if trade_file != '':
                     if options.emulate == False:
                         (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
@@ -777,7 +778,11 @@ def try_to_trade_tit2tat(subpath):
                         else: # sell
                             t_amount = 1 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 0
                     new_open = False
-                if new_open == False and t_amount == 0:
+                    if t_amount > 0:
+                        forced_close = True
+                if forced_close:
+                    forced_close = False
+                    open_greedy = True
                     # suffered forced close
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
