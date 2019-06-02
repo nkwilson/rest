@@ -1844,7 +1844,7 @@ if options.emulate:
 if options.restore_status != None and \
    os.path.isfile(status_file) and \
    os.path.getsize(status_file) > 0:
-    globals()['load_status_%s' % signal]()
+    globals()['load_status_%s' % l_signal]()
     print ('trade status restored:\n', globals()['trade_status'])
     
 while True:
