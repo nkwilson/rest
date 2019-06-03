@@ -770,13 +770,13 @@ def try_to_trade_tit2tat(subpath):
                 new_open = True
                 forced_close = False
                 if trade_file != '':
-                    if options.emulate == False:
-                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
-                    else: # if emualtion, figure it manually
+                    if options.emulate: # if emualtion, figure it manually
                         if l_dir == 'buy':
                             t_amount = 1 if ((open_price - prices[ID_LOW]) / open_price) > 0.1 else 0
                         else: # sell
                             t_amount = 1 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 0
+                    else:
+                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
                     new_open = False
                     if t_amount == 0:
                         forced_close = True
@@ -788,7 +788,7 @@ def try_to_trade_tit2tat(subpath):
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
                     # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
-                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
+                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate else (close, 0.001)
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
@@ -901,7 +901,7 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
-                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate == False else (close, 0.001)
+                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate else (close, 0.001)
                     
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
