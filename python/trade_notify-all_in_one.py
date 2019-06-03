@@ -778,7 +778,7 @@ def try_to_trade_tit2tat(subpath):
                         else: # sell
                             t_amount = 1 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 0
                     new_open = False
-                    if t_amount > 0:
+                    if t_amount == 0:
                         forced_close = True
                 if forced_close:
                     forced_close = False
