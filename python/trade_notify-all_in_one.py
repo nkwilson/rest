@@ -826,8 +826,8 @@ def try_to_trade_tit2tat(subpath):
                         if greedy_action != '': # update amount
                             if quarter_amount > thisweek_amount_pending:
                                 thisweek_amount = math.ceil(quarter_amount * abs(previous_close - close) / previous_close * 10)
-                                l_thisweek_amount = math.ceil(quarter_amount / amount_ratio):
-                                if thisweek_amount < l_thisweek_amount
+                                l_thisweek_amount = math.ceil(quarter_amount / amount_ratio)
+                                if thisweek_amount < l_thisweek_amount:
                                     thisweek_amount = l_thisweek_amount
                             else:
                                 thisweek_amount = math.ceil(quarter_amount / amount_ratio / amount_ratio)
