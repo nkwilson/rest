@@ -769,15 +769,17 @@ def try_to_trade_tit2tat(subpath):
                 
                 new_open = True
                 forced_close = False
+                new_open_start_price = 0
                 if trade_file != '':
-                    if options.emulate: # if emualtion, figure it manually
-                        if l_dir == 'buy':
-                            t_amount = 1 if ((open_price - prices[ID_LOW]) / open_price) > 0.1 else 0
-                        else: # sell
-                            t_amount = 1 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 0
-                    else:
-                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
                     new_open = False
+                    if l_dir == 'buy':
+                        t_amount = 0 if ((open_price - prices[ID_LOW]) / open_price) > 0.1 else 1
+                        new_open_start_price = prices[ID_LOW]
+                    else: # sell
+                        t_amount = 0 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 1
+                        new_open_start_price = prices[ID_HIGH]
+                    if not options.emulate: # if emualtion, figure it manually
+                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
                     if t_amount == 0:
                         forced_close = True
                 if forced_close:
@@ -789,6 +791,10 @@ def try_to_trade_tit2tat(subpath):
                     # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
                     (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if options.emulate else (close, 0.001)
+                    if l_dir == 'buy' and open_start_price < new_open_start_price:
+                        open_start_price = new_open_start_price
+                    elif l_dir == 'sell' and open_start_price > new_open_start_price:
+                        open_start_price = new_open_start_price
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
@@ -820,13 +826,12 @@ def try_to_trade_tit2tat(subpath):
                         if greedy_action != '': # update amount
                             if quarter_amount > thisweek_amount_pending:
                                 thisweek_amount = math.ceil(quarter_amount * abs(previous_close - close) / previous_close * 10)
+                                l_thisweek_amount = math.ceil(quarter_amount / amount_ratio):
+                                if thisweek_amount < l_thisweek_amount
+                                    thisweek_amount = l_thisweek_amount
                             else:
-                                thisweek_amount = 1
-                            if thisweek_amount < (quarter_amount / amount_ratio):
-                                thisweek_amount = math.ceil(quarter_amount / amount_ratio)
+                                thisweek_amount = math.ceil(quarter_amount / amount_ratio / amount_ratio)
                             thisweek_amount_pending += thisweek_amount
-                            if thisweek_amount_pending > quarter_amount:
-                                thisweek_amount = 1
                         if greedy_action == 'close': # yes, close action pending
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, greedy_action, False)
