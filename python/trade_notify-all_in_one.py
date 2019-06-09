@@ -1806,7 +1806,11 @@ pick_old_order = options.pick_old_order
 l_signal = options.signals[0]
 l_prefix = '%s_' % l_signal
 l_dir = options.dirs[0]
-        
+
+if not os.path.isdir(l_dir):
+    print ('%s is not valid direction' % l_dir)
+    sys.exit(1)
+
 amount_file = '%s.%samount' % (l_dir, l_prefix)
 
 default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
