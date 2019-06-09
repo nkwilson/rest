@@ -187,7 +187,7 @@ def figure_out_symbol_info(path):
     end_pattern = '_kline_'
     start = path.index(start_pattern) + len(start_pattern)
     end = path.index(end_pattern)
-    print ('symbol is %s' % (path[start:end]))
+    # print ('symbol is %s' % (path[start:end]))
     return path[start:end]
 
 def figure_out_contract_info(path):
@@ -196,14 +196,14 @@ def figure_out_contract_info(path):
     end_pattern = '_'
     start = path.index(start_pattern) + len(start_pattern)
     end = path.rindex(end_pattern)
-    print ('contract is %s' % (path[start:end]))
+    # print ('contract is %s' % (path[start:end]))
     return path[start:end]
 
 def figure_out_period_info(path):
     path = os.path.splitext(path)[0]
     start_pattern = '_'
     start = path.rindex(start_pattern) + len(start_pattern)
-    print ('period is %s' % (path[start:]))
+    # print ('period is %s' % (path[start:]))
     return path[start:]
 
 # {'result': True, 'holding': [{'buy_price_avg': 176.08158274, 'symbol': 'eth_usd', 'lever_rate': 10, 'buy_available': 0, 'contract_id': 201906280020041, 'sell_risk_rate': '99.36', 'buy_amount': 0, 'buy_risk_rate': '1,000,000.00', 'profit_real': -1.847e-05, 'contract_type': 'quarter', 'sell_flatprice': '178.453', 'buy_bond': 0, 'sell_profit_lossratio': '-0.66', 'buy_flatprice': '0.000', 'buy_profit_lossratio': '0.00', 'sell_amount': 1, 'sell_bond': 0.00615942, 'sell_price_cost': 162.388, 'buy_price_cost': 176.08158274, 'create_date': 1552656509000, 'sell_price_avg': 162.388, 'sell_available': 1}]}
@@ -1912,9 +1912,9 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         price_filename0 = os.path.join(l_dir, '%s' % (reply[0]))
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
-            print (trade_timestamp(), '%s is already exist' % (price_filename))
+            # print (trade_timestamp(), '%s is already exist' % (price_filename))
             return price_filename
-        print ('save price to %s' % price_filename)
+        # print ('save price to %s' % price_filename)
         with open(price_filename0, 'w') as f:
             f.write('%s, %s, %s, %s, %s, %s' %
                     (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
@@ -1926,7 +1926,7 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         with open(notify, 'w') as f:
             f.write(price_filename)
             f.close()
-            print ('save signal to %s' % notify)
+            # print ('save signal to %s' % notify)
         return price_filename
     except Exception as Ex:
         print (trade_timestamp(), traceback.format_exc())
@@ -1942,6 +1942,7 @@ def calculate_timeout_for_self_trigger(notify):
     else:
         return (-15, delta) # wait at least this long time of seconds
 
+first_prompt = True
 while True:
     orig_startup_notify = startup_notify
     if startup_notify != '':
@@ -1971,7 +1972,9 @@ while True:
         with open(startup_notify, 'w') as f:
             # try to clean startup notify
             f.close()
-    print (trade_timestamp(), 'Waiting for process new coming file\n', flush=True)
+    if first_prompt:
+        print (trade_timestamp(), 'Waiting for process new coming file\n', flush=True)
+        first_prompt = False
     #issue kickup signal
     with open('%s.ok' % trade_notify, 'w') as f:
         f.close()
@@ -1980,14 +1983,15 @@ while True:
         (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0: # wait for triggering
-            print (trade_timestamp(),
-                   'wait for next period about %dh:%dm:%ds later' %
-                   (timeout / 60 / 60,
-                    (timeout % 3600) / 60,
-                    timeout - int(timeout / 60) * 60))
+            #print (trade_timestamp(),
+            #       'wait for next period about %dh:%dm:%ds later' %
+            #       (timeout / 60 / 60,
+            #        (timeout % 3600) / 60,
+            #        timeout - int(timeout / 60) * 60))
             time.sleep(timeout)
         else:
-            print (trade_timestamp(), 'trigger safely')
+            #print (trade_timestamp(), 'trigger safely')
+            pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
