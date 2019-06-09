@@ -1906,7 +1906,7 @@ def prepare_for_self_trigger(notify, signal, l_dir):
     contract=figure_out_contract_info(notify)
     period=figure_out_period_info(notify)
     try:
-        reply=eval('%s' % (okcoinFuture.future_kline(symbol, period, contract, '1'))[0]
+        reply=eval('%s' % (okcoinFuture.future_kline(symbol, period, contract, '1')))[0]
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
             print (trade_timestamp(), '%s is already exist' % (price_filename))
