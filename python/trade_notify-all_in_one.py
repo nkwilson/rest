@@ -1968,7 +1968,7 @@ while True:
         f.close()
 
     if options.do_self_trigger:
-        timeout = calculate_timeout_for_self_trigger(signal_notity)
+        timeout = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0: # wait for triggering
             print (trade_timestamp(),
