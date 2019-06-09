@@ -100,6 +100,10 @@ okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 #print (u' 期货行情信息')
 #print (okcoinFuture.future_ticker('btc_usd','quarter'))
 
+#print (u' 期货k线信息')
+#print (okcoinFuture.future_kline('btc_usd','4hour', 'quarter', '1'))
+#[[1560038400000, 7904.03, 7941.03, 7828, 7852.97, 694211, 8821.79293212]]
+
 #print (u' 期货市场深度信息')
 #print (okcoinFuture.future_depth('btc_usd','this_week','6'))
 
@@ -176,13 +180,31 @@ def query_orderinfo(symbol, contract, order_id):
 #print (quarter_auto_bond('ltc_usd'), quarter_auto_balance('ltc_usd'))
 #os.sys.exit(0)
 
+# demo: ok_sub_futureusd_btc_kline_quarter_4hou
 def figure_out_symbol_info(path):
+    path = os.path.splitext(path)[0]
     start_pattern = 'ok_sub_future'
     end_pattern = '_kline_'
     start = path.index(start_pattern) + len(start_pattern)
     end = path.index(end_pattern)
-    # print (path[start:end])
+    print ('symbol is %s' % (path[start:end]))
     return path[start:end]
+
+def figure_out_contract_info(path):
+    path = os.path.splitext(path)[0]
+    start_pattern = 'kline_'
+    end_pattern = '_'
+    start = path.index(start_pattern) + len(start_pattern)
+    end = path.rindex(end_pattern)
+    print ('contract is %s' % (path[start:end]))
+    return path[start:end]
+
+def figure_out_period_info(path):
+    path = os.path.splitext(path)[0]
+    start_pattern = '_'
+    start = path.rindex(start_pattern) + len(start_pattern)
+    print ('period is %s' % (path[start:]))
+    return path[start:]
 
 # {'result': True, 'holding': [{'buy_price_avg': 176.08158274, 'symbol': 'eth_usd', 'lever_rate': 10, 'buy_available': 0, 'contract_id': 201906280020041, 'sell_risk_rate': '99.36', 'buy_amount': 0, 'buy_risk_rate': '1,000,000.00', 'profit_real': -1.847e-05, 'contract_type': 'quarter', 'sell_flatprice': '178.453', 'buy_bond': 0, 'sell_profit_lossratio': '-0.66', 'buy_flatprice': '0.000', 'buy_profit_lossratio': '0.00', 'sell_amount': 1, 'sell_bond': 0.00615942, 'sell_price_cost': 162.388, 'buy_price_cost': 176.08158274, 'create_date': 1552656509000, 'sell_price_avg': 162.388, 'sell_available': 1}]}
 # if current order is permit to issue
@@ -1603,7 +1625,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 globals()['try_to_trade_%s' % signal](notify)
                 globals()['save_status_%s' % signal]()
                 break
-            if not options.one_shot:
+            if not options.one_shot and not options.do_self_trigger:
                 result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
                 # if received shutdown notify, close all order
                 if shutdown != '' and shutdown in result.stdout:
@@ -1611,9 +1633,9 @@ def wait_signal_notify(notify, signal, shutdown):
                     print ('shutdown triggered, shutdown when closed')
                     with open(shutdown, 'w') as f:
                         f.close()
-                if shutdown_on_close and trade_file == '':
-                    print (trade_timestamp(), 'shutdown now')
-                    break
+            if shutdown_on_close and trade_file == '':
+                print (trade_timestamp(), 'shutdown now')
+                break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
                 f.close()
@@ -1624,7 +1646,7 @@ def wait_signal_notify(notify, signal, shutdown):
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
                 break
-            if options.one_shot:
+            if options.one_shot or options.do_self_trigger:
                 break
         except FileNotFoundError as fnfe:
             print (fnfe)
@@ -1767,9 +1789,12 @@ parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
 parser.add_option('', '--restore_status', dest='restore_status',
                   help='restore status from status_file')
-parser.add_option('', '--one_shot', dest='ono_shot',
+parser.add_option('', '--one_shot', dest='one_shot',
                   action='store_true', default=False,
                   help='just run once, save status and quit')
+parser.add_option('', '--self_trigger', dest='do_self_trigger',
+                  action='store_true', default=False,
+                  help='read price by myself and do following trade')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1860,7 +1885,35 @@ if options.restore_status != None and \
    os.path.getsize(status_file) > 0:
     globals()['load_status_%s' % l_signal]()
     print ('trade status restored:\n', globals()['trade_status'])
-    
+
+periods_mapping_ms = { '4hour': 4 * 60 * 60,
+                       '1hour': 1 * 60 * 60,
+                       '5min': 5 * 60 }
+
+# logic copied from signal_notity.py
+def prepare_for_self_trigger(notify, signal, l_dir):
+    symbol=symbols_mapping[figure_out_symbol_info(notify)]
+    contract=figure_out_contract_info(notify)
+    period=figure_out_period_info(notify)
+    try:
+        reply=eval(okcoinFuture.future_kline(symbol, period, contract, '1'))[0]
+        price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
+        if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
+            print (trade_timestamp(), '%s is already exist' % (price_filename))
+            return price_filename
+        print ('save price to %s' % price_filename) 
+        with open(price_filename, 'w') as f:
+            f.write(reply[1:])
+            f.close()
+        with open(notify, 'w') as f:
+            f.write(price_filename)
+            f.close()
+            print ('save signal to %s' % notify)
+        return price_filename
+    except Exception as Ex:
+        print (trade_timestamp(), traceback.format_exc())
+        return None
+
 while True:
     if startup_notify != '':
         print (trade_timestamp(), 'Waiting for startup signal', flush=True)
@@ -1893,9 +1946,29 @@ while True:
     #issue kickup signal
     with open('%s.ok' % trade_notify, 'w') as f:
         f.close()
-    wait_signal_notify(signal_notify, l_signal, shutdown_notify)
-    print (trade_timestamp(), 'shutdown signal processed')
 
+    if options.do_self_trigger:
+        prepare_for_self_trigger(signal_notify, l_signal, l_dir)
+
+    wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+
+    if options.one_shot:
+        break
+    elif options.do_self_trigger: # wait for next period
+        period_ms = periods_mapping_ms[figure_out_period_info(signal_notify)]
+        moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
+        timeout = (period_ms - moduls) - 15
+        if timeout > 0: # pre-trigger for 15s or else immediately
+            print ('wait for next period about %dh:%dm:%ds later' %
+                   (timeout / 60 / 60,
+                    (timeout % 3600) / 60,
+                    timeout - int(timeout / 60) * 60))
+            time.sleep(timeout)
+        else:
+            print ('less than %s seconds in future, trigger now')
+
+    if shutdown_notify != '':
+        print (trade_timestamp(), 'shutdown signal processed')
     if startup_notify == '':
         break;
 
