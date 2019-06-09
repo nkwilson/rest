@@ -1899,6 +1899,7 @@ periods_mapping_ms = { '1day': 24 * 60 * 60,
                        '1hour': 1 * 60 * 60,
                        '30min': 30 * 60,
                        '5min': 5 * 60,
+                       '3min': 3 * 60,
                        '1min': 60}
 
 # logic copied from signal_notity.py
