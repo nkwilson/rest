@@ -742,6 +742,7 @@ def save_status_tit2tat():
 def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
+open_cost = 0
 quarter_amount = 1
 thisweek_amount_pending = 0
 close_greedy = False
@@ -1940,6 +1941,7 @@ def calculate_timeout_for_self_trigger(notify):
         return -15 # wait at least this long time of seconds
 
 while True:
+    orig_startup_notify = startup_notify
     if startup_notify != '':
         print (trade_timestamp(), 'Waiting for startup signal', flush=True)
         command = ['fswatch', '-1', startup_notify]
@@ -1994,7 +1996,7 @@ while True:
 
     if shutdown_notify != '':
         print (trade_timestamp(), 'shutdown signal processed')
-    if startup_notify == '':
+    if startup_notify == '' and orig_startup_notify != '':
         break;
 
 # >>> datetime.date.today().strftime('%s')
