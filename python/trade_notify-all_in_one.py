@@ -1935,11 +1935,12 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 def calculate_timeout_for_self_trigger(notify):
     period_ms = periods_mapping_ms[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
-    timeout = (period_ms - moduls) - 15
+    delta = 15
+    timeout = (period_ms - moduls) - delta
     if timeout > 0:
-        return timeout
+        return (timeout, delta)
     else:
-        return -15 # wait at least this long time of seconds
+        return (-15, delta) # wait at least this long time of seconds
 
 while True:
     orig_startup_notify = startup_notify
@@ -1976,7 +1977,7 @@ while True:
         f.close()
 
     if options.do_self_trigger:
-        timeout = calculate_timeout_for_self_trigger(signal_notify)
+        (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0: # wait for triggering
             print (trade_timestamp(),
@@ -1987,10 +1988,12 @@ while True:
             time.sleep(timeout)
         else:
             print (trade_timestamp(), 'trigger safely')
-            time.sleep(abs(timeout))
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+
+    if options.do_self_trigger:
+        time.sleep(delta)
 
     if options.one_shot:
         break
