@@ -1907,11 +1907,16 @@ def prepare_for_self_trigger(notify, signal, l_dir):
     period=figure_out_period_info(notify)
     try:
         reply=eval('%s' % (okcoinFuture.future_kline(symbol, period, contract, '1')))[0]
+        price_filename0 = os.path.join(l_dir, '%s' % (reply[0]))
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
             print (trade_timestamp(), '%s is already exist' % (price_filename))
             return price_filename
-        print ('save price to %s' % price_filename) 
+        print ('save price to %s' % price_filename)
+        with open(price_filename0, 'w') as f:
+            f.write('%s, %s, %s, %s, %s, %s' %
+                    (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
+            f.close()
         with open(price_filename, 'w') as f:
             f.write('%s, %s, %s, %s, %s, %s' %
                     (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
