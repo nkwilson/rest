@@ -1925,6 +1925,15 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         print (trade_timestamp(), traceback.format_exc())
         return None
 
+def calculate_timeout_for_self_trigger(notify):
+    period_ms = periods_mapping_ms[figure_out_period_info(notify)]
+    moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
+    timeout = (period_ms - moduls) - 15
+    if timeout > 0:
+        return timeout
+    else:
+        return -15 # wait at least this long time of seconds
+
 while True:
     if startup_notify != '':
         print (trade_timestamp(), 'Waiting for startup signal', flush=True)
@@ -1959,24 +1968,24 @@ while True:
         f.close()
 
     if options.do_self_trigger:
+        timeout = calculate_timeout_for_self_trigger(signal_notity)
+
+        if timeout > 0: # wait for triggering
+            print (trade_timestamp(),
+                   'wait for next period about %dh:%dm:%ds later' %
+                   (timeout / 60 / 60,
+                    (timeout % 3600) / 60,
+                    timeout - int(timeout / 60) * 60))
+            time.sleep(timeout)
+        else:
+            print (trade_timestamp(), 'trigger safely')
+            time.sleep(abs(timeout))
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
     wait_signal_notify(signal_notify, l_signal, shutdown_notify)
 
     if options.one_shot:
         break
-    elif options.do_self_trigger: # wait for next period
-        period_ms = periods_mapping_ms[figure_out_period_info(signal_notify)]
-        moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
-        timeout = (period_ms - moduls) - 15
-        if timeout > 0: # pre-trigger for 15s or else immediately
-            print ('wait for next period about %dh:%dm:%ds later' %
-                   (timeout / 60 / 60,
-                    (timeout % 3600) / 60,
-                    timeout - int(timeout / 60) * 60))
-            time.sleep(timeout)
-        else:
-            print ('trigger now')
 
     if shutdown_notify != '':
         print (trade_timestamp(), 'shutdown signal processed')
