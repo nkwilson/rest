@@ -769,6 +769,7 @@ def try_to_trade_tit2tat(subpath):
         close = prices[ID_CLOSE]
         l_dir = ''
         reverse_follow_dir = ''
+        print ('') # add an empty line
         if trade_file == '':
             print ('%9.3f' % close, '-')
         elif trade_file.endswith('.sell') == True: # sell order
