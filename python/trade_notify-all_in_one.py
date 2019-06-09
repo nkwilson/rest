@@ -1603,17 +1603,17 @@ def wait_signal_notify(notify, signal, shutdown):
                 globals()['try_to_trade_%s' % signal](notify)
                 globals()['save_status_%s' % signal]()
                 break
-
-            result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
-            # if received shutdown notify, close all order
-            if shutdown != '' and shutdown in result.stdout:
-                shutdown_on_close = True
-                print ('shutdown triggered, shutdown when closed')
-                with open(shutdown, 'w') as f:
-                    f.close()
-            if shutdown_on_close and trade_file == '':
-                print (trade_timestamp(), 'shutdown now')
-                break
+            if not options.one_shot:
+                result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
+                # if received shutdown notify, close all order
+                if shutdown != '' and shutdown in result.stdout:
+                    shutdown_on_close = True
+                    print ('shutdown triggered, shutdown when closed')
+                    with open(shutdown, 'w') as f:
+                        f.close()
+                if shutdown_on_close and trade_file == '':
+                    print (trade_timestamp(), 'shutdown now')
+                    break
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
                 f.close()
@@ -1623,6 +1623,8 @@ def wait_signal_notify(notify, signal, shutdown):
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
+                break
+            if options.one_shot:
                 break
         except FileNotFoundError as fnfe:
             print (fnfe)
@@ -1744,7 +1746,6 @@ parser.add_option('', '--which_ema', dest='which_ema', default=0,
 parser.add_option('', '--order_num', dest='order_num',
                   help='how much orders')
 parser.add_option('', '--fee_amount', dest='fee_amount',
-                  action='store_true', default=False,
                   help='take amount int account with fee')
 parser.add_option('', '--signal', dest='signals', default=['tit2tat'],
                   action='append',
@@ -1766,6 +1767,9 @@ parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
 parser.add_option('', '--restore_status', dest='restore_status',
                   help='restore status from status_file')
+parser.add_option('', '--one_shot', dest='ono_shot',
+                  action='store_true', default=False,
+                  help='just run once, save status and quit')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
@@ -1897,4 +1901,3 @@ while True:
 
 # >>> datetime.date.today().strftime('%s')
 # '1534003200'
-
