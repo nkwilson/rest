@@ -1886,9 +1886,15 @@ if options.restore_status != None and \
     globals()['load_status_%s' % l_signal]()
     print ('trade status restored:\n', globals()['trade_status'])
 
-periods_mapping_ms = { '4hour': 4 * 60 * 60,
+periods_mapping_ms = { '1day': 24 * 60 * 60,
+                       '12hour':12 * 60 * 60,
+                       '6hour': 6 * 60 * 60,
+                       '4hour': 4 * 60 * 60,
+                       '2hour': 2 * 60 * 60,
                        '1hour': 1 * 60 * 60,
-                       '5min': 5 * 60 }
+                       '30min': 30 * 60,
+                       '5min': 5 * 60,
+                       '1min': 60}
 
 # logic copied from signal_notity.py
 def prepare_for_self_trigger(notify, signal, l_dir):
@@ -1896,14 +1902,15 @@ def prepare_for_self_trigger(notify, signal, l_dir):
     contract=figure_out_contract_info(notify)
     period=figure_out_period_info(notify)
     try:
-        reply=eval(okcoinFuture.future_kline(symbol, period, contract, '1'))[0]
+        reply=eval('%s' % (okcoinFuture.future_kline(symbol, period, contract, '1'))[0]
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
             print (trade_timestamp(), '%s is already exist' % (price_filename))
             return price_filename
         print ('save price to %s' % price_filename) 
         with open(price_filename, 'w') as f:
-            f.write(reply[1:])
+            f.write('%s, %s, %s, %s, %s, %s' %
+                    (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
             f.close()
         with open(notify, 'w') as f:
             f.write(price_filename)
@@ -1965,7 +1972,7 @@ while True:
                     timeout - int(timeout / 60) * 60))
             time.sleep(timeout)
         else:
-            print ('less than %s seconds in future, trigger now')
+            print ('trigger now')
 
     if shutdown_notify != '':
         print (trade_timestamp(), 'shutdown signal processed')
