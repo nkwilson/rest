@@ -2006,6 +2006,9 @@ while True:
 
     if shutdown_notify != '':
         print (trade_timestamp(), 'shutdown signal processed')
+    # flush stdout and stderr
+    sys.stdout.flush()
+    ssy.stderr.flush()
     if startup_notify == '' and orig_startup_notify != '':
         break;
 
