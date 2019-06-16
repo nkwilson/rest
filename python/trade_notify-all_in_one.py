@@ -255,6 +255,8 @@ def issue_order_now(symbol, contract, direction, amount, action):
     time.sleep(1) # wait a second
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     print (order_info)
+    # update amount_ratio from current order's lever_rate field
+    globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
     if order_info['orders'][0]['amount'] != order_info['orders'][0]['deal_amount']:
         amount -= int(order_info['orders'][0]['deal_amount'])
         reissuing_order += 1
@@ -735,7 +737,8 @@ names_tit2tat = ['trade_file',
                  'thisweek_amount_pending',
                  'last_balance',
                  'last_bond',
-                 'amount_ratio'];
+                 'amount_ratio',
+                 'amount_ratio_plus'];
 def save_status_tit2tat():
     loadsave_status('tit2tat', load=False)
 
@@ -747,6 +750,7 @@ quarter_amount = 1
 thisweek_amount_pending = 0
 close_greedy = False
 open_greedy = False
+amount_ratio_plus = 0.02 # percent of total amount
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -887,11 +891,13 @@ def try_to_trade_tit2tat(subpath):
                         last_balance = query_balance(symbol)
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
-                        quarter_amount = last_balance / last_bond / amount_ratio if last_bond > 0 else 1
+                        base_amount = last_balance / last_bond if last_bond > 0 else 1
+                        quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus 
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s=>%s(ratio=%f%s), bond=%f balance=%f->%f,%f%%' %
+                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f balance=%f->%f,%f%%' %
                                (amount, quarter_amount, amount_ratio, '*' if amount_ratio != default_amount_ratio else '',
+                                amount_ratio_plus,
                                 last_bond,
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
