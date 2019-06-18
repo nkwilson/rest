@@ -234,6 +234,7 @@ order_infos = {'usd_btc':'btc_usd',
                'usd_eth':'eth_usd',
                'usd_eos':'eos_usd',                              
                'usd_bch':'bch_usd',
+               'usd_xrp':'xrp_usd',
                'sell':{'open':open_order_sell_rate,
                        'close':close_order_sell_rate},
                'buy':{'open':open_order_buy_rate,
@@ -363,6 +364,7 @@ symbols_mapping = { 'usd_btc': 'btc_usd',
                     'usd_ltc': 'ltc_usd',
                     'usd_eth': 'eth_usd',
                     'usd_eos': 'eos_usd',                     
+                    'usd_xrp': 'xrp_usd',
                     'usd_bch': 'bch_usd'}
 
 reverse_dirs = { 'buy': {'reverse_dir':'sell', 'gate': lambda order_price, current_price, amount:
