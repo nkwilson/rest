@@ -1798,12 +1798,13 @@ parser.add_option('', '--open_start_price', dest='open_start_price',
 parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
 parser.add_option('', '--restore_status', dest='restore_status',
+                  action='store_false', default=True,
                   help='restore status from status_file')
 parser.add_option('', '--one_shot', dest='one_shot',
                   action='store_true', default=False,
                   help='just run once, save status and quit')
 parser.add_option('', '--self_trigger', dest='do_self_trigger',
-                  action='store_true', default=False,
+                  action='store_false', default=True,
                   help='read price by myself and do following trade')
 
 (options, args) = parser.parse_args()
@@ -1894,7 +1895,7 @@ if options.emulate:
     emul_signal_notify(l_dir, l_signal)
     os.sys.exit(0)
 
-if options.restore_status != None and \
+if options.restore_status and \
    os.path.isfile(status_file) and \
    os.path.getsize(status_file) > 0:
     globals()['load_status_%s' % l_signal]()
