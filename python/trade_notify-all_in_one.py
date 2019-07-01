@@ -703,7 +703,7 @@ def real_open_price_and_cost(symbol, contract, direction):
     for data in holding['holding']:
         if data['symbol'] == symbol and data['%s_amount' % direction] != 0:
             avg = float(data['%s_price_avg' % direction])
-            real= float(data['profit_real']) * 2
+            real= float(data['profit_real']) * 5 # increased to much more fee
             return (avg, avg*real)
     return 0
 
@@ -828,14 +828,14 @@ def try_to_trade_tit2tat(subpath):
                 if new_open == False:
                     current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     issuing_close = False
-                    if current_profit > open_cost: # yes, positive 
+                    if current_profit >= 2 * open_cost: # yes, positive 
                         # do close
                         issuing_close = True
-                    elif current_profit < -open_cost: # no, negative 
+                    elif current_profit <= - 2 * open_cost: # no, negative 
                         # do close
                         issuing_close = True
                         open_start_price = open_price # when seeing this price, should close, init only once
-                    elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
+                    elif abs(current_profit) >= open_cost: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         open_greedy = True
                         greedy_action = ''
