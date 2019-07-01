@@ -703,7 +703,7 @@ def real_open_price_and_cost(symbol, contract, direction):
     for data in holding['holding']:
         if data['symbol'] == symbol and data['%s_amount' % direction] != 0:
             avg = float(data['%s_price_avg' % direction])
-            real= float(data['profit_real']) * 5 # increased to much more fee
+            real= float(data['profit_real']) * 10 # increased to much more fee
             return (avg, avg*real)
     return 0
 
