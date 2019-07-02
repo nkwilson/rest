@@ -642,21 +642,12 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close > open_price: # already positive profit
                     return (close - open_price)
                 else: # negative profit
-                    if close < open_start_price:
-                        return (close - open_start_price)
-                    else:
-                        return 0.0
+                    return (close - open_start_price)
         elif close < previous_close:
             if open_greedy == False:
-                if close > open_start_price: # positive profit
-                    return 0.0
-                else:
-                    return (close - open_start_price)
+                return (close - open_start_price)
             else:
-                if close > open_start_price: # positive profit
-                    return 0.0
-                else:
-                    return (close - open_start_price)
+                return (close - open_start_price)
     elif l_dir == 'sell':
         if close < previous_close:
             if open_greedy == False:
@@ -665,21 +656,12 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close < open_price: # already positive profit
                     return -(close - open_price)
                 else: # negative profit
-                    if close > open_start_price:
-                        return -(close - open_start_price)
-                    else:
-                        return 0.0
+                    return -(close - open_start_price)
         elif close > previous_close:
             if open_greedy == False:
-                if close < open_start_price: # positive profit
-                    return 0.0
-                else:
-                    return -(close - open_start_price)
+                return -(close - open_start_price)
             else:
-                if close < open_start_price: # positive profit
-                    return 0.0
-                else:
-                    return -(close - open_start_price)
+                return -(close - open_start_price)
     return 0.0
 
 # Figure out current holding's amount
