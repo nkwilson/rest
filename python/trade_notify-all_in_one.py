@@ -636,7 +636,7 @@ def check_forced_close(symbol, direction, prices):
 def check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy):
     if l_dir == 'buy':
         if close > previous_close:
-            if open_greedy == False:
+            if open_greedy == False and close > open_price:
                 return (close - open_price) 
             else:
                 if close > open_price: # already positive profit
@@ -659,7 +659,7 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                     return (close - open_start_price)
     elif l_dir == 'sell':
         if close < previous_close:
-            if open_greedy == False:
+            if open_greedy == False and close < open_close:
                 return -(close - open_price) 
             else:
                 if close < open_price: # already positive profit
