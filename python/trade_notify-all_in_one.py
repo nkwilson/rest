@@ -262,6 +262,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
         amount -= int(order_info['orders'][0]['deal_amount'])
         reissuing_order += 1
     else:
+        globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
         return
     if reissuing_order > 5: # more than 5 , quit
         reissuing_order = 0
@@ -742,6 +743,7 @@ names_tit2tat = ['trade_file',
                  'last_bond',
                  'profit_cost_multiplier',
                  'greedy_cost_multiplier',
+                 'last_fee',
                  'amount_ratio',
                  'amount_ratio_plus'];
 
@@ -751,6 +753,7 @@ def save_status_tit2tat():
 def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
+last_fee = 0
 open_cost = 0
 quarter_amount = 1
 thisweek_amount_pending = 0
@@ -829,11 +832,7 @@ def try_to_trade_tit2tat(subpath):
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
                     # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
-                    (open_price, open_cost_t) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
-                    if open_cost_t > 0:# in case less than zero
-                        open_cost = open_cost_t
-                    else:
-                        open_cost = 0.001
+                    (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
                         open_start_price = new_open_start_price
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
@@ -898,9 +897,6 @@ def try_to_trade_tit2tat(subpath):
                         return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        t_bond = query_bond(symbol, 'quarter', l_dir)
-                        if t_bond > 0:
-                            last_bond = t_bond
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
                         # and open again, just like new_open == True
                         new_open = True
@@ -915,10 +911,11 @@ def try_to_trade_tit2tat(subpath):
                         quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus 
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f balance=%f->%f,%f%%' %
+                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
                                (amount, quarter_amount, amount_ratio, '*' if amount_ratio != default_amount_ratio else '',
                                 amount_ratio_plus,
                                 last_bond,
+                                last_fee,
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
@@ -951,11 +948,11 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
-                    (open_price, open_cost_t) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
-                    if open_cost_t > 0: # in case less than zero
-                        open_cost = open_cost_t
-                    else:
-                        open_cost = 0.001
+                    (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
+                    t_bond = query_bond(symbol, 'quarter', l_dir)
+                    if t_bond > 0:
+                        last_bond = t_bond
+                        open_cost = open_price * last_fee / last_bond
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
