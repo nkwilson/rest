@@ -739,8 +739,11 @@ names_tit2tat = ['trade_file',
                  'thisweek_amount_pending',
                  'last_balance',
                  'last_bond',
+                 'profit_cost_multiplier',
+                 'greedy_cost_multiplier',
                  'amount_ratio',
                  'amount_ratio_plus'];
+
 def save_status_tit2tat():
     loadsave_status('tit2tat', load=False)
 
@@ -753,6 +756,8 @@ thisweek_amount_pending = 0
 close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.02 # percent of total amount
+profit_cost_multiplier = 20 # times of profit with open_cost
+greedy_cost_multiplier = 10 # times of greedy with open_cost
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -838,13 +843,11 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         forced_close = False # let stop it here
                         current_profit = 0
-                    multi1 = 20
-                    multi2 = 10
                     issuing_close = False
-                    if current_profit >= multi1 * open_cost: # yes, positive 
+                    if current_profit >= profit_cost_multiplier * open_cost: # yes, positive 
                         # do close
                         issuing_close = True
-                    elif current_profit <= - multi1 * open_cost: # no, negative 
+                    elif current_profit <= - profit_cost_multiplier * open_cost: # no, negative 
                         # do close
                         issuing_close = True
                         open_start_price = open_price # when seeing this price, should close, init only once
@@ -853,17 +856,17 @@ def try_to_trade_tit2tat(subpath):
                         greedy_action = ''
                         greedy_status = 'no action'
                         if l_dir == 'buy':
-                            if (close - previous_close) > multi2 * open_cost:
+                            if (close - previous_close) > greedy_cost_multiplier * open_cost:
                                 greedy_action = 'close'
                                 greedy_status = 'maybe closed'
-                            elif (close - previous_close) < - multi2 * open_cost:
+                            elif (close - previous_close) < - greedy_cost_multiplier * open_cost:
                                 greedy_action = 'open'
                                 greedy_status = 'holding'
                         elif l_dir == 'sell':
-                            if (close - previous_close) < - multi2 * open_cost:
+                            if (close - previous_close) < - greedy_cost_multiplier * open_cost:
                                 greedy_action = 'close'
                                 greedy_status = 'maybe closed'
-                            elif (close - previous_close) > multi2 * open_cost:
+                            elif (close - previous_close) > greedy_cost_multiplier * open_cost:
                                 greedy_action = 'open'
                                 greedy_status = 'holding'
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
