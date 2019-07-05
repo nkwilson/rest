@@ -12,7 +12,7 @@ print (sys.argv)
 # skip sys.argv[0] 
 command = [sys.executable] + sys.argv[1:]
 sid = os.getsid(os.getpid())
-std.out = open('%s.log' % sid, 'a')
+sys.stdout = open('%s.log' % sid, 'a')
 print (command, sid)
 
 while True:
