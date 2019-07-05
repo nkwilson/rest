@@ -803,14 +803,18 @@ def try_to_trade_tit2tat(subpath):
                 if trade_file != '':
                     new_open = False
                     if l_dir == 'buy':
-                        t_amount = 0 if ((open_price - prices[ID_LOW]) / open_price) > 0.1 else 1
+                        delta = open_price - prices[ID_LOW]
                         new_open_start_price = prices[ID_LOW]
                     else: # sell
-                        t_amount = 0 if ((prices[ID_HIGH] - open_price) / open_price) > 0.1 else 1
+                        delta = prices[ID_HIGH] - open_price
                         new_open_start_price = prices[ID_HIGH]
+                    if delta < 0.001: # zero means too small
+                        t_amount = 1
+                    else:
+                        t_amount = open_price - delta * amount_ratio
                     if not options.emulate: # if emualtion, figure it manually
                         (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
-                    if t_amount == 0:
+                    if t_amount <= 0:
                         forced_close = True
                 if forced_close:
                     open_greedy = True
