@@ -12,8 +12,8 @@ print (sys.argv)
 # skip sys.argv[0] 
 command = [sys.executable] + sys.argv[1:]
 sid = os.getsid(os.getpid())
-sys.stdout = open('%s.log' % sid, 'a')
 print (command, sid)
+sys.stdout = open('%s.log' % sid, 'a')
 
 while True:
     sys.stdout.flush()
@@ -23,3 +23,4 @@ while True:
     else:
         print (result)
         break
+sys.stdout.flush()
