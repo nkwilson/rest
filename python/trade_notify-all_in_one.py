@@ -1667,6 +1667,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 f.close()
                 #print (subpath)
                 globals()['try_to_trade_%s' % signal](subpath)
+                print (globals()['trade_status'])
                 globals()['save_status_%s' % signal]()
             fence_count = 0
             if shutdown_on_close and trade_file == '':
