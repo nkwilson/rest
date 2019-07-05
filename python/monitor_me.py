@@ -11,7 +11,9 @@ import signal
 print (sys.argv)
 # skip sys.argv[0] 
 command = [sys.executable] + sys.argv[1:]
-print (command, os.getsid(os.getpid()))
+sid = os.getsid(os.getpid())
+std.out = open('%s.log' % sid, 'a')
+print (command, sid)
 
 while True:
     result = subprocess.run(command, start_new_session=True)
