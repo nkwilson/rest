@@ -820,7 +820,11 @@ def try_to_trade_tit2tat(subpath):
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
                     # action likes new_open equals true, but take original l_dir as it
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
-                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
+                    (open_price, open_cost_t) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
+                    if open_cost_t > 0:# in case less than zero
+                        open_cost = open_cost_t
+                    else:
+                        open_cost = 0.001
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
                         open_start_price = new_open_start_price
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
@@ -839,7 +843,6 @@ def try_to_trade_tit2tat(subpath):
                         open_start_price = open_price # when seeing this price, should close, init only once
                     elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
-                        open_greedy = True
                         greedy_action = ''
                         greedy_status = 'no action'
                         if l_dir == 'buy':
@@ -858,6 +861,7 @@ def try_to_trade_tit2tat(subpath):
                                 greedy_status = 'holding'
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
                         if greedy_action != '': # update amount
+                            open_greedy = True
                             if quarter_amount > thisweek_amount_pending:
                                 thisweek_amount = math.ceil(quarter_amount * abs(previous_close - close) / previous_close * 10)
                                 l_thisweek_amount = math.ceil(quarter_amount / amount_ratio)
@@ -866,6 +870,7 @@ def try_to_trade_tit2tat(subpath):
                             else:
                                 thisweek_amount = math.ceil(quarter_amount / amount_ratio / amount_ratio)
                             thisweek_amount_pending += thisweek_amount
+                            previous_close = close
                         if greedy_action == 'close': # yes, close action pending
                             issue_thisweek_order_now_conditional(symbol, l_dir, 0, greedy_action)
                             issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, greedy_action, False)
@@ -878,9 +883,7 @@ def try_to_trade_tit2tat(subpath):
                             issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                             # secondly open new order
                             issue_thisweek_order_now(symbol, reverse_follow_dir, thisweek_amount, greedy_action)
-                        previous_close = close
                     else:
-                        previous_close = close
                         return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
@@ -942,8 +945,11 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
-                    (open_price, open_cost) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
-                    
+                    (open_price, open_cost_t) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
+                    if open_cost_t > 0: # in case less than zero
+                        open_cost = open_cost_t
+                    else:
+                        open_cost = 0.001
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
