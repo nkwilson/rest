@@ -638,15 +638,14 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
     if l_dir == 'buy':
         if close > previous_close:
             if open_greedy == False and close > open_price:
-                return (close - open_price) 
+                return (close - open_price)
             else:
-                if close > open_price: # already positive profit
-                    return (close - open_price)
-                else: # negative profit
-                    if close < open_start_price:
-                        return (close - open_start_price)
-                    else:
-                        return 0.0
+                if (close > open_price):
+                    if (close - open_price) > (close - previous_close):
+                        return (close - open_price)
+                if close < open_start_price:
+                    return (close - open_start_price)
+                return 0.0
         elif close < previous_close:
             if open_greedy == False:
                 if close > open_start_price: # positive profit
@@ -661,15 +660,14 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
     elif l_dir == 'sell':
         if close < previous_close:
             if open_greedy == False and close < open_price:
-                return -(close - open_price) 
+                return -(close - open_price)
             else:
                 if close < open_price: # already positive profit
-                    return -(close - open_price)
-                else: # negative profit
-                    if close > open_start_price:
-                        return -(close - open_start_price)
-                    else:
-                        return 0.0
+                    if (close - open_price) < (close - previous_close):
+                        return -(close - open_price)
+                if close > open_start_price:
+                    return -(close - open_start_price)
+                return 0.0
         elif close > previous_close:
             if open_greedy == False:
                 if close < open_start_price: # positive profit
@@ -892,7 +890,7 @@ def try_to_trade_tit2tat(subpath):
                             # first close current order
                             issue_thisweek_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                             # secondly open new order
-                            issue_thisweek_order_now(symbol, reverse_follow_dir, thisweek_amount, greedy_action)
+                            issue_thisweek_order_now(symbol, reverse_follow_dir, thisweek_amount / 2, greedy_action)
                     else:
                         return
                     if issuing_close == True:
