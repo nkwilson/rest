@@ -18,9 +18,6 @@ sys.stdout = open('%s.log' % sid, 'a')
 while True:
     sys.stdout.flush()
     result = subprocess.run(command, start_new_session=True)
-    if result.returncode == -signal.SIGUSR1: # SIGUSR1 means restart
-        pass
-    else:
-        print (result)
-        break
+    print (result)
+
 sys.stdout.flush()
