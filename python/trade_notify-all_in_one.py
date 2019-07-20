@@ -774,6 +774,7 @@ def try_to_trade_tit2tat(subpath):
     global open_cost
     global quarter_amount, thisweek_amount_pending
     global last_bond, last_balance
+    global next_open_start_price
     
     #print (subpath)
     event_path=subpath
