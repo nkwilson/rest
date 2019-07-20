@@ -732,6 +732,7 @@ def loadsave_status(signal, load):
 names_tit2tat = ['trade_file',
                  'previous_close',
                  'open_start_price',
+                 'next_open_start_price',
                  'open_price',
                  'open_cost',
                  'open_greedy',
@@ -751,6 +752,7 @@ def save_status_tit2tat():
 def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
+next_open_start_price = 0
 last_fee = 0
 open_cost = 0
 quarter_amount = 1
@@ -812,13 +814,19 @@ def try_to_trade_tit2tat(subpath):
                     if l_dir == 'buy':
                         delta = open_price - prices[ID_LOW]
                         new_open_start_price = prices[ID_LOW]
+                        if next_open_start_price < new_open_start_price:
+                            next_open_start_price = new_open_start_price
                     else: # sell
                         delta = prices[ID_HIGH] - open_price
                         new_open_start_price = prices[ID_HIGH]
+                        if next_open_start_price > new_open_start_price:
+                            next_open_start_price = new_open_start_price
+                    if next_open_start_price == 0:
+                        next_open_start_price = new_open_start_price
                     if delta < 0.001: # zero means too small
                         t_amount = 1
                     else:
-                        t_amount = open_price - delta * amount_ratio
+                        t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
                     if not options.emulate: # if emualtion, figure it manually
                         (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
                     if t_amount <= 0:
@@ -906,7 +914,8 @@ def try_to_trade_tit2tat(subpath):
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
-                        quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus 
+                        quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
+                        open_start_price = next_open_start_price # if new order, update open_start_price from next_open_start_price
                         if quarter_amount < 1:
                             quarter_amount = 1
                         print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
