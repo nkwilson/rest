@@ -636,6 +636,7 @@ def check_forced_close(symbol, direction, prices):
 
 # Check price and return calcuated profit, zero means do greedy open otherwite close holding
 def check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy):
+    global last_decision_logic
     if l_dir == 'buy':
         last_decision_logic = 'buy, '
         if close > previous_close:
