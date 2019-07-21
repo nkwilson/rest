@@ -653,6 +653,7 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close < open_start_price:
                     last_decision_logic += 'close - open_start_price = %.4f ' % (close - open_start_price)
                     return (close - open_start_price)
+                last_decision_logic += 'open greedy now'
                 return 0.0
         elif close < previous_close:
             last_decision_logic += 'decreasing, '
@@ -688,6 +689,7 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                 if close > open_start_price:
                     last_decision_logic += 'close - open_start_price = %.4f ' % (close - open_start_price)
                     return -(close - open_start_price)
+                last_decision_logic += 'open greedy now'
                 return 0.0
         elif close > previous_close:
             last_decision_logic += 'increasing, '
