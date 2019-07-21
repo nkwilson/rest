@@ -672,7 +672,10 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                     return 0.0
                 else:
                     last_decision_logic += 'close > open_start_price = False, %0.4f' % ( close - open_start_price)
-                    return (close - open_start_price)
+                    if previous_close < open_start_price:
+                        return (close - open_start_price)
+                last_decision_logic += 'open greedy now'
+                return 0.0
     elif l_dir == 'sell':
         last_decision_logic = 'sell, '
         if close < previous_close:
@@ -708,7 +711,10 @@ def check_with_direction(close, previous_close, open_price, open_start_price, l_
                     return 0.0
                 else:
                     last_decision_logic += 'close < open_start_price = False, %0.4f' % ( close - open_start_price)
-                    return -(close - open_start_price)
+                    if previous_close > open_start_price:
+                        return -(close - open_start_price)
+                last_decision_logic += 'open greedy now'
+                return 0.0
     return 0.0
 
 # Figure out current holding's amount
