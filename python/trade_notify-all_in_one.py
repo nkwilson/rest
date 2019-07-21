@@ -607,6 +607,7 @@ previous_close = 0
 open_start_price = 0
 last_bond = 0 # means uninitialized
 last_balance = 0
+last_decision_logic=''
 
 ID_OPEN=0
 ID_HIGH=1
@@ -636,48 +637,74 @@ def check_forced_close(symbol, direction, prices):
 # Check price and return calcuated profit, zero means do greedy open otherwite close holding
 def check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy):
     if l_dir == 'buy':
+        last_decision_logic = 'buy, '
         if close > previous_close:
+            last_decision_logic += 'increasing, '
             if open_greedy == False and close > open_price:
+                last_decision_logic += 'greedy no, close > open_price = True'
                 return (close - open_price)
             else:
+                last_decision_logic += 'greedy yes or else '
                 if (close > open_price):
+                    last_decision_logic += 'close - open_price = %.4f, close - previous_close = %.4f' % (close - open_price, close - previous_close)
                     if (close - open_price) > (close - previous_close):
                         return (close - open_price)
                 if close < open_start_price:
+                    last_decision_logic += 'close - open_start_price = %.4f ' % (close - open_start_price)
                     return (close - open_start_price)
                 return 0.0
         elif close < previous_close:
+            last_decision_logic += 'decreasing, '
             if open_greedy == False:
+                last_decision_logic += 'greedy no, '
                 if close > open_start_price: # positive profit
+                    last_decision_logic += 'close > open_start_price = True'
                     return 0.0
                 else:
+                    last_decision_logic += 'close > open_start_price = False, %0.4f' % ( close - open_start_price)
                     return (close - open_start_price)
             else:
+                last_decision_logic += 'greedy yes, '
                 if close > open_start_price: # positive profit
+                    last_decision_logic += 'close > open_start_price = True'
                     return 0.0
                 else:
+                    last_decision_logic += 'close > open_start_price = False, %0.4f' % ( close - open_start_price)
                     return (close - open_start_price)
     elif l_dir == 'sell':
+        last_decision_logic = 'sell, '
         if close < previous_close:
+            last_decision_logic += 'decreasing, '
             if open_greedy == False and close < open_price:
+                last_decision_logic += 'greedy no, close < open_price = True'
                 return -(close - open_price)
             else:
+                last_decision_logic += 'greedy yes or else '
                 if close < open_price: # already positive profit
+                    last_decision_logic += 'close - open_price = %.4f, close - previous_close = %.4f' % (close - open_price, close - previous_close)
                     if (close - open_price) < (close - previous_close):
                         return -(close - open_price)
                 if close > open_start_price:
+                    last_decision_logic += 'close - open_start_price = %.4f ' % (close - open_start_price)
                     return -(close - open_start_price)
                 return 0.0
         elif close > previous_close:
+            last_decision_logic += 'increasing, '
             if open_greedy == False:
+                last_decision_logic += 'greedy no, '
                 if close < open_start_price: # positive profit
+                    last_decision_logic += 'close < open_start_price = True'
                     return 0.0
                 else:
+                    last_decision_logic += 'close < open_start_price = False, %0.4f' % ( close - open_start_price)
                     return -(close - open_start_price)
             else:
+                last_decision_logic += 'greedy yes, '
                 if close < open_start_price: # positive profit
+                    last_decision_logic += 'close < open_start_price = True'
                     return 0.0
                 else:
+                    last_decision_logic += 'close < open_start_price = False, %0.4f' % ( close - open_start_price)
                     return -(close - open_start_price)
     return 0.0
 
@@ -736,6 +763,7 @@ names_tit2tat = ['trade_file',
                  'open_price',
                  'open_cost',
                  'open_greedy',
+                 'last_decision_logic',
                  'quarter_amount',
                  'thisweek_amount_pending',
                  'last_balance',
@@ -775,6 +803,7 @@ def try_to_trade_tit2tat(subpath):
     global quarter_amount, thisweek_amount_pending
     global last_bond, last_balance
     global next_open_start_price
+    global last_decision_logic
     
     #print (subpath)
     event_path=subpath
@@ -851,6 +880,7 @@ def try_to_trade_tit2tat(subpath):
                         forced_close = False # let stop it here
                         current_profit = 0
                     issuing_close = False
+                    print (trade_timestamp(), last_decision_logic)
                     if current_profit >= profit_cost_multiplier * open_cost: # yes, positive 
                         # do close
                         issuing_close = True
@@ -1817,7 +1847,7 @@ parser.add_option('', '--nolog', dest='nolog', default=0,
 parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
 parser.add_option('', '--open_start_price', dest='open_start_price',
-                  help='init open_start_proce')
+                  help='init open_start_price')
 parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
 parser.add_option('', '--restore_status', dest='restore_status',
