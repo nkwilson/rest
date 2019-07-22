@@ -1932,7 +1932,7 @@ pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
-    f.write('%d' % os.getid())
+    f.write('%d' % os.getpid())
     f.close()
 print ('sid %d pgrp %d pid %d saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), os.getpid(), pid_file))
 
