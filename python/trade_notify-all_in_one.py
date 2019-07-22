@@ -1932,9 +1932,9 @@ pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
 #print (os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
-    f.write('%d' % os.getpgrp())
+    f.write('%d' % os.getid())
     f.close()
-print ('sid is %d, pgrp is %d, saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), pid_file))
+print ('sid %d pgrp %d pid %d saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), os.getpid(), pid_file))
 
 if options.open_start_price != None:
     open_start_price = float(options.open_start_price)
