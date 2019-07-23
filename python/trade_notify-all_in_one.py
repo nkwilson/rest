@@ -828,11 +828,11 @@ def try_to_trade_tit2tat(subpath):
         elif trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
             reverse_follow_dir = 'buy'
-            print ('%8.3f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price)
+            print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price)
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
             reverse_follow_dir = 'sell'
-            print ('%9.4f' % close, '%8.3f' % -open_price, l_dir, 'gate %9.4f' % open_start_price)
+            print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price)
         if close == 0: # in case read failed
             return
         if True:
