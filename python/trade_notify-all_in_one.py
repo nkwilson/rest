@@ -949,8 +949,6 @@ def try_to_trade_tit2tat(subpath):
                             # secondly open new order
                             issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount / 2, 'open')
                             thisweek_amount_pending += thisweek_amount
-                    else:
-                        return
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
