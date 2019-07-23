@@ -885,19 +885,29 @@ def try_to_trade_tit2tat(subpath):
                 if new_open == False:
                     if not forced_close:
                         current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
+                        if l_dir == 'buy':
+                            current_profit1 = close - open_start_price
+                            current_profit2 = close - open_price
+                            current_profit3 = close - previous_close
+                        else:
+                            current_profit1 = open_start_price - close
+                            current_profit2 = open_price - close
+                            current_profit3 = previous_close - close
                     else:
                         forced_close = False # let stop it here
-                        current_profit = 0
+                        current_profit1 = 0
+                        current_profit2 = 0
+                        current_profit3 = 0
                     issuing_close = False
-                    print (trade_timestamp(), last_decision_logic)
-                    if current_profit >= profit_cost_multiplier * open_cost: # yes, positive 
-                        # do close
-                        issuing_close = True
-                    elif current_profit <= - profit_cost_multiplier * open_cost: # no, negative 
+
+                    if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative 
                         # do close
                         issuing_close = True
                         open_start_price = open_price # when seeing this price, should close, init only once
-                    elif current_profit == 0: # partly no, but still positive consider open_start_price, do greedy process
+                    elif current_profit2 >= profit_cost_multiplier * open_cost: # yes, positive 
+                        # do close
+                        issuing_close = True
+                    else: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         greedy_action = ''
                         greedy_status = 'no action'
