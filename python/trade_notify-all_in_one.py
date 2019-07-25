@@ -777,7 +777,8 @@ def try_to_trade_tit2tat(subpath):
     global last_bond, last_balance
     global next_open_start_price
     global last_decision_logic
-    
+
+    greedy_status = ''    
     #print (subpath)
     event_path=subpath
     l_index = os.path.basename(event_path)
@@ -863,7 +864,6 @@ def try_to_trade_tit2tat(subpath):
                         current_profit2 = 0
                         current_profit3 = 0
                     issuing_close = False
-
                     if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative 
                         # do close
                         issuing_close = True
@@ -976,6 +976,7 @@ def try_to_trade_tit2tat(subpath):
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
                     previous_close = close
+    return greedy_status
 
 direction = 0
 
@@ -1122,9 +1123,10 @@ def wait_signal_notify(notify, signal, shutdown):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 #print (subpath)
-                globals()['try_to_trade_%s' % signal](subpath)
-                print (globals()['trade_status'])
-                globals()['save_status_%s' % signal]()
+                status = globals()['try_to_trade_%s' % signal](subpath)
+                if status != 'no action':
+                    print (globals()['trade_status'])
+                    globals()['save_status_%s' % signal]()
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
