@@ -928,7 +928,8 @@ def try_to_trade_tit2tat(subpath):
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
                         quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
-                        open_start_price = next_open_start_price # if new order, update open_start_price from next_open_start_price
+                        if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
+                            open_start_price = next_open_start_price # if new order, update open_start_price from next_open_start_price
                         if quarter_amount < 1:
                             quarter_amount = 1
                         print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
@@ -972,7 +973,9 @@ def try_to_trade_tit2tat(subpath):
                     t_bond = query_bond(symbol, 'quarter', l_dir)
                     if t_bond > 0:
                         last_bond = t_bond
-                        open_cost = open_price * last_fee / last_bond
+                        t_open_cost = open_price * last_fee / last_bond
+                        if open_cost > 0:
+                            open_cost = (open_cost + t_open_cost) * 0.8 # update slowly
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
