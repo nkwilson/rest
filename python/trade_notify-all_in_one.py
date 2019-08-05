@@ -957,7 +957,6 @@ def try_to_trade_tit2tat(subpath):
                     open_greedy = False
                     close_greedy = False
                     open_price = 0.0
-                    open_cost = 0.0
                     
                     if l_dir == '': # no updating
                         previous_close = close
@@ -976,6 +975,8 @@ def try_to_trade_tit2tat(subpath):
                         t_open_cost = open_price * last_fee / last_bond
                         if open_cost > 0:
                             open_cost = (open_cost + t_open_cost) * 0.8 # update slowly
+                        else:
+                            open_cost = t_open_cost
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     
