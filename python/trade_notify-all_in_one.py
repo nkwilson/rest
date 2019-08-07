@@ -818,12 +818,12 @@ def try_to_trade_tit2tat(subpath):
                     if l_dir == 'buy':
                         delta = open_price - prices[ID_LOW]
                         new_open_start_price = prices[ID_LOW]
-                        if next_open_start_price < new_open_start_price:
+                        if next_open_start_price < new_open_start_price and new_open_start_price < open_price:
                             next_open_start_price = new_open_start_price
                     else: # sell
                         delta = prices[ID_HIGH] - open_price
                         new_open_start_price = prices[ID_HIGH]
-                        if next_open_start_price > new_open_start_price:
+                        if next_open_start_price > new_open_start_price and new_open_start_price > open_price:
                             next_open_start_price = new_open_start_price
                     if next_open_start_price == 0:
                         next_open_start_price = new_open_start_price
