@@ -263,10 +263,10 @@ def issue_order_now(symbol, contract, direction, amount, action):
         reissuing_order += 1
     else:
         globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
-        return
+        return True
     if reissuing_order > 5: # more than 5 , quit
         reissuing_order = 0
-        return
+        return False
     print ('try to cancel pending order and reissue')
     cancel_order(symbol, contract, order_id)
     issue_order_now(symbol, contract, direction, amount, action)
@@ -274,30 +274,31 @@ def issue_order_now(symbol, contract, direction, amount, action):
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
-        return
+        return 0 # no operation
     elif must_positive == True and loss <= 0:
         print ('loss ratio=%f%%, keep holding' % (loss))
-        return
+        return -1 # negative
     print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
     if amount == 0:
         amount = t_amount
     issue_order_now(symbol, contract, direction, amount, action)
+    return 1 # positive
 
 def issue_quarter_order_now(symbol, direction, amount, action):
     print ('issue quarter order: ', action, symbol, direction, amount)
-    issue_order_now(symbol, 'quarter', direction, amount, action)
+    return issue_order_now(symbol, 'quarter', direction, amount, action)
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
     print ('issue quarter order conditional: ', action, symbol, direction, amount)
-    issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
+    return issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
 
 def issue_thisweek_order_now(symbol, direction, amount, action):
     print ('issue thisweek order: ', action, symbol, direction, amount)
-    issue_order_now(symbol, 'this_week', direction, amount, action)
+    return issue_order_now(symbol, 'this_week', direction, amount, action)
 
 def issue_thisweek_order_now_conditional(symbol, direction, amount, action, must_positive=True):
     print ('issue thisweek order conditional: ', action, symbol, direction, amount)
-    issue_order_now_conditional(symbol, 'this_week', direction, amount, action, must_positive)
+    return issue_order_now_conditional(symbol, 'this_week', direction, amount, action, must_positive)
 
 # apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
 # secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
@@ -898,12 +899,12 @@ def try_to_trade_tit2tat(subpath):
                                 thisweek_amount = quarter_amount / 8
                             previous_close = close
                         if greedy_action == 'close': # yes, close action pending
+                            l_amount = 0
                             if thisweek_amount_pending != 0: 
-                                issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
+                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close')
                             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                            # open following order
-                            issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                            thisweek_amount_pending = thisweek_amount
+                            if l_amount >= 0: # none negative
+                                thisweek_amount_pending = 0
                         elif greedy_action == 'open': # yes, open action pending
                             issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                             # first close current order
