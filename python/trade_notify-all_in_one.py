@@ -250,7 +250,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
     print (result)
     if result['result'] == False:
         reissuing_order = 0
-        return False
+        return (False, 0)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
     time.sleep(1) # wait a second
@@ -263,14 +263,16 @@ def issue_order_now(symbol, contract, direction, amount, action):
         reissuing_order += 1
     else:
         globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
-        return True
+        return (True, order_info['orders'][0]['price'])
     if reissuing_order > 5: # more than 5 , quit
         reissuing_order = 0
-        return False
+        return (False, 0)
     print ('try to cancel pending order and reissue')
     cancel_order(symbol, contract, order_id)
     issue_order_now(symbol, contract, direction, amount, action)
 
+# orders need to close, sorted decently by price
+orders_holding = list()
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
@@ -281,8 +283,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
     if amount == 0:
         amount = t_amount
-    issue_order_now(symbol, contract, direction, amount, action)
-    return 1 # positive
+    (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
+    return 1 if ret == True else 0 # maybe positive
 
 def issue_quarter_order_now(symbol, direction, amount, action):
     print ('issue quarter order: ', action, symbol, direction, amount)
@@ -902,9 +904,9 @@ def try_to_trade_tit2tat(subpath):
                             l_amount = 0
                             if thisweek_amount_pending != 0: 
                                 l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close')
+                                if l_amount > 0: # positive
+                                    thisweek_amount_pending = 0
                             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                            if l_amount >= 0: # none negative
-                                thisweek_amount_pending = 0
                         elif greedy_action == 'open': # yes, open action pending
                             issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                             # first close current order
