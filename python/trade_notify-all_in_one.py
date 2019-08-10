@@ -765,7 +765,8 @@ names_tit2tat = ['trade_file',
                  'greedy_cost_multiplier',
                  'last_fee',
                  'amount_ratio',
-                 'amount_ratio_plus'];
+                 'amount_ratio_plus',
+                 'orders_holding'];
 
 def save_status_tit2tat():
     loadsave_status('tit2tat', load=False)
