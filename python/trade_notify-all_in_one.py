@@ -961,7 +961,10 @@ def try_to_trade_tit2tat(subpath):
                             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
                             issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close')
+                            if thisweek_amount_pending != 0:
+                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close')
+                                if thisweek_amount_pending >= l_amount: # is ok
+                                    thisweek_amount_pending -= l_amount
                             # first close current order
                             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                             # secondly open new order
