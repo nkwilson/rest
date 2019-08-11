@@ -288,7 +288,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     if must_positive == True and loss <= 0:
         total_amount = 0
         addon = ''
-        while True:
+        while len(holding) > 0:
             (price, l_amount)=holding.pop()
             if globals()['positive_greedy_profit'](price, direction) == True:
                 total_amount += l_amount
