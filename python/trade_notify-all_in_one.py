@@ -285,28 +285,43 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     if len(holding) > 1:
         holding.sort(reverse=l_reverse)
     print (holding)
-    if must_positive == True and loss <= 0:
-        total_amount = 0
-        addon = ''
-        while len(holding) > 0:
-            (price, l_amount)=holding.pop()
-            if globals()['positive_greedy_profit'](price, direction) == True:
+    if must_positive == False:
+        if amount == 0:
+            holding.clear()
+            amount = t_amount
+        else:
+            amount = min(amount, t_amount) # choose the litte one
+            total_amount = 0
+            while len(holding) > 0:
+                (price, l_amount) = holding.pop()
                 total_amount += l_amount
-            else: # not positive
-                holding.append((price, l_amount)) # put it back
-                break
-        if total_amount > 0:
-            (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
-            addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
-        print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
+                if total_amount > amount:
+                    holding.append((price, total_amount - amount))
+                    break
+            amount = total_amount
+        (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
+        print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
         print (holding)
-        return total_amount
-    holding.clear()
-    print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
-    if amount == 0:
-        amount = t_amount
-    (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
-    return amount if ret == True else 0
+        return amount if ret == True else 0
+    amount = min(amount, t_amount) # choose the litte one
+    total_amount = 0
+    addon = ''
+    while len(holding) > 0:
+        (price, l_amount)=holding.pop()
+        if globals()['positive_greedy_profit'](price, direction) == True:
+            total_amount += l_amount
+            if total_amount > amount:
+                holding.append((price, total_amount - amount))
+                break
+        else: # not positive
+            holding.append((price, l_amount)) # put it back
+            break
+    if total_amount > 0:
+        (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
+        addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
+    print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
+    print (holding)
+    return total_amount
 
 def issue_quarter_order_now(symbol, direction, amount, action):
     print ('issue quarter order: ', action, symbol, direction, amount)
