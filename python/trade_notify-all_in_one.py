@@ -269,7 +269,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
         return (False, 0)
     print ('try to cancel pending order and reissue')
     cancel_order(symbol, contract, order_id)
-    issue_order_now(symbol, contract, direction, amount, action)
+    return issue_order_now(symbol, contract, direction, amount, action)
 
 # orders need to close, sorted by price
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
