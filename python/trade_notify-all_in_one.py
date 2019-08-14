@@ -282,9 +282,9 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         return 0 # no operation
     holding=orders_holding[direction]['holding']
     l_reverse=orders_holding[direction]['reverse']
+    print (holding)
     if len(holding) > 1:
         holding.sort(reverse=l_reverse)
-    print (holding)
     if must_positive == False:
         if amount == 0:
             holding.clear()
