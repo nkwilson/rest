@@ -320,7 +320,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
         addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
-    print (holding)
+    if total_amount > 0: # if closed something, show it out
+        print (holding)
     return total_amount
 
 def issue_quarter_order_now(symbol, direction, amount, action):
@@ -789,14 +790,14 @@ def save_status_tit2tat():
 def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
-def get_greedy_delta(close):
-    return close - globals()['previous_close']
+def get_greedy_delta(price):
+    return globals()['previous_close'] - price # 'previous_close is update to current price'
 
-def get_normal_delta(close):
-    return close - globals()['open_price']
+def get_normal_delta(price):
+    return price - globals()['open_price']
 
-def get_quit_delta():
-    return close - globals()['open_start_price']
+def get_quit_delta(price):
+    return price - globals()['open_start_price']
 
 profit_policy = { 'greedy': {'multiplier':'greedy_cost_multiplier',
                              'get_delta':get_greedy_delta},
@@ -806,20 +807,20 @@ profit_policy = { 'greedy': {'multiplier':'greedy_cost_multiplier',
                            'get_delta':get_quit_delta},
                   'trans': {'buy': 1, 'sell': -1}}
 
-def positive_profit_with(close, direction, typeof):
+def positive_profit_with(price, direction, typeof):
     cost = globals()[profit_policy[typeof]['multiplier']] * globals()['open_cost']
-    delta = profit_policy[typeof]['get_delta'](close)
+    delta = profit_policy[typeof]['get_delta'](price)
     trans = profit_policy['trans'][direction]
     return delta > (cost * trans)
 
-def positive_greedy_profit(close, direction):
-    return positive_profit_with(close, direction, 'greedy')
+def positive_greedy_profit(price, direction):
+    return positive_profit_with(price, direction, 'greedy')
 
-def positive_normal_profit(close, direction):
-    return positive_profit_with(close, direction, 'normal')
+def positive_normal_profit(price, direction):
+    return positive_profit_with(price, direction, 'normal')
 
-def positive_quit_profit(close, direction):
-    return positive_profit_with(close, direction, 'quit')
+def positive_quit_profit(price, direction):
+    return positive_profit_with(price, direction, 'quit')
 
 next_open_start_price = 0
 last_fee = 0
