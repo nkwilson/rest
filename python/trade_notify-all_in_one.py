@@ -987,9 +987,11 @@ def try_to_trade_tit2tat(subpath):
                                 thisweek_amount_pending = 0 # in case negative
                             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                         elif greedy_action == 'open': # yes, open action pending
-                            if thisweek_amount_pending != 0:
-                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending - thisweek_amount, 'close')
+                            if thisweek_amount_pending > 0:
+                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close')
                                 thisweek_amount_pending -= l_amount
+                            if thisweek_amount_pending < 0:
+                                thisweek_amount_pending = 0
                             issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                             thisweek_amount_pending += thisweek_amount
                             # first close current order
@@ -1011,7 +1013,7 @@ def try_to_trade_tit2tat(subpath):
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
                         quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
-                            open_start_price = next_open_start_price # if new order, update open_start_price from next_open_start_price
+                            open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
                         if quarter_amount < 1:
                             quarter_amount = 1
                         print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
