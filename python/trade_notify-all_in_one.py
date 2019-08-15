@@ -247,15 +247,15 @@ def issue_order_now(symbol, contract, direction, amount, action):
     # print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
     result = json.loads(raw_result)
-    print (result)
+    # print (result)
     if result['result'] == False:
         reissuing_order = 0
         return (False, 0)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
-    time.sleep(1) # wait a second
+    #time.sleep(1) # wait a second
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
-    print (order_info)
+    #print (order_info)
     # update amount_ratio from current order's lever_rate field
     globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
     if order_info['orders'][0]['amount'] != order_info['orders'][0]['deal_amount']:
@@ -267,7 +267,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
     if reissuing_order > 5: # more than 5 , quit
         reissuing_order = 0
         return (False, 0)
-    print ('try to cancel pending order and reissue')
+    #print ('try to cancel pending order and reissue')
     cancel_order(symbol, contract, order_id)
     return issue_order_now(symbol, contract, direction, amount, action)
 
@@ -324,8 +324,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
     if total_amount > 0: # if closed something, show it out
-        print ('new:', holding)
-        print ('old:', orders_holding[direction]['holding'])
+        print (holding)
     return total_amount
 
 def issue_quarter_order_now(symbol, direction, amount, action):
