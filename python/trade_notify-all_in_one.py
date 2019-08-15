@@ -795,13 +795,15 @@ def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
 def get_greedy_delta(price):
-    print (globals()['previous_close'], price)
+    print ('greedy delta', globals()['previous_close'], price)
     return globals()['previous_close'] - price # 'previous_close is update to current price'
 
 def get_normal_delta(price):
+    print ('normal delta', price, globals()['open_price'])
     return price - globals()['open_price']
 
 def get_quit_delta(price):
+    print ('quit delta', price, globals()['open_start_price'])
     return price - globals()['open_start_price']
 
 profit_policy = { 'greedy': {'multiplier':'greedy_cost_multiplier',
