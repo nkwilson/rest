@@ -295,13 +295,14 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             while len(holding) > 0:
                 (price, l_amount) = holding.pop()
                 total_amount += l_amount
-                if total_amount > amount:
+                if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
             amount = total_amount
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
         print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
-        print (holding)
+        if len(holding) > 0:
+            print (holding)
         return amount if ret == True else 0
     amount = min(amount, t_amount) # choose the litte one
     total_amount = 0
@@ -309,6 +310,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
         if globals()['positive_greedy_profit'](price, direction) == True:
+            print ('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
             if amount > 0 and total_amount > amount:
                 holding.append((price, total_amount - amount))
