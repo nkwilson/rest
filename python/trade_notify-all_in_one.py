@@ -818,8 +818,8 @@ def positive_profit_with(price, direction, typeof):
     cost = globals()[profit_policy[typeof]['multiplier']] * globals()['open_cost']
     delta = profit_policy[typeof]['get_delta'](price)
     trans = profit_policy['trans'][direction]
-    print (delta, cost * trans, delta > cost * trans)
-    return delta > cost * trans
+    print (delta * trans, cost, delta * trans > cost)
+    return delta * trans > cost
 
 def positive_greedy_profit(price, direction):
     return positive_profit_with(price, direction, 'greedy')
