@@ -284,7 +284,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     l_reverse=orders_holding[direction]['reverse']
     print (holding)
     if len(holding) > 1:
-        holding = [tuple(x) for x in holding]
+        holdingorders_holding[direction]['holding'] = [tuple(x) for x in holding]
+        holding=orders_holding[direction]['holding']        
         holding.sort(reverse=l_reverse)
     if must_positive == False:
         if amount == 0:
