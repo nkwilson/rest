@@ -923,9 +923,9 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now(symbol, l_dir, 1, 'open')
                     (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
-                        open_start_price = new_open_start_price
+                        open_start_price = (open_start_price + new_open_start_price) / 2
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
-                        open_start_price = new_open_start_price
+                        open_start_price = (open_start_price + new_open_start_price) / 2
                 if new_open == False:
                     if not forced_close:
                         current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
@@ -1063,7 +1063,6 @@ def try_to_trade_tit2tat(subpath):
                         open_cost = max(open_cost, t_open_cost)
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
-                    
                     previous_close = close
     return greedy_status
 
