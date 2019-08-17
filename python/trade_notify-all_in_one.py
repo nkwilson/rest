@@ -321,6 +321,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.append((price, l_amount)) # put it back
             break
     if total_amount > 0:
+        if total_amount > t_amount:
+            total_amount = t_amount
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
         addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
@@ -1009,9 +1011,9 @@ def try_to_trade_tit2tat(subpath):
                         old_balance = last_balance
                         last_balance = query_balance(symbol)
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
+                        amount = quarter_amount
+                        base_amount = last_balance / last_bond if last_bond > 0 else 1
                         if delta_balance >= 100: # balance doubled
-                            amount = quarter_amount
-                            base_amount = last_balance / last_bond if last_bond > 0 else 1
                             quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
