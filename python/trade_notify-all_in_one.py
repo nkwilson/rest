@@ -789,6 +789,7 @@ names_tit2tat = ['trade_file',
                  'last_fee',
                  'amount_ratio',
                  'amount_ratio_plus',
+                 'amount_real',
                  'orders_holding'];
 
 def save_status_tit2tat():
@@ -843,6 +844,7 @@ open_greedy = False
 amount_ratio_plus = 0.02 # percent of total amount
 profit_cost_multiplier = 20 # times of profit with open_cost
 greedy_cost_multiplier = 10 # times of greedy with open_cost
+amount_real = 0.02 # supercede on amount_ratio, as percent of amount
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -1014,15 +1016,18 @@ def try_to_trade_tit2tat(subpath):
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
-                        if delta_balance >= 100: # balance doubled
+                        if amount_real > 0: # if set, just use it
+                            quarter_amount = base_amount * amount_real
+                        else:
                             quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
-                        if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
-                            open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
                         if quarter_amount < 1:
                             quarter_amount = 1
-                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
+                        if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
+                            open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
+                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f,real=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
                                (amount, quarter_amount, amount_ratio, '*' if amount_ratio != default_amount_ratio else '',
                                 amount_ratio_plus,
+                                amount_real,
                                 last_bond,
                                 last_fee,
                                 old_balance, last_balance, delta_balance))
