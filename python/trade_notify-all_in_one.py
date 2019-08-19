@@ -282,7 +282,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         return 0 # no operation
     holding=orders_holding[direction]['holding']
     l_reverse=orders_holding[direction]['reverse']
-    print (holding)
+    # print (holding)
     if len(holding) > 1:
         orders_holding[direction]['holding'] = [tuple(x) for x in holding]
         holding=orders_holding[direction]['holding']        
@@ -304,7 +304,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
         print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
         if len(holding) > 0:
-            print (holding)
+            #print (holding)
+            pass
         return amount if ret == True else 0
     amount = min(amount, t_amount) # choose the litte one
     total_amount = 0
@@ -312,7 +313,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
         if globals()['positive_greedy_profit'](price, direction) == True:
-            print ('(%s, %s) selected' % (price, l_amount))
+            # print ('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
             if amount > 0 and total_amount > amount:
                 holding.append((price, total_amount - amount))
@@ -327,8 +328,9 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
         addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
-    if total_amount > 0: # if closed something, show it out
-        print (holding)
+    if total_amount > 0 and len(holding) > 0: # if closed something, show it out
+        # print (holding)
+        pass
     return total_amount
 
 def issue_quarter_order_now(symbol, direction, amount, action):
@@ -799,15 +801,15 @@ def load_status_tit2tat():
     loadsave_status('tit2tat', load=True)
 
 def get_greedy_delta(price):
-    print ('greedy delta', globals()['previous_close'], price)
+    # print ('greedy delta', globals()['previous_close'], price)
     return globals()['previous_close'] - price # 'previous_close is update to current price'
 
 def get_normal_delta(price):
-    print ('normal delta', price, globals()['open_price'])
+    # print ('normal delta', price, globals()['open_price'])
     return price - globals()['open_price']
 
 def get_quit_delta(price):
-    print ('quit delta', price, globals()['open_start_price'])
+    # print ('quit delta', price, globals()['open_start_price'])
     return price - globals()['open_start_price']
 
 profit_policy = { 'greedy': {'multiplier':'greedy_cost_multiplier',
@@ -822,7 +824,7 @@ def positive_profit_with(price, direction, typeof):
     cost = globals()[profit_policy[typeof]['multiplier']] * globals()['open_cost']
     delta = profit_policy[typeof]['get_delta'](price)
     trans = profit_policy['trans'][direction]
-    print (delta * trans, cost, delta * trans > cost)
+    # print (delta * trans, cost, delta * trans > cost)
     return delta * trans > cost
 
 def positive_greedy_profit(price, direction):
