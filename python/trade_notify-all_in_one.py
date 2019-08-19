@@ -923,7 +923,8 @@ def try_to_trade_tit2tat(subpath):
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
                     # action likes new_open equals true, but take original l_dir as it
-                    issue_quarter_order_now(symbol, l_dir, 1, 'open')
+                    mini_amount = max(1, quarter_amount / 8)
+                    issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
                     (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
@@ -978,6 +979,8 @@ def try_to_trade_tit2tat(subpath):
                                 thisweek_amount = quarter_amount / 4
                             else:
                                 thisweek_amount = quarter_amount / 8
+                            if thisweek_amount < 1:
+                                thisweek_amount = 1 # at least 1
                             previous_close = close
                         if greedy_action == 'close': # yes, close action pending
                             l_amount = 0
