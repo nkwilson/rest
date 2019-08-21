@@ -927,6 +927,8 @@ def try_to_trade_tit2tat(subpath):
                     # action likes new_open equals true, but take original l_dir as it
                     mini_amount = max(1, quarter_amount / 8)
                     issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
+                    # clear it
+                    thisweek_amount_pending = 0
                     (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
