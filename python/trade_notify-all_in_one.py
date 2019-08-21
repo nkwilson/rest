@@ -845,7 +845,7 @@ close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.02 # percent of total amount
 profit_cost_multiplier = 20 # times of profit with open_cost
-greedy_cost_multiplier = 10 # times of greedy with open_cost
+greedy_cost_multiplier = 5 # times of greedy with open_cost
 amount_real = 0.02 # supercede on amount_ratio, as percent of amount
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -1072,7 +1072,7 @@ def try_to_trade_tit2tat(subpath):
                     t_bond = query_bond(symbol, 'quarter', l_dir)
                     if t_bond > 0:
                         last_bond = t_bond
-                        t_open_cost = open_price * last_fee / last_bond
+                        t_open_cost = open_price * last_fee / last_bond / amount_ratio
                         open_cost = max(open_cost, t_open_cost)
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
