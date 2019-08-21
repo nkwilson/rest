@@ -989,7 +989,7 @@ def try_to_trade_tit2tat(subpath):
                         if greedy_action == 'close': # yes, close action pending
                             l_amount = 0
                             if thisweek_amount_pending > 0: 
-                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close') # as much as possible
+                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
                                 if thisweek_amount_pending >= l_amount: # is ok
                                     thisweek_amount_pending -= l_amount
                                 else:
