@@ -758,6 +758,7 @@ def try_loadsave_with_names(status, names, load):
             if name in globals()[status].keys(): # in case name not exist
                 globals()[name] = globals()[status][name]
         else: # collect individual names to status
+            globals()[status].clear()
             globals()[status][name] = globals()[name]
 
 def loadsave_status(signal, load):
