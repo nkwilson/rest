@@ -983,8 +983,8 @@ def try_to_trade_tit2tat(subpath):
                                 thisweek_amount = quarter_amount / 4
                             else:
                                 thisweek_amount = quarter_amount / 8
-                            if thisweek_amount < 1:
-                                thisweek_amount = 1 # at least 1
+                            if thisweek_amount < 2:
+                                thisweek_amount = 2 # at least 2, for reverse need 1
                             previous_close = close
                         if greedy_action == 'close': # yes, close action pending
                             l_amount = 0
