@@ -1017,7 +1017,7 @@ def try_to_trade_tit2tat(subpath):
                             last_balance = query_balance(symbol)
                             delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
                             print (trade_timestamp(), 'balance=%f->%f,%f%%' %
-                                   old_balance, last_balance, delta_balance)
+                                   (old_balance, last_balance, delta_balance))
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
