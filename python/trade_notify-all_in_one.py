@@ -1033,12 +1033,8 @@ def try_to_trade_tit2tat(subpath):
                             quarter_amount = 1
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
-                        print ('update quarter_amount from %s=>%s(ratio=%f%s,plus=%f,real=%f), bond=%f fee=%f balance=%f->%f,%f%%' %
-                               (amount, quarter_amount, amount_ratio, '*' if amount_ratio != default_amount_ratio else '',
-                                amount_ratio_plus,
-                                amount_real,
-                                last_bond,
-                                last_fee,
+                        print (trade_timestamp(), 'update quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
+                               (amount, quarter_amount, 
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
