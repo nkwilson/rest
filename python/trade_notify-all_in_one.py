@@ -846,8 +846,8 @@ thisweek_amount_pending = 0
 close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.02 # percent of total amount
-profit_cost_multiplier = 20 # times of profit with open_cost
-greedy_cost_multiplier = 10 # times of greedy with open_cost
+profit_cost_multiplier = 2 # times of profit with open_cost
+greedy_cost_multiplier = 1 # times of greedy with open_cost
 amount_real = 0.02 # supercede on amount_ratio, as percent of amount
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
