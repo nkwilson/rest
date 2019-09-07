@@ -796,7 +796,7 @@ names_tit2tat = ['trade_file',
                  'amount_real',
                  'orders_holding'];
 
-def save_status_tit2tat(subpath):
+def save_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=False)
     with open(globals()['status_file'], 'r') as r:
         with open('%s.trade_status' % (subpath), 'w') as w:
@@ -804,7 +804,7 @@ def save_status_tit2tat(subpath):
             w.close()
         r.close()
 
-def load_status_tit2tat(subpath):
+def load_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=True)
 
 def get_greedy_delta(price):
