@@ -1317,7 +1317,8 @@ parser.add_option('', '--dir', dest='dirs', default=[],
                   help='target dir should processing')
 parser.add_option('', '--bins', dest='bins', default=0,
                   help='wait how many reverse, 0=once, 1=twice')
-parser.add_option('', '--nolog', dest='nolog', default=0,
+parser.add_option('', '--nolog', dest='nolog', 
+                  action='store_true', default=False,
                   help='Do not log to file')
 parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
@@ -1363,7 +1364,7 @@ logging.basicConfig(filename=logfile,
                     format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 #logging.info('trade_notify: %s' % trade_notify)
-if options.nolog == 0:
+if not options.nolog:
     saved_stdout = sys.stdout
     sys.stdout = open(logfile, 'a')
     sys.stderr = sys.stdout
