@@ -796,10 +796,15 @@ names_tit2tat = ['trade_file',
                  'amount_real',
                  'orders_holding'];
 
-def save_status_tit2tat():
+def save_status_tit2tat(subpath):
     loadsave_status('tit2tat', load=False)
+    with open(globals()['status_file'], 'r') as r:
+        with open('%s.trade_status' % (subpath), 'w') as w:
+            w.write(r.read()) # read whole file and write all
+            w.close()
+        r.close()
 
-def load_status_tit2tat():
+def load_status_tit2tat(subpath):
     loadsave_status('tit2tat', load=True)
 
 def get_greedy_delta(price):
@@ -1235,7 +1240,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 #print (subpath)
                 status = globals()['try_to_trade_%s' % signal](subpath)
                 if status != 'no action':
-                    globals()['save_status_%s' % signal]()
+                    globals()['save_status_%s' % signal](subpath)
                     print (globals()['trade_status'])
             fence_count = 0
             if shutdown_on_close and trade_file == '':
