@@ -843,6 +843,18 @@ def positive_normal_profit(price, direction):
 def positive_quit_profit(price, direction):
     return positive_profit_with(price, direction, 'quit')
 
+def get_multiple_profit4(close, previoud_close, open_price, open_start_price, l_dir, open_greedy):
+    current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
+    if l_dir == 'buy':
+        current_profit1 = close - open_start_price
+        current_profit2 = close - open_price
+        current_profit3 = close - previous_close
+    else:
+        current_profit1 = open_start_price - close
+        current_profit2 = open_price - close
+        current_profit3 = previous_close - close
+    return (current_profit, current_profit1, current_profit2, current_profit3)
+
 next_open_start_price = 0
 last_fee = 0
 open_cost = 0
@@ -925,7 +937,14 @@ def try_to_trade_tit2tat(subpath):
                     if not options.emulate: # if emualtion, figure it manually
                         (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
                     if t_amount <= 0:
-                        forced_close = True
+                        # check if should take normal close action
+                        (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
+                        if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative 
+                            forced_close = False
+                        elif current_profit2 >= profit_cost_multiplier * open_cost: # yes, positive 
+                            forced_close = False
+                        else:
+                            forced_close = True
                 if forced_close:
                     open_greedy = True
                     # suffered forced close
@@ -943,15 +962,7 @@ def try_to_trade_tit2tat(subpath):
                         open_start_price = (open_start_price + new_open_start_price) / 2
                 if new_open == False:
                     if not forced_close:
-                        current_profit = check_with_direction(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
-                        if l_dir == 'buy':
-                            current_profit1 = close - open_start_price
-                            current_profit2 = close - open_price
-                            current_profit3 = close - previous_close
-                        else:
-                            current_profit1 = open_start_price - close
-                            current_profit2 = open_price - close
-                            current_profit3 = previous_close - close
+                        (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     else:
                         forced_close = False # let stop it here
                         current_profit1 = 0
