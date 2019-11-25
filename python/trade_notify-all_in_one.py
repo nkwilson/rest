@@ -910,17 +910,20 @@ def try_to_trade_tit2tat(subpath):
         reverse_follow_dir = ''
         print ('') # add an empty line
         if trade_file == '':
-            print ('%9.4f' % close, '-')
+            print ('%9.4f' % close, '-',
+                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         elif trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
             ema_tendency = new_ema_2 - new_ema_1 # ema_2 should bigger than ema_1
             reverse_follow_dir = 'buy'
-            print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price)
+            print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price,
+                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
             ema_tendency = new_ema_1 - new_ema_2 # ema_1 should bigger than ema_2
             reverse_follow_dir = 'sell'
-            print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price)
+            print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price,
+                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         ema_1 = new_ema_1 # saved now
         ema_2 = new_ema_2 # saved now
         if close == 0: # in case read failed
@@ -995,15 +998,13 @@ def try_to_trade_tit2tat(subpath):
                         if ema_tendency <= 0: # do close
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
-                        else:
-                            previoud_close = close
+                        # keep previous_close un-touched here
                     elif current_profit2 >= profit_cost_multiplier * open_cost: # yes, positive 
                         # take ema into account
                         if ema_tendency <= 0: # do close
                             issuing_close = True # do close
-                        else:
-                            previoud_close = close
-                    else: # partly no, but still positive consider open_start_price, do greedy process
+                        # keep previous_close un-touched here
+                    if issuing_close == False: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         greedy_action = ''
                         greedy_status = 'no action'
