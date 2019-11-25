@@ -892,7 +892,9 @@ def try_to_trade_tit2tat(subpath):
     global last_bond, last_balance
     global next_open_start_price
     global last_decision_logic
-
+    global ema_1
+    global ema_2
+    
     greedy_status = ''    
     #print (subpath)
     event_path=subpath
