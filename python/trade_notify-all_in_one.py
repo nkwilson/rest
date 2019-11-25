@@ -1129,6 +1129,8 @@ def try_to_trade_tit2tat(subpath):
 
 direction = 0
 
+ema_1 = 0
+ema_2 = 0
 total_revenue = 0
 previous_close_price = 0
 total_orders = 0
