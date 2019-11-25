@@ -876,6 +876,8 @@ greedy_cost_multiplier = 1 # times of greedy with open_cost
 amount_real = 0.02 # supercede on amount_ratio, as percent of amount
 ema_period_1 = 5 # signal period of 5 ticks
 ema_period_2 = 10 # tendency period of 10 ticks
+ema_1 = 0
+ema_2 = 0
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -1129,8 +1131,6 @@ def try_to_trade_tit2tat(subpath):
 
 direction = 0
 
-ema_1 = 0
-ema_2 = 0
 total_revenue = 0
 previous_close_price = 0
 total_orders = 0
