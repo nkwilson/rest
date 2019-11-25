@@ -612,6 +612,10 @@ def read_4prices(filename):
     # print (close)
     return prices
 
+# previou is calcuated ema with period , re
+def get_ema(previous, new_data, period):
+    return (previous * (period - 1) + 2 * new_data) / (period + 1)
+
 open_price = 0
 previous_close = 0
 open_start_price = 0
@@ -794,7 +798,11 @@ names_tit2tat = ['trade_file',
                  'amount_ratio',
                  'amount_ratio_plus',
                  'amount_real',
-                 'orders_holding'];
+                 'orders_holding',
+                 'ema_1',
+                 'ema_period_1',
+                 'ema_2',
+                 'ema_period_2'];
 
 def save_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=False)
@@ -866,6 +874,8 @@ amount_ratio_plus = 0.02 # percent of total amount
 profit_cost_multiplier = 2 # times of profit with open_cost
 greedy_cost_multiplier = 1 # times of greedy with open_cost
 amount_real = 0.02 # supercede on amount_ratio, as percent of amount
+ema_period_1 = 5 # signal period of 5 ticks
+ema_period_2 = 10 # tendency period of 10 ticks
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -889,6 +899,9 @@ def try_to_trade_tit2tat(subpath):
     if True: # type 256, new file event
         prices = read_4prices(event_path)
         close = prices[ID_CLOSE]
+        new_ema_1 = get_ema(ema_1, close, ema_period_1)
+        new_ema_2 = get_ema(ema_2, close, ema_period_2)
+        delta_ema_1 = new_ema_1 - ema_1
         l_dir = ''
         reverse_follow_dir = ''
         print ('') # add an empty line
@@ -896,12 +909,16 @@ def try_to_trade_tit2tat(subpath):
             print ('%9.4f' % close, '-')
         elif trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
+            ema_tendency = new_ema_2 - new_ema_1 # ema_2 should bigger than ema_1
             reverse_follow_dir = 'buy'
             print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price)
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
+            ema_tendency = new_ema_1 - new_ema_2 # ema_1 should bigger than ema_2
             reverse_follow_dir = 'sell'
             print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price)
+        ema_1 = new_ema_1 # saved now
+        ema_2 = new_ema_2 # saved now
         if close == 0: # in case read failed
             return
         if True:
@@ -912,7 +929,7 @@ def try_to_trade_tit2tat(subpath):
                     return
                 
                 symbol=symbols_mapping[figure_out_symbol_info(event_path)]
-                
+
                 new_open = True
                 forced_close = False
                 new_open_start_price = 0
@@ -969,13 +986,19 @@ def try_to_trade_tit2tat(subpath):
                         current_profit2 = 0
                         current_profit3 = 0
                     issuing_close = False
-                    if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative 
-                        # do close
-                        issuing_close = True
-                        open_start_price = open_price # when seeing this price, should close, init only once
+                    if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative
+                        # take ema into account
+                        if ema_tendency <= 0: # do close
+                            issuing_close = True
+                            open_start_price = open_price # when seeing this price, should close, init only once
+                        else:
+                            previoud_close = close
                     elif current_profit2 >= profit_cost_multiplier * open_cost: # yes, positive 
-                        # do close
-                        issuing_close = True
+                        # take ema into account
+                        if ema_tendency <= 0: # do close
+                            issuing_close = True # do close
+                        else:
+                            previoud_close = close
                     else: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         greedy_action = ''
@@ -1071,9 +1094,9 @@ def try_to_trade_tit2tat(subpath):
                     thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
-                    if close > previous_close:
+                    if close > previous_close and delta_ema_1 > 0:
                         l_dir = 'buy'
-                    elif close < previous_close:
+                    elif close < previous_close and delta_ema_1 < 0:
                         l_dir = 'sell'
                     else:
                         previous_close = close
