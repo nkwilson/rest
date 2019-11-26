@@ -1004,6 +1004,11 @@ def try_to_trade_tit2tat(subpath):
                         if ema_tendency <= 0: # do close
                             issuing_close = True # do close
                         # keep previous_close un-touched here
+                    if ema_tendency <= 0: # take charge of issuing_close signal
+                        issuing_close = True
+                        open_start_price = open_price # when seeing this price, should close, init only once
+                    else:
+                        issuing_close = False
                     if issuing_close == False: # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
                         greedy_action = ''
