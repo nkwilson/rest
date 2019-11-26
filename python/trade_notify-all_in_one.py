@@ -1096,6 +1096,7 @@ def try_to_trade_tit2tat(subpath):
                         print (trade_timestamp(), 'update quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
                                (amount, quarter_amount, 
                                 old_balance, last_balance, delta_balance))
+                        trade_file = '' # clear it
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
