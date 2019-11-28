@@ -312,7 +312,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     addon = ''
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
-        if globals()['positive_greedy_profit'](price, direction) == True:
+        if globals()['positive_greedy_tiny_profit'](price, direction) == True:
             # print ('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
             if amount > 0 and total_amount > amount:
@@ -815,6 +815,10 @@ def save_status_tit2tat(subpath=''):
 def load_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=True)
 
+def get_greedy_tiny_delta(price):
+    # print ('greedy delta', globals()['previous_close'], price)
+    return 10 * (globals()['previous_close'] - price) # 'previous_close is update to current price'
+
 def get_greedy_delta(price):
     # print ('greedy delta', globals()['previous_close'], price)
     return globals()['previous_close'] - price # 'previous_close is update to current price'
@@ -827,7 +831,9 @@ def get_quit_delta(price):
     # print ('quit delta', price, globals()['open_start_price'])
     return price - globals()['open_start_price']
 
-profit_policy = { 'greedy': {'multiplier':'greedy_cost_multiplier',
+profit_policy = { 'greedy-tiny': {'multiplier':'greedy_cost_multiplier',
+                                  'get_delta':get_greedy_tiny_delta},
+                  'greedy': {'multiplier':'greedy_cost_multiplier',
                              'get_delta':get_greedy_delta},
                   'normal': {'multiplier':'profit_cost_multiplier',
                              'get_delta':get_normal_delta},
@@ -844,6 +850,9 @@ def positive_profit_with(price, direction, typeof):
 
 def positive_greedy_profit(price, direction):
     return positive_profit_with(price, direction, 'greedy')
+
+def positive_greedy_tiny_profit(price, direction):
+    return positive_profit_with(price, direction, 'greedy-tiny')
 
 def positive_normal_profit(price, direction):
     return positive_profit_with(price, direction, 'normal')
