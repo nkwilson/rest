@@ -911,6 +911,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global last_decision_logic
     global ema_1
     global ema_2
+    global on_guard
     
     greedy_status = ''    
     #print (subpath)
@@ -1585,6 +1586,7 @@ def calculate_timeout_for_self_trigger(notify):
         return (-15, delta) # wait at least this long time of seconds
 
 first_prompt = True
+guard_count = 0
 while True:
     orig_startup_notify = startup_notify
     if startup_notify != '':
@@ -1625,7 +1627,10 @@ while True:
         (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0: # wait for triggering
-            if on_guard: # using guard_timeout
+            if guard_count == 0:
+                guard_count = timeout / guard_timeout
+            if on_guard and guard_count > 0: # using guard_timeout
+                guard_count -= 1
                 time.sleep(guard_timeout)
             else:
                 #print (trade_timestamp(),
@@ -1634,6 +1639,8 @@ while True:
                 #        (timeout % 3600) / 60,
                 #        timeout - int(timeout / 60) * 60))
                 time.sleep(timeout)
+                on_guard = False
+                guard_count = 0
         else:
             #print (trade_timestamp(), 'trigger safely')
             pass
