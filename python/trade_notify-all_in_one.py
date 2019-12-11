@@ -933,6 +933,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
             if on_guard and guard: # guard price turn
                 guard_signal = ema_1 - close
         if guard_signal > 0: # seen signal
+            symbol=symbols_mapping[figure_out_symbol_info(event_path)]
             on_guard = False # silent now, until next period
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
             issue_quarter_order_now(symbol, l_dir, 0, 'close')
@@ -1064,7 +1065,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if l_dir == 'buy' and delta_ema_1 < 0:
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
-                        elif l_dir == 'sell' and delte_ema_1 > 0:
+                        elif l_dir == 'sell' and delta_ema_1 > 0:
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
                     if issuing_close == False and not disable_greedy: # partly no, but still positive consider open_start_price, do greedy process
