@@ -333,6 +333,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         pass
     return total_amount
 
+global options
 def issue_quarter_order_now(symbol, direction, amount, action):
     print ('%sissue quarter order: ',
            'EMUL ' if options.noaction else '',
