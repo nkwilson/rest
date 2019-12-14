@@ -800,8 +800,12 @@ names_tit2tat = ['trade_file',
                  'amount_real',
                  'orders_holding',
                  'ema_1',
+                 'ema_1_up',
+                 'ema_1_lo',
                  'ema_period_1',
                  'ema_2',
+                 'ema_2_up',
+                 'ema_2_lo',
                  'ema_period_2',
                  'on_guard',
                  'guard_timeout', 
@@ -891,6 +895,10 @@ ema_period_1 = 2 # signal period
 ema_period_2 = 20 # tendency period
 ema_1 = 0
 ema_2 = 0
+ema_1_up = 0 # up means high price
+ema_1_lo = 0 # lo means low price
+ema_2_up = 0
+ema_2_lo = 0
 on_guard = False  # if set, do price guard
 disable_greedy = False # greedy is default
 guard_timeout = 180 #  3minutes
@@ -911,10 +919,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global last_bond, last_balance
     global next_open_start_price
     global last_decision_logic
-    global ema_1
-    global ema_2
+    global ema_1, ema_1_up, ema_1_lo
+    global ema_2, ema_2_up, ema_2_lo
     global on_guard
     global enable_guard
+    global disable_greedy
     
     greedy_status = ''    
     #print (subpath)
@@ -962,6 +971,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
             return
         new_ema_1 = get_ema(ema_1, close, ema_period_1)
         new_ema_2 = get_ema(ema_2, close, ema_period_2)
+        ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
+        ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
+        ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
+        ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
         delta_ema_1 = new_ema_1 - ema_1
         reverse_follow_dir = ''
         print ('') # add an empty line
