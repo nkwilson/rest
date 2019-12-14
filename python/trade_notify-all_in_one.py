@@ -1463,7 +1463,7 @@ parser.add_option('', '--one_shot', dest='one_shot',
 parser.add_option('', '--self_trigger', dest='do_self_trigger',
                   action='store_false', default=True,
                   help='read price by myself and do following trade')
-parser.add_option('', '--noactoin', dest='noactoin',
+parser.add_option('', '--noactoin', dest='noaction',
                   action='store_true', default=False,
                   help='dry run, no real buy/sell action')
 
