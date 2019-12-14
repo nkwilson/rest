@@ -335,8 +335,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
 
 global options
 def issue_quarter_order_now(symbol, direction, amount, action):
-    print ('%sissue quarter order: ',
-           'EMUL ' if options.noaction else '',
+    print ('EMUL ' if options.noaction else '',
+           'issue quarter order: ',
            action, symbol, direction, amount)
     if options.noaction:
         return 0
@@ -346,8 +346,8 @@ def issue_quarter_order_now(symbol, direction, amount, action):
     return amount if ret == True else 0
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print ('%sissue quarter order conditional: ',
-           'EMUL ' if options.noaction else '',
+    print ('EMUL ' if options.noaction else '',
+           'issue quarter order conditional: ',
            action, symbol, direction, amount)
     if options.noaction:
         return 0
