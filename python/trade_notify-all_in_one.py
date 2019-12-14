@@ -979,10 +979,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
             return
         new_ema_1 = get_ema(ema_1, close, ema_period_1)
         new_ema_2 = get_ema(ema_2, close, ema_period_2)
-        ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
-        ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
-        ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
-        ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
+        new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
+        new_ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
+        new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
+        new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
         delta_ema_1 = new_ema_1 - ema_1
         reverse_follow_dir = ''
         print ('') # add an empty line
@@ -990,17 +990,21 @@ def try_to_trade_tit2tat(subpath, guard=False):
             print ('%9.4f' % close, '-',
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         elif l_dir == 'sell': # sell order
-            ema_tendency = new_ema_2 - new_ema_1 # ema_2 should bigger than ema_1
+            ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
             reverse_follow_dir = 'buy'
             print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price,
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         elif l_dir == 'buy': # buy order
-            ema_tendency = new_ema_1 - new_ema_2 # ema_1 should bigger than ema_2
+            ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
             reverse_follow_dir = 'sell'
             print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price,
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
         ema_1 = new_ema_1 # saved now
+        ema_1_up = new_ema_1_up
+        ema_1_lo = new_ema_1_lo
         ema_2 = new_ema_2 # saved now
+        ema_2_up = new_ema_2_up
+        ema_2_lo = new_ema_2_lo
         if close == 0: # in case read failed
             return
         if True:
