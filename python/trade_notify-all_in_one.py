@@ -334,14 +334,22 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     return total_amount
 
 def issue_quarter_order_now(symbol, direction, amount, action):
-    print ('issue quarter order: ', action, symbol, direction, amount)
+    print ('%sissue quarter order: ',
+           'EMUL ' if options.noaction else '',
+           action, symbol, direction, amount)
+    if options.noaction:
+        return 0
     (ret, price) = issue_order_now(symbol, 'quarter', direction, amount, action)
     if ret == True and action == 'open':
         orders_holding[direction]['holding'].append((price, amount))
     return amount if ret == True else 0
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print ('issue quarter order conditional: ', action, symbol, direction, amount)
+    print ('%sissue quarter order conditional: ',
+           'EMUL ' if options.noaction else '',
+           action, symbol, direction, amount)
+    if options.noaction:
+        return 0
     return issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
 
 # apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
@@ -1455,6 +1463,9 @@ parser.add_option('', '--one_shot', dest='one_shot',
 parser.add_option('', '--self_trigger', dest='do_self_trigger',
                   action='store_false', default=True,
                   help='read price by myself and do following trade')
+parser.add_option('', '--noactoin', dest='noactoin',
+                  action='store_true', default=False,
+                  help='dry run, no real buy/sell action')
 
 (options, args) = parser.parse_args()
 print (type(options), options, args)
