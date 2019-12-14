@@ -805,7 +805,8 @@ names_tit2tat = ['trade_file',
                  'ema_period_2',
                  'on_guard',
                  'guard_timeout', 
-                 'disable_greedy'];
+                 'disable_greedy',
+                 'enable_guard'];
 
 def save_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=False)
@@ -893,6 +894,7 @@ ema_2 = 0
 on_guard = False  # if set, do price guard
 disable_greedy = False # greedy is default
 guard_timeout = 180 #  3minutes
+enable_guard = False # default is disabled
 
 # if guard true, then check and do quick turn 
 def try_to_trade_tit2tat(subpath, guard=False):
@@ -912,6 +914,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global ema_1
     global ema_2
     global on_guard
+    global enable_guard
     
     greedy_status = ''    
     #print (subpath)
@@ -1036,7 +1039,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
                 if new_open == False:
-                    on_guard = True
+                    on_guard = enable_guard
                     if not forced_close:
                         (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     else:
