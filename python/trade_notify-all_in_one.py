@@ -800,6 +800,7 @@ names_tit2tat = ['trade_file',
                  'thisweek_amount_pending',
                  'last_balance',
                  'last_bond',
+                 'update_quarter_amount',
                  'profit_cost_multiplier',
                  'greedy_cost_multiplier',
                  'last_fee',
@@ -911,6 +912,7 @@ on_guard = False  # if set, do price guard
 disable_greedy = False # greedy is default
 guard_timeout = 180 #  3minutes
 enable_guard = False # default is disabled
+update_quarter_amount = False # update it dynamicly
 
 # if guard true, then check and do quick turn 
 def try_to_trade_tit2tat(subpath, guard=False):
@@ -932,6 +934,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global on_guard
     global enable_guard
     global disable_greedy
+    global update_quarter_amount
     
     greedy_status = ''    
     #print (subpath)
@@ -1173,15 +1176,20 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
                         if amount_real > 0: # if set, just use it
-                            quarter_amount = base_amount * amount_real
+                            new_quarter_amount = base_amount * amount_real
                         else:
-                            quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
-                        if quarter_amount < 1:
-                            quarter_amount = 1
+                            new_quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
+                        if new_quarter_amount < 1:
+                            new_quarter_amount = 1
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
-                        print (trade_timestamp(), 'update quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
-                               (amount, quarter_amount, 
+                        do_updating = 'no '
+                        if update_quarter_amount: # auto update
+                            do_updating = 'do '
+                            quarter_amount = new_quarter_amount
+                        print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
+                               (do_updating, 
+                                amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
                         trade_file = '' # clear it
                 if close_greedy == True:
