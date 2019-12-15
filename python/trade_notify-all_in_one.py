@@ -1625,12 +1625,12 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 def calculate_timeout_for_self_trigger(notify):
     period_ms = periods_mapping_ms[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
-    delta = 15
+    delta = 1
     timeout = (period_ms - moduls) - delta
     if timeout > 0:
         return (timeout, delta)
     else:
-        return (-15, delta) # wait at least this long time of seconds
+        return (-1, delta) # wait at least this long time of seconds
 
 first_prompt = True
 guard_count = 0
