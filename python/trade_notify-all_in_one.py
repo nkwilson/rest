@@ -1150,9 +1150,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 thisweek_amount_pending -= l_amount
                             if thisweek_amount_pending < 0:
                                 thisweek_amount_pending = 0
-                            elif thisweek_amount_pending > quarter_amount :
-                                print (trade_timestamp(), 'too much pending, stop open %s, %s go on' % (l_dir, reverse_follow_dir))
-                                more_action = False
                             if more_action and forward_greedy: 
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                 thisweek_amount_pending += thisweek_amount
