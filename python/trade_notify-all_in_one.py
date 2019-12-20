@@ -801,7 +801,8 @@ names_tit2tat = ['trade_file',
                  'thisweek_amount_pending',
                  'last_balance',
                  'last_bond',
-                 'update_quarter_amount',
+                 'update_quarter_amount_forward',
+                 'update_quarter_amount_backward',
                  'profit_cost_multiplier',
                  'greedy_cost_multiplier',
                  'last_fee',
@@ -898,7 +899,7 @@ quarter_amount = 1
 thisweek_amount_pending = 0
 close_greedy = False
 open_greedy = False
-amount_ratio_plus = 0.02 # percent of total amount
+amount_ratio_plus = 0.05 # percent of total amount
 profit_cost_multiplier = 0.2 # times of profit with open_cost
 greedy_cost_multiplier = 0.1 # times of greedy with open_cost
 amount_real = 0 # supercede on amount_ratio, as percent of amount
@@ -915,7 +916,8 @@ forward_greedy = True # following tendency
 backward_greedy = False # following reverse tendency
 guard_timeout = 180 #  3minutes
 enable_guard = False # default is disabled
-update_quarter_amount = False # update it dynamicly
+update_quarter_amount_forward = True # update it if balance increase
+update_quarter_amount_backward = False # update it if balance decrease
 
 # if guard true, then check and do quick turn 
 def try_to_trade_tit2tat(subpath, guard=False):
@@ -937,7 +939,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global on_guard
     global enable_guard
     global forward_greedy, backward_greedy
-    global update_quarter_amount
+    global update_quarter_amount_forward, update_quarter_amount_backward
     
     greedy_status = ''    
     #print (subpath)
@@ -1102,10 +1104,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         elif l_dir == 'sell' and delta_ema_1 > 0:
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
+                    greedy_action = ''
+                    greedy_status = 'no action'
+                    update_quarter_amount = False
                     if issuing_close == False and (forward_greedy or backward_greedy): # partly no, but still positive consider open_start_price, do greedy process
                         # emit open again signal
-                        greedy_action = ''
-                        greedy_status = 'no action'
                         if l_dir == 'buy':
                             if (close - previous_close) > greedy_cost_multiplier * open_cost:
                                 greedy_action = 'close'
@@ -1159,11 +1162,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 # secondly open new order
                                 issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                         if greedy_action != '': # update balance
-                            old_balance = last_balance
-                            last_balance = query_balance(symbol)
-                            delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
-                            print (trade_timestamp(), 'balance=%f->%f,%f%%' %
-                                   (old_balance, last_balance, delta_balance))
+                            update_quarter_amount = True
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
@@ -1172,6 +1171,9 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if open_greedy == True:
                             close_greedy = True
                             open_greedy = False
+                        update_quarter_amount = True
+                        trade_file = '' # clear it
+                    if update_quarter_amount == True:
                         old_balance = last_balance
                         last_balance = query_balance(symbol)
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
@@ -1186,14 +1188,13 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
                         do_updating = 'no '
-                        if update_quarter_amount: # auto update
+                        if (update_quarter_amount_forward and delta_balance > 0) or (update_quarter_amount_backward and delta_balance < 0) : # auto update
                             do_updating = 'do '
                             quarter_amount = new_quarter_amount
                         print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
                                (do_updating, 
                                 amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
-                        trade_file = '' # clear it
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
