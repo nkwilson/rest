@@ -260,7 +260,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
     #print (order_info)
     # update amount_ratio from current order's lever_rate field
     globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
-    deal_amount = order_info['orders'][0]['deal_amount']:
+    deal_amount = order_info['orders'][0]['deal_amount']
     if order_info['orders'][0]['amount'] != deal_amount:
         if deal_amount > 0 and wait_for_completion == 0: # it's ok
             # no update for last_fee
