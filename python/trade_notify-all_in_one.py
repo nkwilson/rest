@@ -1116,6 +1116,16 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         elif l_dir == 'sell' and delta_ema_1 > 0:
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
+                    # if issuing_close is true, check the new direction first
+                    new_l_dir = ''
+                    if close > previous_close and delta_ema_1 > 0:
+                        new_l_dir = 'buy'
+                        if issuing_close and l_dir == 'buy': # the same direction, just treat it as a greedy
+                            issuing_close = False
+                    elif close < previous_close and delta_ema_1 < 0:
+                        new_l_dir = 'sell'
+                        if issuing_close and l_dir == 'sell':
+                            issuing_close = False
                     greedy_action = ''
                     greedy_status = 'no action'
                     update_quarter_amount = False
@@ -1220,13 +1230,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     thisweek_amount_pending = 0
                     close_greedy = False
                 if new_open == True:
-                    if close > previous_close and delta_ema_1 > 0:
-                        l_dir = 'buy'
-                    elif close < previous_close and delta_ema_1 < 0:
-                        l_dir = 'sell'
-                    else:
+                    if new_l_dir == '': 
                         previous_close = close
                         return
+                    else:
+                        l_dir = new_l_dir
                     trade_file = ''
                     open_greedy = False
                     close_greedy = False
