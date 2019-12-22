@@ -1195,7 +1195,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
                         do_updating = 'no '
-                        if (update_quarter_amount_forward and delta_balance > 0) or (update_quarter_amount_backward and delta_balance < 0) : # auto update
+                        if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount : # auto update
+                            do_updating = 'do '
+                            quarter_amount = new_quarter_amount
+                        elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
                             do_updating = 'do '
                             quarter_amount = new_quarter_amount
                         print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
