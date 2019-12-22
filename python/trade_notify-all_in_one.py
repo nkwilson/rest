@@ -1083,6 +1083,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         open_start_price = (open_start_price + new_open_start_price) / 2
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
+                new_l_dir = ''
                 if new_open == False:
                     on_guard = enable_guard
                     if not forced_close:
@@ -1117,7 +1118,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
                     # if issuing_close is true, check the new direction first
-                    new_l_dir = ''
                     if close > previous_close and delta_ema_1 > 0:
                         new_l_dir = 'buy'
                         if issuing_close and l_dir == 'buy': # the same direction, just treat it as a greedy
