@@ -242,7 +242,7 @@ order_infos = {'usd_btc':'btc_usd',
 
 # {'result': True, 'orders': [{'symbol': 'eth_usd', 'lever_rate': 10, 'amount': 1, 'fee': -1.131e-05, 'contract_name': 'ETH0517', 'unit_amount': 10, 'type': 3, 'price_avg': 265.304, 'deal_amount': 1, 'price': 265.304, 'create_date': 1557968404000, 'order_id': 2833278863744000, 'status': 2}]}
 reissuing_order = 0
-wait_for_completion = 5 # default is 5 seconds
+wait_for_completion = 0 # default is no wait
 def issue_order_now(symbol, contract, direction, amount, action):
     global reissuing_order, wait_for_completion
     # print (symbol, direction, amount, action)
@@ -254,15 +254,20 @@ def issue_order_now(symbol, contract, direction, amount, action):
         return (False, 0)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
-    if wait_for_completion > 0:
+    if wait_for_completion > 0: # only valid if positive
         time.sleep(wait_for_completion)
     order_info = json.loads(query_orderinfo(symbol, contract, order_id))
     #print (order_info)
     # update amount_ratio from current order's lever_rate field
     globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
-    if order_info['orders'][0]['amount'] != order_info['orders'][0]['deal_amount']:
-        amount -= int(order_info['orders'][0]['deal_amount'])
-        reissuing_order += 1
+    deal_amount = order_info['orders'][0]['deal_amount']:
+    if order_info['orders'][0]['amount'] != deal_amount:
+        if deal_amount > 0 and wait_for_completion == 0: # it's ok
+            # no update for last_fee
+            return (True, order_info['orders'][0]['price'])
+        else: # should wait 
+            amount -= int(deal_amount)
+            reissuing_order += 1
     else:
         globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
         return (True, order_info['orders'][0]['price'])
