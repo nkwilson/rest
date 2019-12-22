@@ -242,7 +242,7 @@ order_infos = {'usd_btc':'btc_usd',
 
 # {'result': True, 'orders': [{'symbol': 'eth_usd', 'lever_rate': 10, 'amount': 1, 'fee': -1.131e-05, 'contract_name': 'ETH0517', 'unit_amount': 10, 'type': 3, 'price_avg': 265.304, 'deal_amount': 1, 'price': 265.304, 'create_date': 1557968404000, 'order_id': 2833278863744000, 'status': 2}]}
 reissuing_order = 0
-wait_for_completion = 0 # default is no wait
+wait_for_completion = 1 # default is no wait
 def issue_order_now(symbol, contract, direction, amount, action):
     global reissuing_order, wait_for_completion
     # print (symbol, direction, amount, action)
