@@ -1084,6 +1084,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
                 new_l_dir = ''
+                if close > previous_close and delta_ema_1 > 0:
+                    new_l_dir = 'buy'
+                elif close < previous_close and delta_ema_1 < 0:
+                    new_l_dir = 'sell'                
                 if new_open == False:
                     on_guard = enable_guard
                     if not forced_close:
@@ -1118,14 +1122,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             issuing_close = True
                             open_start_price = open_price # when seeing this price, should close, init only once
                     # if issuing_close is true, check the new direction first
-                    if close > previous_close and delta_ema_1 > 0:
-                        new_l_dir = 'buy'
-                        if issuing_close and l_dir == 'buy': # the same direction, just treat it as a greedy
-                            issuing_close = False
-                    elif close < previous_close and delta_ema_1 < 0:
-                        new_l_dir = 'sell'
-                        if issuing_close and l_dir == 'sell':
-                            issuing_close = False
+                    if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
+                        issuing_close = False
                     greedy_action = ''
                     greedy_status = 'no action'
                     update_quarter_amount = False
@@ -1148,13 +1146,13 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
                         if greedy_action != '': # update amount
                             open_greedy = True
+                            previous_close = close
                             if quarter_amount > thisweek_amount_pending:
                                 thisweek_amount = quarter_amount / 4
                             else:
                                 thisweek_amount = quarter_amount / 8
                             if thisweek_amount < 2:
                                 thisweek_amount = 2 # at least 2, for reverse need 1
-                            previous_close = close
                         if greedy_action == 'close': # yes, close action pending
                             l_amount = 0
                             if thisweek_amount_pending > 0 and forward_greedy: 
