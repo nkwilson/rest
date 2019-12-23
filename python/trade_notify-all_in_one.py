@@ -1191,12 +1191,13 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             update_quarter_amount = True
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)
+                        issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all 
                         # and open again, just like new_open == True
                         new_open = True
-                        if open_greedy == True:
-                            close_greedy = True
+                        if open_greedy == True :
+                            close_greedy = backward_greedy # only if backward_greedy is true
                             open_greedy = False
+                            thisweek_amount_pending = 0
                         update_quarter_amount = True
                         trade_file = '' # clear it
                     if update_quarter_amount == True:
