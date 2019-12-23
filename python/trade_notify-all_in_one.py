@@ -271,10 +271,10 @@ def issue_order_now(symbol, contract, direction, amount, action):
     else:
         globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
         return (True, order_info['orders'][0]['price'])
-    if reissuing_order > 5: # more than 5 , quit
+    if reissuing_order > 60: # more than 60 , quit
         reissuing_order = 0
         return (False, 0)
-    #print ('try to cancel pending order and reissue')
+    print ('try to cancel pending order and reissue', ' amount = %d' % amount)
     cancel_order(symbol, contract, order_id)
     return issue_order_now(symbol, contract, direction, amount, action)
 
