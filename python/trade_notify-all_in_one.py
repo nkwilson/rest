@@ -303,7 +303,6 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.clear()
             amount = t_amount
         else:
-            amount = min(amount, t_amount) # choose the litte one
             total_amount = 0
             while len(holding) > 0:
                 (price, l_amount) = holding.pop()
@@ -311,6 +310,9 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
+            if total_amount >= t_amount: #too much fake holdings
+                total_amount = t_amount
+                holding.clear()
             amount = total_amount
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
         print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
