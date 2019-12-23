@@ -256,21 +256,25 @@ def issue_order_now(symbol, contract, direction, amount, action):
     #print (order_id)
     if wait_for_completion > 0: # only valid if positive
         time.sleep(wait_for_completion)
-    order_info = json.loads(query_orderinfo(symbol, contract, order_id))
-    #print (order_info)
-    # update amount_ratio from current order's lever_rate field
-    globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
-    deal_amount = order_info['orders'][0]['deal_amount']
-    if order_info['orders'][0]['amount'] != deal_amount:
-        if deal_amount > 0 and wait_for_completion == 0: # it's ok
-            # no update for last_fee
-            return (True, order_info['orders'][0]['price'])
-        else: # should wait 
-            amount -= int(deal_amount)
-            reissuing_order += 1
+    raw_order_info = query_orderinfo(symbol, contract, order_id)
+    if result['result'] == False: # something is wrong
+        reissuing_order += 1
     else:
-        globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
-        return (True, order_info['orders'][0]['price'])
+        order_info = json.loads(raw_order_info)
+        #print (order_info)
+        # update amount_ratio from current order's lever_rate field
+        globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
+        deal_amount = order_info['orders'][0]['deal_amount']
+        if order_info['orders'][0]['amount'] != deal_amount:
+            if deal_amount > 0 and wait_for_completion == 0: # it's ok
+                # no update for last_fee
+                return (True, order_info['orders'][0]['price'])
+            else: # should wait 
+                amount -= int(deal_amount)
+                reissuing_order += 1
+        else:
+            globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
+            return (True, order_info['orders'][0]['price'])
     if reissuing_order > 60: # more than 60 , quit
         reissuing_order = 0
         return (False, 0)
