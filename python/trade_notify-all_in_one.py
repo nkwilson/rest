@@ -1074,6 +1074,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             forced_close = True
                     elif t_amount > (quarter_amount + thisweek_amount_pending): # maybe opened manually
                         thisweek_amount_pending = t_amount - quarter_amount
+                    elif t_amount < quarter_amount: # maybe less
+                        thisweek_amount_pending = 0
                 if forced_close:
                     open_greedy = True
                     # suffered forced close
