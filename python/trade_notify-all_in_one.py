@@ -1175,13 +1175,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            more_action = True
-                            if thisweek_amount_pending > 0:
-                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close')
-                                thisweek_amount_pending -= l_amount
-                            if thisweek_amount_pending < 0:
-                                thisweek_amount_pending = 0
-                            if more_action and forward_greedy: 
+                            if forward_greedy: 
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                 thisweek_amount_pending += thisweek_amount
                             # first close current order
