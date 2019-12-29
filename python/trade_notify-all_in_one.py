@@ -313,14 +313,14 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             if total_amount >= t_amount: #too much fake holdings
                 total_amount = t_amount
                 holding.clear()
-            amount = total_amount
+            elif total_amount > 0: # only if positive
+                amount = total_amount
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
         print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
         if len(holding) > 0:
             #print (holding)
             pass
         return amount if ret == True else 0
-    amount = min(amount, t_amount) # choose the litte one
     total_amount = 0
     addon = ''
     while len(holding) > 0:
@@ -335,9 +335,11 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         else: # not positive
             holding.append((price, l_amount)) # put it back
             break
-    if total_amount > 0:
-        if total_amount > t_amount:
-            total_amount = t_amount
+    if total_amount == 0:
+        total_amount = min(amount, t_amount)
+    else:
+        total_amount = min(total_amount, t_amount)
+    if True:
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
         addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
@@ -812,6 +814,9 @@ names_tit2tat = ['trade_file',
                  'open_greedy',
                  'quarter_amount',
                  'thisweek_amount_pending',
+                 'quarter_amount_multiplier',
+                 'greedy_count',
+                 'greedy_count_max',
                  'last_balance',
                  'last_bond',
                  'update_quarter_amount_forward',
@@ -911,6 +916,9 @@ last_fee = 0
 open_cost = 0
 quarter_amount = 1
 thisweek_amount_pending = 0
+quarter_amount_multiplier = 2 # 2 times is up threshold
+greedy_count_max = 2 # limit this times pending greedy
+greedy_count = 0 # current pending greedy
 close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.05 # percent of total amount
@@ -1072,9 +1080,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             forced_close = False
                         else:
                             forced_close = True
-                    elif t_amount > (quarter_amount + thisweek_amount_pending): # maybe opened manually
+                    elif t_amount > quarter_amount: # maybe opened manually
                         thisweek_amount_pending = t_amount - quarter_amount
-                    elif t_amount < quarter_amount: # maybe less
+                    else: 
+                        greedy_count = 1 # let greedy start now
                         thisweek_amount_pending = 0
                 if forced_close:
                     open_greedy = True
@@ -1155,14 +1164,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
-                            if quarter_amount > thisweek_amount_pending:
-                                thisweek_amount = quarter_amount / 4
-                            else:
-                                thisweek_amount = quarter_amount / 8
-                            if thisweek_amount < 2:
-                                thisweek_amount = 2 # at least 2, for reverse need 1
+                            thisweek_amount = math.ceil((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
                         if greedy_action == 'close': # yes, close action pending
-                            l_amount = 0
                             if thisweek_amount_pending > 0 and forward_greedy: 
                                 l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
                                 if thisweek_amount_pending >= l_amount: # is ok
@@ -1171,18 +1174,23 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                                     thisweek_amount_pending = 0;
                             else:
+                                greedy_count = min(greedy_count_max, greedy + 1) # increase and max is limited                                 
                                 thisweek_amount_pending = 0 # in case negative
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            if forward_greedy: 
-                                issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                                thisweek_amount_pending += thisweek_amount
-                            # first close current order
-                            if backward_greedy:
-                                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
-                                # secondly open new order
-                                issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
+                            if greedy_count < 1: # must bigger than 1
+                                issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount, 'close')
+                            else:
+                                greedy_count = greedy_count / 2 # decreasing fast
+                                if forward_greedy: 
+                                    issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                    thisweek_amount_pending += thisweek_amount
+                                    # first close current order
+                                if backward_greedy:
+                                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
+                                    # secondly open new order
+                                    issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                         if greedy_action != '': # update balance
                             update_quarter_amount = True
                     if issuing_close == True:
