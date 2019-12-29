@@ -1015,6 +1015,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
         new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
         delta_ema_1 = new_ema_1 - ema_1
         reverse_follow_dir = ''
+        price_delta = 0
         print ('') # add an empty line
         if trade_file == '':
             print ('%9.4f' % close, '-',
@@ -1022,12 +1023,14 @@ def try_to_trade_tit2tat(subpath, guard=False):
         elif l_dir == 'sell': # sell order
             ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
             reverse_follow_dir = 'buy'
+            price_delta = (previous_close - close) / previoud_close
             print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 'gate %9.4f' % open_start_price,
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo))
         elif l_dir == 'buy': # buy order
             ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
             reverse_follow_dir = 'sell'
+            price_delta = (close - previous_close) / previoud_close
             print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 'gate %9.4f' % open_start_price,
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up))                   
@@ -1225,12 +1228,12 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
                             do_updating = 'do '
                             quarter_amount = new_quarter_amount
-                        print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f->%f,%f%%' %
+                        print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f=>%f,%f%%' %
                                (do_updating, 
                                 amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
                 if close_greedy == True:
-                    print (trade_timestamp(), 'greedy signal %s at %s => %s (%s%s)' % (l_dir, previous_close, close,
+                    print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     if forward_greedy:
                         issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
