@@ -962,6 +962,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global enable_guard
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
+    global greedy_count
     
     greedy_status = ''    
     #print (subpath)
