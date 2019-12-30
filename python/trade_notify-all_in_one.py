@@ -962,7 +962,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global enable_guard
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
-    global greedy_count
+    global greedy_count, greedy_count_max
     
     greedy_status = ''    
     #print (subpath)
@@ -1089,7 +1089,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         else:
                             forced_close = True
                     elif t_amount > quarter_amount: # maybe opened manually
-                        thisweek_amount_pending = t_amount - quarter_amount
+                        thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
                     else: 
                         greedy_count = 1 # let greedy start now
                         thisweek_amount_pending = 0
@@ -1099,7 +1099,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                     print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
                     # action likes new_open equals true, but take original l_dir as it
-                    mini_amount = max(1, quarter_amount / 8)
+                    mini_amount = max(1, math.ceil(quarter_amount / 8))
                     issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
                     # clear it
                     thisweek_amount_pending = 0
@@ -1187,7 +1187,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            if greedy_count < 1: # must bigger than 1
+                            if greedy_count < 1.0: # must bigger than 1
                                 issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount, 'close')
                             else:
                                 greedy_count = greedy_count / 2 # decreasing fast
@@ -1219,9 +1219,9 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
                         if amount_real > 0: # if set, just use it
-                            new_quarter_amount = base_amount * amount_real
+                            new_quarter_amount = math.ceil(base_amount * amount_real)
                         else:
-                            new_quarter_amount = base_amount / amount_ratio + base_amount * amount_ratio_plus
+                            new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
                         if new_quarter_amount < 1:
                             new_quarter_amount = 1
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
