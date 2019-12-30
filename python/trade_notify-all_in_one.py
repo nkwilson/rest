@@ -1182,7 +1182,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                                     thisweek_amount_pending = 0;
                             else:
-                                greedy_count = min(greedy_count_max, greedy + 1) # increase and max is limited                                 
+                                greedy_count = min(greedy_count_max, greedy_count + 1) # increase and max is limited                                 
                                 thisweek_amount_pending = 0 # in case negative
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
