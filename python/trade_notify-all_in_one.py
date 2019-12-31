@@ -1168,7 +1168,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             elif (close - previous_close) > greedy_cost_multiplier * open_cost:
                                 greedy_action = 'open'
                                 greedy_status = 'holding'
-                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s)' % (l_dir, previous_close, close, greedy_status))
+                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s) greedy:%f' % (l_dir, previous_close, close, greedy_status, greedy_count))
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
