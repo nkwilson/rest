@@ -1171,7 +1171,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
-                            thisweek_amount = math.ceil((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
+                            thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
                         if greedy_action == 'close': # yes, close action pending
                             if thisweek_amount_pending > 0 and forward_greedy: 
                                 l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
