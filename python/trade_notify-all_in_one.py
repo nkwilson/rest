@@ -1090,8 +1090,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             forced_close = True
                     elif t_amount > quarter_amount: # maybe opened manually
                         thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
-                    else: 
-                        greedy_count = 1 if t_amount < quarter_amount # let greedy start now
+                    else:
                         thisweek_amount_pending = 0
                 if forced_close:
                     open_greedy = True
