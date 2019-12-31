@@ -1663,7 +1663,7 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 def calculate_timeout_for_self_trigger(notify):
     period_ms = periods_mapping_ms[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
-    delta = 1
+    delta = 30
     timeout = (period_ms - moduls) - delta
     if timeout > 0:
         return (timeout, delta)
