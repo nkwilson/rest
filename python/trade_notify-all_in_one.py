@@ -355,7 +355,7 @@ def issue_quarter_order_now(symbol, direction, amount, action):
            action, symbol, direction, amount)
     if options.noaction:
         return 0
-    (ret, price) = issue_order_now(symbol, 'quarter', direction, amount, action)
+    (ret, price) = issue_order_now(symbol, globals()['contract'], direction, amount, action)
     if ret == True and action == 'open':
         orders_holding[direction]['holding'].append((price, amount))
     return amount if ret == True else 0
@@ -366,7 +366,7 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
            action, symbol, direction, amount)
     if options.noaction:
         return 0
-    return issue_order_now_conditional(symbol, 'quarter', direction, amount, action, must_positive)
+    return issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
 
 # apikey = 'e2625f5d-6227-4cfd-9206-ffec43965dab'
 # secretkey = "27BD16FD606625BCD4EE6DCA5A8459CE"
@@ -452,7 +452,7 @@ def check_open_order_gate(symbol, direction, current_price):
         return True
     if options.skip_gate_check:
         return True
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, globals()['contract'], '1'))
     if holding['result'] != True:
         return False
     if len(holding['holding']) == 0:
@@ -661,7 +661,7 @@ def check_forced_close(symbol, direction, prices):
             return ((open_price - prices[ID_HIGH]) / open_price) <= -0.1  # rate is 10
         else:
             return False
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, 'quarter', '1'))
+    holding=json.loads(okcoinFuture.future_position_4fix(symbol, globals()['contract'], '1'))
     if holding['result'] != True:
         return False
     if len(holding['holding']) == 0:
@@ -996,8 +996,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
             globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
             issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
 
-            (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
-            t_bond = query_bond(symbol, 'quarter', l_dir)
+            (open_price, no_use) = real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+            t_bond = query_bond(symbol, globals()['contract'], l_dir)
             if t_bond > 0:
                 last_bond = t_bond
                 t_open_cost = open_price * last_fee / last_bond  # just see cost
@@ -1078,7 +1078,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     else:
                         t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
                     if not options.emulate: # if emualtion, figure it manually
-                        (loss, t_amount) = check_holdings_profit(symbol, 'quarter', l_dir)
+                        (loss, t_amount) = check_holdings_profit(symbol, globals()['contract'], l_dir)
                     if t_amount <= 0:
                         # check if should take normal close action
                         (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
@@ -1100,7 +1100,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
                     # clear it
                     thisweek_amount_pending = 0
-                    (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
+                    (open_price, no_use) = real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
                     if l_dir == 'buy' and open_start_price < new_open_start_price:
                         open_start_price = (open_start_price + new_open_start_price) / 2
                     elif l_dir == 'sell' and open_start_price > new_open_start_price:
@@ -1267,8 +1267,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
-                    (open_price, no_use) = real_open_price_and_cost(symbol, 'quarter', l_dir) if not options.emulate else (close, 0.001)
-                    t_bond = query_bond(symbol, 'quarter', l_dir)
+                    (open_price, no_use) = real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+                    t_bond = query_bond(symbol, globals()['contract'], l_dir)
                     if t_bond > 0:
                         last_bond = t_bond
                         t_open_cost = open_price * last_fee / last_bond  # just see cost
@@ -1630,7 +1630,7 @@ periods_mapping_ms = { '1day': 24 * 60 * 60,
                        '3min': 3 * 60,
                        '1min': 60}
 
-# logic copied from signal_notity.py
+# logic copied from signal_notify.py
 def prepare_for_self_trigger(notify, signal, l_dir):
     symbol=symbols_mapping[figure_out_symbol_info(notify)]
     contract=figure_out_contract_info(notify)
@@ -1669,6 +1669,8 @@ def calculate_timeout_for_self_trigger(notify):
         return (timeout, delta)
     else:
         return (-1, delta) # wait at least this long time of seconds
+
+contract = figure_out_contract_info(signal_notify)
 
 first_prompt = True
 guard_count = 0
