@@ -1426,7 +1426,7 @@ def wait_signal_notify(notify, signal, shutdown, guard):
                 status = globals()['try_to_trade_%s' % signal](subpath, guard)
                 if status != 'no action':
                     globals()['save_status_%s' % signal](subpath)
-                    print (globals()['trade_status'])
+                    # print (globals()['trade_status'])
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print (trade_timestamp(), 'shutdown now')
@@ -1544,7 +1544,7 @@ amount_file = '%s.%samount' % (l_dir, l_prefix)
 default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
 amount_ratio = default_amount_ratio
 ratio_file = '%s.%sratio' % (l_dir, l_prefix)
-print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
+# print ('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
 logfile='%s.log' % trade_notify
