@@ -1178,6 +1178,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 else:
                                     print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                                     thisweek_amount_pending = 0;
+                                greedy_count += (l_amount / thisweek_amount)
                             elif thisweek_amount_pending < 0 and forward_greedy: # if less holdings, increase it
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                 thisweek_amount_pending += thisweek_amount
