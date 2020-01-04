@@ -1179,17 +1179,18 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                                     thisweek_amount_pending = 0;
                                 greedy_count += (l_amount / thisweek_amount)
-                            elif thisweek_amount_pending < 0 and forward_greedy: # if less holdings, increase it
-                                issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                                thisweek_amount_pending += thisweek_amount
                             else:
                                 greedy_count = greedy_count + 1
+                                if thisweek_amount_pending < 0 and forward_greedy: # if less holdings, increase it
+                                    issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                    thisweek_amount_pending += thisweek_amount
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
                             if greedy_count < 1.0: # must bigger than 1
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount - 1, 'close') # forced, left 1 in case empty holding
                             else:
+                                greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                                 if forward_greedy: 
                                     issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                     thisweek_amount_pending += thisweek_amount
@@ -1198,7 +1199,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                                     # secondly open new order
                                     issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
-                            greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                         if greedy_action != '': # update balance
                             update_quarter_amount = True
                     if issuing_close == True:
