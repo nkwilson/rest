@@ -1197,7 +1197,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                                     # secondly open new order
                                     issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
-                            greedy_count = greedy_count / 2 # decreasing fast
+                            greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                         if greedy_action != '': # update balance
                             update_quarter_amount = True
                     if issuing_close == True:
