@@ -268,7 +268,7 @@ def issue_order_now(symbol, contract, direction, amount, action):
         except Exception as ex:
             if amount < 2: # no balance now
                 return (False, 0)
-            issue_order_now(symbol, contract, direction, amount / 2, action)
+            return issue_order_now(symbol, contract, direction, amount / 2, action)
         deal_amount = order_info['orders'][0]['deal_amount']
         if order_info['orders'][0]['amount'] != deal_amount:
             if deal_amount > 0 and wait_for_completion == 0: # it's ok
