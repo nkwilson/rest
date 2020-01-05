@@ -262,12 +262,15 @@ def issue_order_now(symbol, contract, direction, amount, action):
     else:
         order_info = json.loads(raw_order_info)
         #print (order_info)
+        new_amount = 0
         try: # in case amount too much 
             # update amount_ratio from current order's lever_rate field
             globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
         except Exception as ex:
             if amount < 2: # no balance now
                 return (False, 0)
+            new_amount = amount / 2
+        if new_amount > 0:
             return issue_order_now(symbol, contract, direction, amount / 2, action)
         deal_amount = order_info['orders'][0]['deal_amount']
         if order_info['orders'][0]['amount'] != deal_amount:
