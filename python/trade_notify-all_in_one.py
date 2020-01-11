@@ -310,6 +310,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.clear()
             amount = t_amount
         else:
+            amount = min(t_amount, amount) # get little one
             total_amount = 0
             while len(holding) > 0:
                 (price, l_amount) = holding.pop()
@@ -317,19 +318,13 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
-            if total_amount >= t_amount: #too much fake holdings
-                total_amount = t_amount
-                holding.clear()
-            elif total_amount > 0: # only if positive
-                amount = total_amount
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
-        print ('loss ratio=%f%%, %s' % (loss, 'yeap' if loss > 0 else 'tough'))
-        if len(holding) > 0:
-            #print (holding)
-            pass
+        print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
         return amount if ret == True else 0
     total_amount = 0
     addon = ''
+    saved_amount = amount
+    amount = min(t_amount, amount) # get little on
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
         if globals()['positive_greedy_tiny_profit'](price, direction) == True:
@@ -342,17 +337,10 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         else: # not positive
             holding.append((price, l_amount)) # put it back
             break
-    if total_amount == 0:
-        total_amount = min(amount, t_amount)
-    else:
-        total_amount = min(total_amount, t_amount)
-    if True:
+    if total_amount > 0 : # yes, has positive holdings
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
-        addon = ' (%d required, %d closed, %d left)' % (amount, total_amount, (t_amount - total_amount))
+        addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
-    if total_amount > 0 and len(holding) > 0: # if closed something, show it out
-        # print (holding)
-        pass
     return total_amount
 
 global options
