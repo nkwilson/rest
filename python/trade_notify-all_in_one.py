@@ -1222,6 +1222,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     if update_quarter_amount == True:
                         old_balance = last_balance
                         last_balance = query_balance(symbol)
+                        if last_balance == 0:
+                            last_balance = old_balance # in case quary failed
                         delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
                         amount = quarter_amount
                         base_amount = last_balance / last_bond if last_bond > 0 else 1
