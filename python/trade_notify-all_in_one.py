@@ -250,8 +250,8 @@ def issue_order_now(symbol, contract, direction, amount, action):
     result = json.loads(raw_result)
     # print (result)
     if result['result'] == False:
-        reissuing_order = 0
-        return (False, 0)
+        reissuing_order += 1
+        return issue_order_now(symbol, contract, direction, amount / 2, action)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
     if wait_for_completion > 0: # only valid if positive
