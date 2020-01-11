@@ -1222,7 +1222,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         else:
                             new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
                         if new_quarter_amount < 1:
-                            new_quarter_amount = 1
+                            new_quarter_amount = quarter_amount # means no real update
                         if abs(close - next_open_start_price) > profit_cost_multiplier * open_cost: # only update if enough gap
                             open_start_price = (open_start_price + next_open_start_price) / 2 # if new order, update open_start_price from next_open_start_price
                         do_updating = 'no '
