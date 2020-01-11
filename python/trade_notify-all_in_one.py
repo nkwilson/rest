@@ -251,6 +251,8 @@ def issue_order_now(symbol, contract, direction, amount, action):
     # print (result)
     if result['result'] == False:
         reissuing_order += 1
+        if amount < 2:
+            return (False, 0)
         return issue_order_now(symbol, contract, direction, amount / 2, action)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
