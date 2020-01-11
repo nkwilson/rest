@@ -1175,12 +1175,15 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 else:
                                     print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                                     thisweek_amount_pending = 0;
-                                greedy_count += (l_amount / thisweek_amount)
-                            else:
-                                greedy_count = greedy_count + 1
-                                if thisweek_amount_pending < 0 and forward_greedy: # if less holdings, increase it
-                                    issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                                    thisweek_amount_pending += thisweek_amount
+                                if thisweek_amount_pending == 0: # fresh go
+                                    greedy_count = greedy_count_max # increase it to threshold
+                                else:
+                                    greedy_count += (l_amount / thisweek_amount)                                    
+                            elif forward_greedy:
+                                if thisweek_amount_pending < 0 : # if less holdings, increase it
+                                    greedy_count = greedy_count_max
+                                else:
+                                    greedy_count = greedy_count + (1 / greedy_count_max)
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
@@ -1191,7 +1194,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 if forward_greedy: 
                                     issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                     thisweek_amount_pending += thisweek_amount
-                                    # first close current order
                                 if backward_greedy:
                                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                                     # secondly open new order
