@@ -1167,28 +1167,43 @@ def try_to_trade_tit2tat(subpath, guard=False):
                             open_greedy = True
                             previous_close = close
                             thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
+#  持续更新 pending
+#  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
+#  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
+#  逆向发展，greedy_count < 1, 减少持仓， - (quarter_amount - 1), 更新 pending
+#  无动作，更新 balance，quarter_amount
+#  同向发展，pending==0, greedy_count += 1/ max ;  == 重复该过程
+#  同向发展，pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
+#  同向发展，pending < 0, greedy_count = max
+#  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
+#  
                         if greedy_action == 'close': # yes, close action pending
-                            if thisweek_amount_pending > 0 and forward_greedy: 
-                                l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
-                                if thisweek_amount_pending >= l_amount: # is ok
-                                    thisweek_amount_pending -= l_amount
-                                else:
-                                    print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
-                                    thisweek_amount_pending = 0;
-                                if thisweek_amount_pending == 0: # fresh go
-                                    greedy_count = greedy_count_max # increase it to threshold
-                                else:
-                                    greedy_count += (l_amount / thisweek_amount)                                    
-                            elif forward_greedy:
-                                if thisweek_amount_pending < 0 : # if less holdings, increase it
-                                    greedy_count = greedy_count_max
+                            if forward_greedy : 
+                                if thisweek_amount_pending > 0: 
+                                    l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
+                                    if thisweek_amount_pending >= l_amount: # is ok
+                                        thisweek_amount_pending -= l_amount
+                                    else:
+                                        print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
+                                        thisweek_amount_pending = 0;
+                                    if thisweek_amount_pending == 0: # fresh go
+                                        greedy_count = greedy_count_max # increase it to threshold
+                                    else:
+                                        greedy_count += (l_amount / thisweek_amount)                                    
+                                elif thisweek_amount_pending < 0 : # if less holdings, increase it
+                                    if greedy_count < greedy_count_max:
+                                        greedy_count = greedy_count_max
+                                    else:
+                                        l_amount = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
+                                        thisweek_amount_pending += l_amount
                                 else:
                                     greedy_count = greedy_count + (1 / greedy_count_max)
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
                             if greedy_count < 1.0: # must bigger than 1
-                                issue_quarter_order_now(symbol, l_dir, 2 * thisweek_amount - 1, 'close') # forced, left 1 in case empty holding
+                                issue_quarter_order_now(symbol, l_dir, quarter_amount - 1, 'close') # forced, left 1 in case empty holding
+                                thisweek_amount_pending -= quarter_amount - 1
                             else:
                                 greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                                 if forward_greedy: 
