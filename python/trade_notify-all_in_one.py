@@ -814,6 +814,7 @@ names_tit2tat = ['trade_file',
                  'quarter_amount_multiplier',
                  'greedy_count',
                  'greedy_count_max',
+                 'greedy_whole_balance',
                  'last_balance',
                  'last_bond',
                  'update_quarter_amount_forward',
@@ -916,6 +917,7 @@ thisweek_amount_pending = 0
 quarter_amount_multiplier = 2 # 2 times is up threshold
 greedy_count_max = 2 # limit this times pending greedy
 greedy_count = 0 # current pending greedy
+greedy_whole_balance = False # greedy will cover whole balance
 close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.05 # percent of total amount
@@ -1166,7 +1168,10 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
-                            thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
+                            if globals()['greedy_whole_balance']: 
+                                thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
+                            else:
+                                thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
 #  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
