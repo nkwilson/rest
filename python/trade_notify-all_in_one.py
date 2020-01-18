@@ -210,13 +210,20 @@ def figure_out_period_info(path):
 # if current order is permit to issue
 def check_holdings_profit(symbol, contract, direction):
     nn = (0,0)
-    holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
-    if holding['result'] != True:
-        time.sleep(1) # in case something wrong, try again
-        holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
-        if holding['result'] != True:
-            return nn
-    if len(holding['holding']) == 0:
+    loops = 5
+    while loops > 0: # try some times
+        try:
+            holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
+            if holding['result'] != True:
+                time.sleep(1) # in case something wrong, try again
+                holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
+                if holding['result'] != True:
+                    return nn
+                break
+        except Exception as ex:
+            pass
+        loops -= 1
+    if loops == 0 or len(holding['holding']) == 0:
         return nn
     # print (holding['holding'])
     for data in holding['holding']:
