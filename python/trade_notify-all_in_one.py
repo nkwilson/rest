@@ -1147,8 +1147,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
-                            if globals()['greedy_whole_balance']: 
-                                thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
+                            if globals()['greedy_whole_balance']:
+                                if globals()['amount_real'] > 0:
+                                    thisweek_amount = quarter_amount
+                                else:
+                                    thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
                             elif globals()['greedy_same_amount']:
                                 thisweek_amount = quarter_amount
                             else:
