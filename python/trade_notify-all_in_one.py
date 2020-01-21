@@ -4,8 +4,6 @@ import sys
 import getopt
 import traceback
 
-import pandas
-import numpy
 import datetime
 
 import os
@@ -206,6 +204,7 @@ def figure_out_period_info(path):
     # print ('period is %s' % (path[start:]))
     return path[start:]
 
+
 # {'result': True, 'holding': [{'buy_price_avg': 176.08158274, 'symbol': 'eth_usd', 'lever_rate': 10, 'buy_available': 0, 'contract_id': 201906280020041, 'sell_risk_rate': '99.36', 'buy_amount': 0, 'buy_risk_rate': '1,000,000.00', 'profit_real': -1.847e-05, 'contract_type': 'quarter', 'sell_flatprice': '178.453', 'buy_bond': 0, 'sell_profit_lossratio': '-0.66', 'buy_flatprice': '0.000', 'buy_profit_lossratio': '0.00', 'sell_amount': 1, 'sell_bond': 0.00615942, 'sell_price_cost': 162.388, 'buy_price_cost': 176.08158274, 'create_date': 1552656509000, 'sell_price_avg': 162.388, 'sell_available': 1}]}
 # if current order is permit to issue
 def check_holdings_profit(symbol, contract, direction):
@@ -219,6 +218,7 @@ def check_holdings_profit(symbol, contract, direction):
                 holding=json.loads(okcoinFuture.future_position_4fix(symbol, contract, '1'))
                 if holding['result'] != True:
                     return nn
+            else:
                 break
         except Exception as ex:
             pass
@@ -235,6 +235,12 @@ def check_holdings_profit(symbol, contract, direction):
                 amount = int(data['%s_amount' % direction])
                 return (loss, amount)
     return nn
+
+#print (okcoinFuture.future_position('ltc_usd','quarter'))  # works
+#print (okcoinFuture.future_position('ltc_usd','this_week'))  # works
+#print (check_holdings_profit('ltc_usd', 'this_week', 'buy'))
+#print (check_holdings_profit('ltc_usd', 'this_week', 'sell'))
+#sys.exit(1)
 
 order_infos = {'usd_btc':'btc_usd',
                'usd_ltc':'ltc_usd',
@@ -382,41 +388,6 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
 # #期货API
 # okcoinFuture = OKCoinFuture(okcoinRESTURL,apikey,secretkey)
 
-def main(argv):
-    print (argv)
-
-    matplotlib.rcParams['font.sans-serif'] = ['AR PL KaitiM GB'] # SimHei is common Chinese font on macOS. ttc is not ok.
-#fonts-arphic-gkai00mp/xenial 2.11-15 all
-#  "AR PL KaitiM GB" Chinese TrueType font by Arphic Technology
-
-# after install new font, must delete this file: /root/.cache/matplotlib/fontList.cache  to let matplotlib update font cache
-
-    if len(argv) == 1:
-        __main()
-        return
-
-    # 1 args: all_stocks | selected
-    if len(argv) == 2:
-            globals()[argv[1]]()
-    # 2 args: one_stock ######, last year
-    elif len(argv) == 3:
-            end = pandas.datetime.now();
-            start=end-datetime.timedelta(365)
-
-            globals()[argv[1]](argv[2],start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
-    # 3 args: one_stock ######, start, until now
-    elif len(argv) == 4:
-            globals()[argv[1]](argv[2], argv[3], pandas.datetime.now().strftime('%Y-%m-%d'))
-    elif len(argv) == 5:
-    # 4 args: one_stock ######, start, end
-            globals()[argv[1]](argv[2], argv[3], argv[4])
-    else:
-            print ("Usage: program [one_stock [stock [start [end]]]]")
-
-
-close_mean = pandas.Series()
-close_upper = pandas.Series()
-close_lower = pandas.Series()
 
 old_open_price = 0
 old_close_mean = 0
@@ -953,7 +924,6 @@ update_quarter_amount_backward = False # update it if balance decrease
 def try_to_trade_tit2tat(subpath, guard=False):
     global trade_file, old_close_mean
     global old_open_price
-    global close_mean, close_upper, close_lower
     global old_close, bins, direction
     global l_trade_file
     global previous_close
@@ -1360,9 +1330,6 @@ def plot_saved_price(l_dir):
             try:
                     # ignore nan data
                     if math.isnan(boll[0]) == False:
-                            close_mean[fname]=boll[0]
-                            close_upper[fname]=boll[1]
-                            close_lower[fname]=boll[2]
                             # save old close_mean
                             old_close_mean = boll[0]
             except Exception as ex:
