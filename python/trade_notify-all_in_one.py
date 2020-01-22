@@ -1191,7 +1191,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         elif greedy_action == 'open': # yes, open action pending
                             if greedy_count < 1.0: # must bigger than 1
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount * greedy_count_max - 1, 'close') # forced, left 1 in case empty holding
-                                thisweek_amount_pending -= quarter_amount - 1
+                                thisweek_amount_pending -= thisweek_amount * greedy_count_max - 1
                             else:
                                 greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                                 if forward_greedy:
@@ -1247,6 +1247,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
                     if forward_greedy:
+                        if globals()['greedy_same_amount']:
+                            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
                     if backward_greedy:    
                         issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
