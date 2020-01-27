@@ -1194,10 +1194,17 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 thisweek_amount_pending -= thisweek_amount * greedy_count_max - 1
                             else:
                                 greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
-                                if forward_greedy:
-                                    if globals()['greedy_same_amount']:
-                                        issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
-                                    issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                if forward_greedy: # adjust open sequence according to l_dir
+                                    if l_dir == 'buy': # first open sell, then open buy
+                                        if globals()['greedy_same_amount']:
+                                            issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
+                                        issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                        pass
+                                    else:
+                                        issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                        if globals()['greedy_same_amount']:
+                                            issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
+                                        pass
                                     thisweek_amount_pending += thisweek_amount
                                 if backward_greedy:
                                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
