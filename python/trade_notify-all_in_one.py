@@ -170,7 +170,7 @@ def query_orderinfo(symbol, contract, order_id):
     return okcoinFuture.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 #print (u'期货逐仓账户信息')
-#print (json.loads(okcoinFuture.future_userinfo_4fix()))
+#print (json.loads(okcoinFuture.future_userinfo_4fix())) # not work for 全仓模式
 
 #print (u'期货逐仓持仓信息')
 #print (json.loads(okcoinFuture.future_position_4fix('ltc_usd','quarter', '1')))
