@@ -342,7 +342,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     amount = min(t_amount, amount) # get little on
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
-        if globals()['positive_greedy_tiny_profit'](price, direction) == True:
+        if globals()['positive_greedy_profit'](price, direction) == True:
             # print ('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
             if amount > 0 and total_amount > amount:
