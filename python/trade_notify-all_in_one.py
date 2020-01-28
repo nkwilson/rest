@@ -1008,7 +1008,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                    'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
                    'greedy : %f' % greedy_count,
-                   'cost: %9.4f' % open_cost
+                   'cost: %9.4f:%.2f' % (open_cost, globals()['greedy_cost_multiplier'])
             )
         elif l_dir == 'buy': # buy order
             ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
@@ -1019,7 +1019,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                    'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
                    'greedy : %f' % greedy_count,
-                   'cost: %9.4f' % open_cost
+                   'cost: %9.4f:%.2f' % (open_cost, globals()['greedy_cost_multiplier'])
             )                   
         ema_1 = new_ema_1 # saved now
         ema_1_up = new_ema_1_up
